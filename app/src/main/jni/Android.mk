@@ -10,6 +10,8 @@ ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 include $(LOCAL_BUILD_PATH)/desmume_a15.mk
 include $(LOCAL_BUILD_PATH)/desmume_neon.mk
 include $(LOCAL_BUILD_PATH)/desmume_v7.mk
+
+include $(LOCAL_BUILD_PATH)/desmume/src/android/math-neon/Android.mk
 endif
 
 ifeq ($(TARGET_ARCH_ABI),x86)
