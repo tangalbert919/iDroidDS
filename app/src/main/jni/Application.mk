@@ -21,4 +21,4 @@ APP_CFLAGS := -Ofast -ftree-vectorize -fsingle-precision-constant -fprefetch-loo
 #APP_CFLAGS := -Wno-psabi
 
 NDK_TOOLCHAIN_VERSION=4.9
-APP_PLATFORM := android-9
+APP_PLATFORM := android-21
