@@ -41,6 +41,14 @@ LOCAL_SRC_FILES		:=  math_acosf.c \
 						math_vec2.c
 LOCAL_ARM_NEON 			:= true
 LOCAL_ARM_MODE 			:= arm
-LOCAL_CFLAGS			:= -std=gnu99 -DHAVE_NEON=1 -march=armv7-a -marm -mfloat-abi=softfp -mfpu=neon
+LOCAL_CFLAGS			:= -std=gnu99 -DHAVE_NEON=1 -marm -mfloat-abi=softfp
+
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+LOCAL_CFLAGS			+= -march=armv7-a -mfpu=neon
+endif
+
+ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
+LOCAL_CFLAGS			+= -march=armv8-a -mfpu=neon-vfpv4
+endif
 
 include $(BUILD_STATIC_LIBRARY)

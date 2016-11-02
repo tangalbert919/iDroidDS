@@ -1,7 +1,7 @@
 # Android ndk makefile for nds4droid
 
 APP_STL := gnustl_static
-APP_ABI := armeabi armeabi-v7a x86
+APP_ABI := armeabi armeabi-v7a arm64-v8a x86 x86_64
 
 # For releases
 APP_CFLAGS := -Ofast -ftree-vectorize -fsingle-precision-constant -fprefetch-loop-arrays -fvariable-expansion-in-unroller -ffast-math -funroll-loops -fomit-frame-pointer -fno-math-errno -funsafe-math-optimizations -ffinite-math-only -fdata-sections -fbranch-target-load-optimize2 -fno-exceptions -fno-stack-protector -fforce-addr -funswitch-loops -ftree-loop-im -ftree-loop-ivcanon -fivopts -ftree-loop-if-convert-stores -ftree-loop-distribution -floop-interchange -ftree-loop-linear -floop-block -Wno-psabi

@@ -7,7 +7,7 @@ MY_LOCAL_PATH := $(LOCAL_PATH)
 include $(CLEAR_VARS)
 
 
-LOCAL_MODULE    		:= 	libdesmumex86
+LOCAL_MODULE    		:= 	libdesmume-x86
 LOCAL_C_INCLUDES		:= 	$(LOCAL_PATH)/desmume/src \
 							$(LOCAL_PATH)/desmume/src/android \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP \
