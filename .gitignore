@@ -1,6 +1,7 @@
 app/src/main/libs
 app/src/main/objs
 build/
+.externalNativeBuild/
 .gradle/
 .idea/
 *.iml
