@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.opendoorstudios.ds4droid"
-    android:versionCode="47"
-    android:versionName="47"
+    android:versionCode="48"
+    android:versionName="48-beta1"
     android:installLocation="auto" >
 
     <uses-sdk
