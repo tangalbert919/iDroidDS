@@ -31,7 +31,11 @@ class DeSmuME {
 	
 	static final int CPUTYPE_COMPAT =  0;
 	static final int CPUTYPE_V7 = 1;
-	static final int CPUTYPE_NEON = 2;
+	static final int CPUTYPE_V8 = 2;
+	static final int CPUTYPE_A9 = 3;
+	static final int CPUTYPE_A15 = 4;
+	static final int CPUTYPE_X86 = 5;
+	static final int CPUTYPE_X86_64 = 6;
 	
 	static void load()
 	{
@@ -40,16 +44,32 @@ class DeSmuME {
 		System.loadLibrary("cpudetect");
 		final int cpuType = getCPUType();
 		switch(cpuType) {
-		case CPUTYPE_NEON:
-			System.loadLibrary("desmumeneon");
-			Log.i(MainActivity.TAG, "Using NEON enhanced native library");
+		case CPUTYPE_A9:
+			System.loadLibrary("desmume-a9");
+			Log.i(MainActivity.TAG, "Using cortex-a9 native library");
+			break;
+		case CPUTYPE_A15:
+			System.loadLibrary("desmume-a15");
+			Log.i(MainActivity.TAG, "Using cortex-a15 native library");
 			break;
 		case CPUTYPE_V7:
-			System.loadLibrary("desmumev7");
-			Log.i(MainActivity.TAG, "Using ARMv7 native library");
+			System.loadLibrary("desmume-v7");
+			Log.i(MainActivity.TAG, "Using ARMv7-a native library");
+			break;
+		case CPUTYPE_V8:
+			System.loadLibrary("desmume-v8");
+			Log.i(MainActivity.TAG, "Using ARMv8-a native library");
+			break;
+		case CPUTYPE_X86:
+			System.loadLibrary("desmume-x86");
+			Log.i(MainActivity.TAG, "Using x86 native library");
+			break;
+		case CPUTYPE_X86_64:
+			System.loadLibrary("desmume-x86_64");
+			Log.i(MainActivity.TAG, "Using x86 native library");
 			break;
 		default:
-			System.loadLibrary("desmumecompat");
+			System.loadLibrary("desmume-compat");
 			Log.i(MainActivity.TAG, "Using compatibility native library");
 			break;
 		}

@@ -7,11 +7,12 @@ MY_LOCAL_PATH := $(LOCAL_PATH)
 include $(CLEAR_VARS)
 
 
-LOCAL_MODULE    		:= 	libdesmumecompat
+LOCAL_MODULE    		:= 	libdesmume-compat
 LOCAL_C_INCLUDES		:= 	$(LOCAL_PATH)/desmume/src \
 							$(LOCAL_PATH)/desmume/src/android \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP/include_windows \
+							$(LOCAL_PATH)/desmume/src/android/7z/CPP/myWindows \
 							$(LOCAL_PATH)/desmume/src/utils/lightning/include
 						   
 LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
@@ -118,17 +119,23 @@ LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT
 LOCAL_STATIC_LIBRARIES 	:= sevenzip
 LOCAL_LDLIBS 			:= -llog -lz -lGLESv2 -lEGL -ljnigraphics -lOpenSLES -landroid
 
-ifeq ($(TARGET_ARCH_ABI),armeabi)
+# These are weird fallbacks should we somehow encounter an issue
+ifneq (,$(filter armeabi armeabi-v7a arm64-v8a,$(TARGET_ARCH_ABI)))
+LOCAL_ARM_MODE 			:= arm
 LOCAL_CFLAGS			+= -DLIGHTNING_ARM
 endif
 
-ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
-LOCAL_CFLAGS			+= -DLIGHTNING_ARM
-endif
-
-ifeq ($(TARGET_ARCH_ABI),x86)
+ifneq (,$(filter x86 x86_64,$(TARGET_ARCH_ABI)))
 LOCAL_CFLAGS			+= -DLIGHTNING_I386
 endif
 
+#For profiling
+#LOCAL_CFLAGS += -DUSE_PROFILER -pg
+#LOCAL_STATIC_LIBRARIES += android-ndk-profiler
+
+#To check for speed improvements
+#LOCAL_CFLAGS += -DMEASURE_FIRST_FRAMES
+
 include $(BUILD_SHARED_LIBRARY)
 
+#include $(MY_LOCAL_PATH)/android-ndk-profiler/Android.mk

@@ -22,7 +22,11 @@
 
 #define CPUTYPE_COMPAT 0
 #define CPUTYPE_V7 1
-#define CPUTYPE_NEON 2
+#define CPUTYPE_V8 2
+#define CPUTYPE_A9 3
+#define CPUTYPE_A15 4
+#define CPUTYPE_X86 5
+#define CPUTYPE_X86_64 6
 
 extern "C"
 {
@@ -31,15 +35,32 @@ jint JNI_NOARGS(getCPUType)
 {
 	AndroidCpuFamily cpuFamily = android_getCpuFamily();
 	uint64_t cpuFeatures = android_getCpuFeatures();
-	if (cpuFamily == ANDROID_CPU_FAMILY_ARM &&
-        (cpuFeatures & ANDROID_CPU_ARM_FEATURE_NEON) != 0)
-    {
-		return CPUTYPE_NEON;
-    }
-	else if (cpuFamily == ANDROID_CPU_FAMILY_ARM &&
-        (cpuFeatures & ANDROID_CPU_ARM_FEATURE_ARMv7) != 0)
+	if (cpuFamily == ANDROID_CPU_FAMILY_ARM64)
 	{
-		return CPUTYPE_V7;
+		return CPUTYPE_V8;
+	}
+	else if (cpuFamily == ANDROID_CPU_FAMILY_ARM)
+	{
+		if ((cpuFeatures & ANDROID_CPU_ARM_FEATURE_IDIV_ARM) != 0)
+		{
+			return CPUTYPE_A15; // Anything past -a15 would benefit from this anyway
+		}
+		else if ((cpuFeatures & ANDROID_CPU_ARM_FEATURE_NEON) != 0)
+		{
+			return CPUTYPE_A9; // Anything not containing idiv but NEON should be cortex-a9
+		}
+		else if ((cpuFeatures & ANDROID_CPU_ARM_FEATURE_ARMv7) != 0)
+		{
+			return CPUTYPE_V7;
+		}
+	}
+	else if (cpuFamily == ANDROID_CPU_FAMILY_X86_64)
+	{
+		return CPUTYPE_X86_64;
+	}
+	else if (cpuFamily == ANDROID_CPU_FAMILY_X86)
+	{
+		return CPUTYPE_X86;
 	}
     else
     {
