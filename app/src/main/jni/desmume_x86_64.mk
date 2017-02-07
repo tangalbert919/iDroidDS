@@ -7,7 +7,7 @@ MY_LOCAL_PATH := $(LOCAL_PATH)
 include $(CLEAR_VARS)
 
 
-LOCAL_MODULE    		:= 	libdesmume-a15
+LOCAL_MODULE    		:= 	libdesmume-x86_64
 LOCAL_C_INCLUDES		:= 	$(LOCAL_PATH)/desmume/src \
 							$(LOCAL_PATH)/desmume/src/android \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP \
@@ -110,14 +110,13 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/android/main.cpp \
 							desmume/src/android/OpenArchive.cpp \
 							desmume/src/android/7zip.cpp \
-							desmume/src/android/neontest.cpp \
 							desmume/src/android/sndopensl.cpp \
 							desmume/src/android/draw.cpp 
 							
-LOCAL_ARM_NEON 			:= true
-LOCAL_ARM_MODE 			:= arm
-LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -DLIGHTNING_ARM -DHAVE_NEON=1 -mfloat-abi=softfp -mfpu=neon-vfpv4 -marm -march=armv7-a -mtune=cortex-a15
-LOCAL_STATIC_LIBRARIES 	:= mathneon sevenzip
+LOCAL_ARM_NEON 			:= false
+LOCAL_ARM_MODE 			:= thumb
+LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -DLIGHTNING_I386 -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel
+LOCAL_STATIC_LIBRARIES 	:= sevenzip
 LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -ljnigraphics -lOpenSLES -landroid
 
 #For profiling
