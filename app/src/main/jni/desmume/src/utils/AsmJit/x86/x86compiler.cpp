@@ -1,877 +1,237 @@
 // [AsmJit]
-// Complete JIT Assembler for C++ Language.
+// Complete x86/x64 JIT and Remote Assembler for C++.
 //
 // [License]
-// Zlib - See COPYING file in this package.
+// Zlib - See LICENSE.md file in the package.
 
+// [Export]
 #define ASMJIT_EXPORTS
 
-// [Dependencies - AsmJit]
-#include "../core/intutil.h"
-#include "../core/stringutil.h"
+// [Guard]
+#include "../asmjit_build.h"
+#if defined(ASMJIT_BUILD_X86) && !defined(ASMJIT_DISABLE_COMPILER)
 
-#include "../x86/x86assembler.h"
+// [Dependencies]
+#include "../base/utils.h"
 #include "../x86/x86compiler.h"
-#include "../x86/x86compilercontext.h"
-#include "../x86/x86compilerfunc.h"
-#include "../x86/x86compileritem.h"
-#include "../x86/x86util.h"
+#include "../x86/x86regalloc_p.h"
 
 // [Api-Begin]
-#include "../core/apibegin.h"
+#include "../asmjit_apibegin.h"
 
-namespace AsmJit {
+namespace asmjit {
 
 // ============================================================================
-// [AsmJit::CompilerUtil]
+// [asmjit::X86Compiler - Construction / Destruction]
 // ============================================================================
 
-bool CompilerUtil::isStack16ByteAligned()
-{
-  // Stack is always aligned to 16-bytes when using 64-bit OS.
-  bool result = (sizeof(uintptr_t) == 8);
-
-  // Modern Linux, APPLE and UNIX guarantees stack alignment to 16 bytes by
-  // default. I'm really not sure about all UNIX operating systems, because
-  // 16-byte alignment is an addition to an older specification.
-#if (defined(__linux__)   || \
-     defined(__linux)     || \
-     defined(linux)       || \
-     defined(__unix__)    || \
-     defined(__FreeBSD__) || \
-     defined(__NetBSD__)  || \
-     defined(__OpenBSD__) || \
-     defined(__DARWIN__)  || \
-     defined(__APPLE__)   )
-  result = true;
-#endif // __linux__
-
-  return result;
+X86Compiler::X86Compiler(CodeHolder* code) noexcept : CodeCompiler() {
+  if (code)
+    code->attach(this);
 }
+X86Compiler::~X86Compiler() noexcept {}
 
 // ============================================================================
-// [AsmJit::X86Compiler - Construction / Destruction]
+// [asmjit::X86Compiler - Events]
 // ============================================================================
 
-X86Compiler::X86Compiler(Context* context) : 
-  Compiler(context)
-{
-  _properties |= IntUtil::maskFromIndex(kX86PropertyOptimizedAlign);
-}
+Error X86Compiler::onAttach(CodeHolder* code) noexcept {
+  uint32_t archType = code->getArchType();
+  if (!ArchInfo::isX86Family(archType))
+    return DebugUtils::errored(kErrorInvalidArch);
 
-X86Compiler::~X86Compiler()
-{
-}
+  ASMJIT_PROPAGATE(_cbPasses.willGrow(&_cbHeap, 1));
+  ASMJIT_PROPAGATE(Base::onAttach(code));
 
-// ============================================================================
-// [AsmJit::Compiler - Function Builder]
-// ============================================================================
-
-X86CompilerFuncDecl* X86Compiler::newFunc_(uint32_t convention, uint32_t returnType, const uint32_t* arguments, uint32_t argumentsCount)
-{
-  ASMJIT_ASSERT(_func == NULL);
-
-  X86CompilerFuncDecl* func = Compiler_newItem<X86CompilerFuncDecl>(this);
-
-  _func = func;
-  _varNameId = 0;
-
-  func->setPrototype(convention, returnType, arguments, argumentsCount);
-  addItem(func);
-
-  bind(func->_entryLabel);
-  func->_createVariables();
-
-  return func;
-}
-
-X86CompilerFuncDecl* X86Compiler::endFunc()
-{
-  X86CompilerFuncDecl* func = getFunc();
-  ASMJIT_ASSERT(func != NULL);
-
-  bind(func->_exitLabel);
-  addItem(func->_end);
-
-  func->setFuncFlag(kFuncFlagIsFinished);
-  _func = NULL;
-
-  return func;
-}
-
-// ============================================================================
-// [AsmJit::Compiler - EmitInstruction]
-// ============================================================================
-
-static inline X86CompilerInst* X86Compiler_newInstruction(X86Compiler* self, uint32_t code, Operand* opData, uint32_t opCount)
-{
-  if (code >= _kX86InstJBegin && code <= _kX86InstJEnd)
-  {
-    void* p = self->_zoneMemory.alloc(sizeof(X86CompilerJmpInst));
-    return new(p) X86CompilerJmpInst(self, code, opData, opCount);
-  }
+  if (archType == ArchInfo::kTypeX86)
+    _nativeGpArray = x86OpData.gpd;
   else
-  {
-    void* p = self->_zoneMemory.alloc(sizeof(X86CompilerInst) + opCount * sizeof(Operand));
-    return new(p) X86CompilerInst(self, code, opData, opCount);
-  }
-}
+    _nativeGpArray = x86OpData.gpq;
+  _nativeGpReg = _nativeGpArray[0];
 
-void X86Compiler::_emitInstruction(uint32_t code)
-{
-  X86CompilerInst* inst = X86Compiler_newInstruction(this, code, NULL, 0);
-
-  if (inst == NULL)
-  {
-    setError(kErrorNoHeapMemory);
-    return;
-  }
-
-  addItem(inst);
-
-  if (_cc != NULL)
-  {
-    inst->_offset = _cc->_currentOffset;
-    inst->prepare(*_cc);
-  }
-}
-
-void X86Compiler::_emitInstruction(uint32_t code, const Operand* o0)
-{
-  Operand* operands = reinterpret_cast<Operand*>(_zoneMemory.alloc(1 * sizeof(Operand)));
-
-  if (operands == NULL)
-  {
-    setError(kErrorNoHeapMemory);
-    return;
-  }
-
-  operands[0] = *o0;
-  X86CompilerInst* inst = X86Compiler_newInstruction(this, code, operands, 1);
-
-  if (inst == NULL)
-  {
-    setError(kErrorNoHeapMemory);
-    return;
-  }
-
-  addItem(inst);
-
-  if (_cc != NULL)
-  {
-    inst->_offset = _cc->_currentOffset;
-    inst->prepare(*_cc);
-  }
-}
-
-void X86Compiler::_emitInstruction(uint32_t code, const Operand* o0, const Operand* o1)
-{
-  Operand* operands = reinterpret_cast<Operand*>(_zoneMemory.alloc(2 * sizeof(Operand)));
-
-  if (operands == NULL)
-  {
-    setError(kErrorNoHeapMemory);
-    return;
-  }
-
-  operands[0] = *o0;
-  operands[1] = *o1;
-  X86CompilerInst* inst = X86Compiler_newInstruction(this, code, operands, 2);
-
-  if (inst == NULL)
-  {
-    setError(kErrorNoHeapMemory);
-    return;
-  }
-
-  addItem(inst);
-
-  if (_cc)
-  {
-    inst->_offset = _cc->_currentOffset;
-    inst->prepare(*_cc);
-  }
-}
-
-void X86Compiler::_emitInstruction(uint32_t code, const Operand* o0, const Operand* o1, const Operand* o2)
-{
-  Operand* operands = reinterpret_cast<Operand*>(_zoneMemory.alloc(3 * sizeof(Operand)));
-
-  if (operands == NULL)
-  {
-    setError(kErrorNoHeapMemory);
-    return;
-  }
-
-  operands[0] = *o0;
-  operands[1] = *o1;
-  operands[2] = *o2;
-  X86CompilerInst* inst = X86Compiler_newInstruction(this, code, operands, 3);
-
-  if (inst == NULL)
-  {
-    setError(kErrorNoHeapMemory);
-    return;
-  }
-
-  addItem(inst);
-
-  if (_cc != NULL)
-  {
-    inst->_offset = _cc->_currentOffset;
-    inst->prepare(*_cc);
-  }
-}
-
-void X86Compiler::_emitInstruction(uint32_t code, const Operand* o0, const Operand* o1, const Operand* o2, const Operand* o3)
-{
-  Operand* operands = reinterpret_cast<Operand*>(_zoneMemory.alloc(4 * sizeof(Operand)));
-
-  if (operands == NULL)
-  {
-    setError(kErrorNoHeapMemory);
-    return;
-  }
-
-  operands[0] = *o0;
-  operands[1] = *o1;
-  operands[2] = *o2;
-  operands[3] = *o3;
-  X86CompilerInst* inst = X86Compiler_newInstruction(this, code, operands, 4);
-
-  if (inst == NULL)
-  {
-    setError(kErrorNoHeapMemory);
-    return;
-  }
-
-  addItem(inst);
-
-  if (_cc != NULL)
-  {
-    inst->_offset = _cc->_currentOffset;
-    inst->prepare(*_cc);
-  }
-}
-
-void X86Compiler::_emitInstruction(uint32_t code, const Operand* o0, const Operand* o1, const Operand* o2, const Operand* o3, const Operand* o4)
-{
-  Operand* operands = reinterpret_cast<Operand*>(_zoneMemory.alloc(5 * sizeof(Operand)));
-
-  if (operands == NULL)
-  {
-    setError(kErrorNoHeapMemory);
-    return;
-  }
-
-  operands[0] = *o0;
-  operands[1] = *o1;
-  operands[2] = *o2;
-  operands[3] = *o3;
-  operands[4] = *o4;
-  X86CompilerInst* inst = X86Compiler_newInstruction(this, code, operands, 5);
-
-  if (inst == NULL)
-  {
-    setError(kErrorNoHeapMemory);
-    return;
-  }
-
-  addItem(inst);
-
-  if (_cc != NULL)
-  {
-    inst->_offset = _cc->_currentOffset;
-    inst->prepare(*_cc);
-  }
-}
-
-void X86Compiler::_emitJcc(uint32_t code, const Label* label, uint32_t hint)
-{
-  if (hint == kCondHintNone)
-  {
-    _emitInstruction(code, label);
-  }
-  else
-  {
-    Imm imm(hint);
-    _emitInstruction(code, label, &imm);
-  }
-}
-
-X86CompilerFuncCall* X86Compiler::_emitCall(const Operand* o0)
-{
-  X86CompilerFuncDecl* func = getFunc();
-
-  if (func == NULL)
-  {
-    setError(kErrorNoFunction);
-    return NULL;
-  }
-
-  X86CompilerFuncCall* call = Compiler_newItem<X86CompilerFuncCall>(this, func, o0);
-  if (call == NULL)
-  {
-    setError(kErrorNoHeapMemory);
-    return NULL;
-  }
-
-  addItem(call);
-  return call;
-}
-
-void X86Compiler::_emitReturn(const Operand* first, const Operand* second)
-{
-  X86CompilerFuncDecl* func = getFunc();
-
-  if (func == NULL)
-  {
-    setError(kErrorNoFunction);
-    return;
-  }
-
-  X86CompilerFuncRet* ret = Compiler_newItem<X86CompilerFuncRet>(this, func, first, second);
-
-  if (ret == NULL)
-  {
-    setError(kErrorNoHeapMemory);
-    return;
-  }
-
-  addItem(ret);
+  return addPassT<X86RAPass>();
 }
 
 // ============================================================================
-// [AsmJit::Compiler - Align]
+// [asmjit::X86Compiler - Finalize]
 // ============================================================================
 
-void X86Compiler::align(uint32_t m)
-{
-  addItem(Compiler_newItem<X86CompilerAlign>(this, m));
-}
+Error X86Compiler::finalize() {
+  if (_lastError) return _lastError;
 
-// ============================================================================
-// [AsmJit::Compiler - Label]
-// ============================================================================
-
-Label X86Compiler::newLabel()
-{
-  Label label;
-  label._base.id = static_cast<uint32_t>(_targets.getLength()) | kOperandIdTypeLabel;
-
-  CompilerTarget* target = Compiler_newItem<X86CompilerTarget>(this, label);
-  _targets.append(target);
-
-  return label;
-}
-
-void X86Compiler::bind(const Label& label)
-{
-  uint32_t id = label.getId() & kOperandIdValueMask;
-
-  ASMJIT_ASSERT(id != kInvalidValue);
-  ASMJIT_ASSERT(id < _targets.getLength());
-
-  addItem(_targets[id]);
-}
-
-// ============================================================================
-// [AsmJit::Compiler - Variables]
-// ============================================================================
-
-X86CompilerVar* X86Compiler::_newVar(const char* name, uint32_t type, uint32_t size)
-{
-  X86CompilerVar* var = reinterpret_cast<X86CompilerVar*>(_zoneMemory.alloc(sizeof(X86CompilerVar)));
-  if (var == NULL) return NULL;
-
-  char nameBuffer[32];
-  if (name == NULL)
-  {
-    sprintf(nameBuffer, "var_%d", _varNameId);
-    name = nameBuffer;
-    _varNameId++;
+  // Flush the global constant pool.
+  if (_globalConstPool) {
+    addNode(_globalConstPool);
+    _globalConstPool = nullptr;
   }
 
-  var->_name = _zoneMemory.sdup(name);
-  var->_id = static_cast<uint32_t>(_vars.getLength()) | kOperandIdTypeVar;
+  Error err = kErrorOk;
+  ZoneVector<CBPass*>& passes = _cbPasses;
 
-  var->_type = static_cast<uint8_t>(type);
-  var->_class = x86VarInfo[type].getClass();
-  var->_priority = 10;
-
-  var->_isRegArgument = false;
-  var->_isMemArgument = false;
-  var->_isCalculated = false;
-  var->_unused = 0;
-
-  var->_size = size;
-
-  var->firstItem = NULL;
-  var->lastItem = NULL;
-  var->funcScope = getFunc();
-  var->funcCall = NULL;
-
-  var->homeRegisterIndex = kRegIndexInvalid;
-  var->prefRegisterMask = 0;
-
-  var->homeMemoryOffset = 0;
-  var->homeMemoryData = NULL;
-
-  var->regIndex = kRegIndexInvalid;
-  var->workOffset = kInvalidValue;
-
-  var->nextActive = NULL;
-  var->prevActive = NULL;
-
-  var->state = kVarStateUnused;
-  var->changed = false;
-  var->saveOnUnuse = false;
-
-  var->regReadCount = 0;
-  var->regWriteCount = 0;
-  var->regRwCount = 0;
-
-  var->regGpbLoCount = 0;
-  var->regGpbHiCount = 0;
-
-  var->memReadCount = 0;
-  var->memWriteCount = 0;
-  var->memRwCount = 0;
-
-  var->tPtr = NULL;
-
-  _vars.append(var);
-  return var;
-}
-
-GpVar X86Compiler::newGpVar(uint32_t varType, const char* name)
-{
-  ASMJIT_ASSERT((varType < kX86VarTypeCount) && (x86VarInfo[varType].getClass() & kX86VarClassGp) != 0);
-
-#if defined(ASMJIT_X86)
-  if (x86VarInfo[varType].getSize() > 4)
-  {
-    varType = kX86VarTypeGpd;
-    if (_logger)
-      _logger->logString("*** COMPILER WARNING: QWORD variable translated to DWORD, FIX YOUR CODE! ***\n");
+  for (size_t i = 0, len = passes.getLength(); i < len; i++) {
+    CBPass* pass = passes[i];
+    err = pass->process(&_cbPassZone);
+    _cbPassZone.reset();
+    if (err) break;
   }
-#endif // ASMJIT_X86
 
-  X86CompilerVar* var = _newVar(name, varType, x86VarInfo[varType].getSize());
-  return var->asGpVar();
+  _cbPassZone.reset();
+  if (ASMJIT_UNLIKELY(err)) return setLastError(err);
+
+  // TODO: There must be possibility to attach more assemblers, this is not so nice.
+  if (_code->_cgAsm) {
+    return serialize(_code->_cgAsm);
+  }
+  else {
+    X86Assembler a(_code);
+    return serialize(&a);
+  }
 }
 
-GpVar X86Compiler::getGpArg(uint32_t argIndex)
-{
-  X86CompilerFuncDecl* func = getFunc();
-  GpVar var;
+// ============================================================================
+// [asmjit::X86Compiler - Inst]
+// ============================================================================
 
-  if (func != NULL)
-  {
-    X86FuncDecl* decl = func->getDecl();
+static ASMJIT_INLINE bool isJumpInst(uint32_t instId) noexcept {
+  return (instId >= X86Inst::kIdJa   && instId <= X86Inst::kIdJz    ) ||
+         (instId >= X86Inst::kIdLoop && instId <= X86Inst::kIdLoopne) ;
+}
 
-    if (argIndex < decl->getArgumentsCount())
-    {
-      X86CompilerVar* cv = func->getVar(argIndex);
+Error X86Compiler::_emit(uint32_t instId, const Operand_& o0, const Operand_& o1, const Operand_& o2, const Operand_& o3) {
+  uint32_t options = getOptions() | getGlobalOptions();
+  const char* inlineComment = getInlineComment();
 
-      var._var.id = cv->getId();
-      var._var.size = cv->getSize();
-      var._var.regCode = x86VarInfo[cv->getType()].getCode();
-      var._var.varType = cv->getType();
+  uint32_t opCount = static_cast<uint32_t>(!o0.isNone()) +
+                     static_cast<uint32_t>(!o1.isNone()) +
+                     static_cast<uint32_t>(!o2.isNone()) +
+                     static_cast<uint32_t>(!o3.isNone()) ;
+
+  // Handle failure and rare cases first.
+  const uint32_t kErrorsAndSpecialCases =
+    kOptionMaybeFailureCase | // CodeEmitter in error state.
+    kOptionStrictValidation | // Strict validation.
+    kOptionOp4              | // Has 5th operand (o4, indexed from zero).
+    kOptionOp5              ; // Has 6th operand (o5, indexed from zero).
+
+  if (ASMJIT_UNLIKELY(options & kErrorsAndSpecialCases)) {
+    // Don't do anything if we are in error state.
+    if (_lastError) return _lastError;
+
+    // Count 5th and 6th operands.
+    if (options & kOptionOp4) opCount = 5;
+    if (options & kOptionOp5) opCount = 6;
+
+#if !defined(ASMJIT_DISABLE_VALIDATION)
+    // Strict validation.
+    if (options & kOptionStrictValidation) {
+      Operand opArray[] = {
+        Operand(o0),
+        Operand(o1),
+        Operand(o2),
+        Operand(o3),
+        Operand(_op4),
+        Operand(_op5)
+      };
+
+      Error err = X86Inst::validate(getArchType(), instId, options, _opExtra, opArray, opCount);
+      if (err) return setLastError(err);
+
+      // Clear it as it must be enabled explicitly on assembler side.
+      options &= ~kOptionStrictValidation;
     }
+#endif // ASMJIT_DISABLE_VALIDATION
   }
 
-  return var;
-}
-
-MmVar X86Compiler::newMmVar(uint32_t varType, const char* name)
-{
-  ASMJIT_ASSERT((varType < kX86VarTypeCount) && (x86VarInfo[varType].getClass() & kX86VarClassMm) != 0);
-
-  X86CompilerVar* var = _newVar(name, varType, 8);
-  return var->asMmVar();
-}
-
-MmVar X86Compiler::getMmArg(uint32_t argIndex)
-{
-  X86CompilerFuncDecl* func = getFunc();
-  MmVar var;
-
-  if (func != NULL)
-  {
-    const X86FuncDecl* decl = func->getDecl();
-
-    if (argIndex < decl->getArgumentsCount())
-    {
-      X86CompilerVar* cv = func->getVar(argIndex);
-
-      var._var.id = cv->getId();
-      var._var.size = cv->getSize();
-      var._var.regCode = x86VarInfo[cv->getType()].getCode();
-      var._var.varType = cv->getType();
-    }
-  }
-
-  return var;
-}
-
-XmmVar X86Compiler::newXmmVar(uint32_t varType, const char* name)
-{
-  ASMJIT_ASSERT((varType < kX86VarTypeCount) && (x86VarInfo[varType].getClass() & kX86VarClassXmm) != 0);
-
-  X86CompilerVar* var = _newVar(name, varType, 16);
-  return var->asXmmVar();
-}
-
-XmmVar X86Compiler::getXmmArg(uint32_t argIndex)
-{
-  X86CompilerFuncDecl* func = getFunc();
-  XmmVar var;
-
-  if (func != NULL)
-  {
-    const X86FuncDecl* decl = func->getDecl();
-
-    if (argIndex < decl->getArgumentsCount())
-    {
-      X86CompilerVar* cv = func->getVar(argIndex);
-
-      var._var.id = cv->getId();
-      var._var.size = cv->getSize();
-      var._var.regCode = x86VarInfo[cv->getType()].getCode();
-      var._var.varType = cv->getType();
-    }
-  }
-
-  return var;
-}
-
-void X86Compiler::_vhint(Var& var, uint32_t hintId, uint32_t hintValue)
-{
-  if (var.getId() == kInvalidValue)
-    return;
-
-  X86CompilerVar* cv = _getVar(var.getId());
-  ASMJIT_ASSERT(cv != NULL);
-
-  X86CompilerHint* item = Compiler_newItem<X86CompilerHint>(this, cv, hintId, hintValue);
-  addItem(item);
-}
-
-void X86Compiler::alloc(Var& var)
-{
-  _vhint(var, kVarHintAlloc, kInvalidValue);
-}
-
-void X86Compiler::alloc(Var& var, uint32_t regIndex)
-{
-  if (regIndex > 31)
-    return;
-
-  _vhint(var, kVarHintAlloc, IntUtil::maskFromIndex(regIndex));
-}
-
-void X86Compiler::alloc(Var& var, const Reg& reg)
-{
-  _vhint(var, kVarHintAlloc, IntUtil::maskFromIndex(reg.getRegIndex()));
-}
-
-void X86Compiler::save(Var& var)
-{
-  _vhint(var, kVarHintSave, kInvalidValue);
-}
-
-void X86Compiler::spill(Var& var)
-{
-  _vhint(var, kVarHintSpill, kInvalidValue);
-}
-
-void X86Compiler::unuse(Var& var)
-{
-  _vhint(var, kVarHintUnuse, kInvalidValue);
-}
-
-uint32_t X86Compiler::getPriority(Var& var) const
-{
-  if (var.getId() == kInvalidValue)
-    return kInvalidValue;
-
-  X86CompilerVar* vdata = _getVar(var.getId());
-  ASMJIT_ASSERT(vdata != NULL);
-
-  return vdata->getPriority();
-}
-
-void X86Compiler::setPriority(Var& var, uint32_t priority)
-{
-  if (var.getId() == kInvalidValue)
-    return;
-
-  X86CompilerVar* vdata = _getVar(var.getId());
-  ASMJIT_ASSERT(vdata != NULL);
-
-  if (priority > 100) priority = 100;
-  vdata->_priority = static_cast<uint8_t>(priority);
-}
-
-bool X86Compiler::getSaveOnUnuse(Var& var) const
-{
-  if (var.getId() == kInvalidValue)
-    return false;
-
-  X86CompilerVar* vdata = _getVar(var.getId());
-  ASMJIT_ASSERT(vdata != NULL);
-
-  return (bool)vdata->saveOnUnuse;
-}
-
-void X86Compiler::setSaveOnUnuse(Var& var, bool value)
-{
-  if (var.getId() == kInvalidValue)
-    return;
-
-  X86CompilerVar* vdata = _getVar(var.getId());
-  ASMJIT_ASSERT(vdata != NULL);
-
-  vdata->saveOnUnuse = value;
-}
-
-void X86Compiler::rename(Var& var, const char* name)
-{
-  if (var.getId() == kInvalidValue)
-    return;
-
-  X86CompilerVar* vdata = _getVar(var.getId());
-  ASMJIT_ASSERT(vdata != NULL);
-
-  vdata->_name = _zoneMemory.sdup(name);
-}
-
-// ============================================================================
-// [AsmJit::Compiler - State]
-// ============================================================================
-
-X86CompilerState* X86Compiler::_newState(uint32_t memVarsCount)
-{
-  X86CompilerState* state = reinterpret_cast<X86CompilerState*>(_zoneMemory.alloc(
-    sizeof(X86CompilerState) + memVarsCount * sizeof(void*)));
-  return state;
-}
-
-// ============================================================================
-// [AsmJit::Compiler - Make]
-// ============================================================================
-
-void* X86Compiler::make()
-{
-  X86Assembler x86Asm(_context);
-
-  x86Asm._properties = _properties;
-  x86Asm.setLogger(_logger);
-
-  serialize(x86Asm);
-
-  if (this->getError())
-    return NULL;
-
-  if (x86Asm.getError())
-  {
-    setError(x86Asm.getError());
-    return NULL;
-  }
-
-  void* result = x86Asm.make();
-
-  if (_logger)
-  {
-    _logger->logFormat("*** COMPILER SUCCESS - Wrote %u bytes, code: %u, trampolines: %u.\n\n",
-      (unsigned int)x86Asm.getCodeSize(),
-      (unsigned int)x86Asm.getOffset(),
-      (unsigned int)x86Asm.getTrampolineSize());
-  }
-
-  return result;
-}
-
-void X86Compiler::serialize(Assembler& a)
-{
-  X86CompilerContext x86Context(this);
-  X86Assembler& x86Asm = static_cast<X86Assembler&>(a);
-
-  CompilerItem* start = _first;
-  CompilerItem* stop = NULL;
-
-  // Register all labels.
-  x86Asm.registerLabels(_targets.getLength());
-
-  // Make code.
-  for (;;)
-  {
-    _cc = NULL;
-
-    // ------------------------------------------------------------------------
-    // [Find Function]
-    // ------------------------------------------------------------------------
-
-    for (;;)
-    {
-      if (start == NULL)
-        return;
-
-      if (start->getType() == kCompilerItemFuncDecl)
-        break;
-
-      start->emit(x86Asm);
-      start = start->getNext();
-    }
-
-    // ------------------------------------------------------------------------
-    // [Setup CompilerContext]
-    // ------------------------------------------------------------------------
-
-    stop = static_cast<X86CompilerFuncDecl*>(start)->getEnd();
-
-    x86Context._func = static_cast<X86CompilerFuncDecl*>(start);
-    x86Context._start = start;
-    x86Context._stop = stop;
-    x86Context._extraBlock = stop->getPrev();
-
-    // Detect whether the function generation was finished.
-    if (!x86Context._func->isFinished() || x86Context._func->getEnd()->getPrev() == NULL)
-    {
-      setError(kErrorIncompleteFunction);
-      return;
-    }
-
-    // ------------------------------------------------------------------------
-    // Step 1:
-    // - Assign/increment offset of each item.
-    // - Extract variables from instructions.
-    // - Prepare variables for register allocator:
-    //   - Update read(r) / write(w) / read/write(x) statistics.
-    //   - Update register / memory usage statistics.
-    //   - Find scope (first / last item) of variables.
-    // ------------------------------------------------------------------------
-
-    CompilerItem* cur;
-    for (cur = start; ; cur = cur->getNext())
-    {
-      cur->prepare(x86Context);
-      if (cur == stop)
-        break;
-    }
-
-    // We set compiler context also to Compiler so newly emitted instructions 
-    // can call CompilerItem::prepare() on itself.
-    _cc = &x86Context;
-
-    // ------------------------------------------------------------------------
-    // Step 2:
-    // - Translate special instructions (imul, cmpxchg8b, ...).
-    // - Alloc registers.
-    // - Translate forward jumps.
-    // - Alloc memory operands (variables related).
-    // - Emit function prolog.
-    // - Emit function epilog.
-    // - Patch memory operands (variables related).
-    // - Dump function prototype and variable statistics (if enabled).
-    // ------------------------------------------------------------------------
-
-    // Translate special instructions and run alloc registers.
-    cur = start;
-
-    do {
-      do {
-        // Assign current offset of each item back to CompilerContext.
-        x86Context._currentOffset = cur->_offset;
-        // Assign previous item to compiler so each variable spill/alloc will
-        // be emitted before.
-        _current = cur->getPrev();
-
-        cur = cur->translate(x86Context);
-      } while (cur);
-
-      x86Context._isUnreachable = true;
-
-      size_t len = x86Context._backCode.getLength();
-      while (x86Context._backPos < len)
-      {
-        cur = x86Context._backCode[x86Context._backPos++]->getNext();
-        if (!cur->isTranslated()) break;
-
-        cur = NULL;
+  resetOptions();
+  resetInlineComment();
+
+  // decide between `CBInst` and `CBJump`.
+  if (isJumpInst(instId)) {
+    CBJump* node = _cbHeap.allocT<CBJump>(sizeof(CBJump) + opCount * sizeof(Operand));
+    Operand* opArray = reinterpret_cast<Operand*>(reinterpret_cast<uint8_t*>(node) + sizeof(CBJump));
+
+    if (ASMJIT_UNLIKELY(!node))
+      return setLastError(DebugUtils::errored(kErrorNoHeapMemory));
+
+    if (opCount > 0) opArray[0].copyFrom(o0);
+    if (opCount > 1) opArray[1].copyFrom(o1);
+    if (opCount > 2) opArray[2].copyFrom(o2);
+    if (opCount > 3) opArray[3].copyFrom(o3);
+    if (opCount > 4) opArray[4].copyFrom(_op4);
+    if (opCount > 5) opArray[5].copyFrom(_op5);
+    new(node) CBJump(this, instId, options, opArray, opCount);
+
+    if (options & CodeEmitter::kOptionOpExtra)
+      node->_opExtra = _opExtra;
+
+    CBLabel* jTarget = nullptr;
+    if (!(options & kOptionUnfollow)) {
+      if (opArray[0].isLabel()) {
+        Error err = getCBLabel(&jTarget, static_cast<Label&>(opArray[0]));
+        if (err) return setLastError(err);
       }
-    } while (cur);
-
-    // Translate forward jumps.
-    {
-      ForwardJumpData* j = x86Context._forwardJumps;
-      while (j != NULL)
-      {
-        x86Context._assignState(j->state);
-        _current = j->inst->getPrev();
-        j->inst->doJump(x86Context);
-        j = j->next;
+      else {
+        options |= kOptionUnfollow;
       }
     }
+    node->setOptions(options);
 
-    // Alloc memory operands (variables related).
-    x86Context._allocMemoryOperands();
+    node->orFlags(instId == X86Inst::kIdJmp ? CBNode::kFlagIsJmp | CBNode::kFlagIsTaken : CBNode::kFlagIsJcc);
+    node->_target = jTarget;
+    node->_jumpNext = nullptr;
 
-    // Emit function prolog / epilog.
-    x86Context.getFunc()->_preparePrologEpilog(x86Context);
-
-    _current = x86Context._func->getEntryTarget();
-    x86Context.getFunc()->_emitProlog(x86Context);
-
-    _current = x86Context._func->getExitTarget();
-    x86Context.getFunc()->_emitEpilog(x86Context);
-
-    // Patch memory operands (variables related).
-    _current = _last;
-    x86Context._patchMemoryOperands(start, stop);
-
-    // Dump function prototype and variable statistics (if enabled).
-    if (_logger)
-      x86Context.getFunc()->_dumpFunction(x86Context);
-
-    // ------------------------------------------------------------------------
-    // Hack: need to register labels that was created by the Step 2.
-    // ------------------------------------------------------------------------
-
-    if (x86Asm._labels.getLength() < _targets.getLength())
-      x86Asm.registerLabels(_targets.getLength() - x86Asm._labels.getLength());
-
-    CompilerItem* extraBlock = x86Context._extraBlock;
-
-    // ------------------------------------------------------------------------
-    // Step 3:
-    // - Emit instructions to Assembler stream.
-    // ------------------------------------------------------------------------
-
-    for (cur = start; ; cur = cur->getNext())
-    {
-      cur->emit(x86Asm);
-      if (cur == extraBlock) break;
+    if (jTarget) {
+      node->_jumpNext = static_cast<CBJump*>(jTarget->_from);
+      jTarget->_from = node;
+      jTarget->addNumRefs();
     }
 
-    // ------------------------------------------------------------------------
-    // Step 4:
-    // - Emit everything else (post action).
-    // ------------------------------------------------------------------------
+    // The 'jmp' is always taken, conditional jump can contain hint, we detect it.
+    if (instId == X86Inst::kIdJmp)
+      node->orFlags(CBNode::kFlagIsTaken);
+    else if (options & X86Inst::kOptionTaken)
+      node->orFlags(CBNode::kFlagIsTaken);
 
-    for (cur = start; ; cur = cur->getNext())
-    {
-      cur->post(x86Asm);
-      if (cur == extraBlock) break;
+    if (inlineComment) {
+      inlineComment = static_cast<char*>(_cbDataZone.dup(inlineComment, ::strlen(inlineComment), true));
+      node->setInlineComment(inlineComment);
     }
 
-    start = extraBlock->getNext();
-    x86Context._clear();
+    addNode(node);
+    return kErrorOk;
+  }
+  else {
+    CBInst* node = _cbHeap.allocT<CBInst>(sizeof(CBInst) + opCount * sizeof(Operand));
+    Operand* opArray = reinterpret_cast<Operand*>(reinterpret_cast<uint8_t*>(node) + sizeof(CBInst));
+
+    if (ASMJIT_UNLIKELY(!node))
+      return setLastError(DebugUtils::errored(kErrorNoHeapMemory));
+
+    if (opCount > 0) opArray[0].copyFrom(o0);
+    if (opCount > 1) opArray[1].copyFrom(o1);
+    if (opCount > 2) opArray[2].copyFrom(o2);
+    if (opCount > 3) opArray[3].copyFrom(o3);
+    if (opCount > 4) opArray[4].copyFrom(_op4);
+    if (opCount > 5) opArray[5].copyFrom(_op5);
+    node = new(node) CBInst(this, instId, options, opArray, opCount);
+
+    if (options & CodeEmitter::kOptionOpExtra)
+      node->_opExtra = _opExtra;
+
+    if (inlineComment) {
+      inlineComment = static_cast<char*>(_cbDataZone.dup(inlineComment, ::strlen(inlineComment), true));
+      node->setInlineComment(inlineComment);
+    }
+
+    addNode(node);
+    return kErrorOk;
   }
 }
 
-} // AsmJit namespace
+} // asmjit namespace
 
 // [Api-End]
-#include "../core/apiend.h"
+#include "../asmjit_apiend.h"
+
+// [Guard]
+#endif // ASMJIT_BUILD_X86 && !ASMJIT_DISABLE_COMPILER

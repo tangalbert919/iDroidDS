@@ -37,6 +37,7 @@ public class About extends Activity {
 		case DeSmuME.CPUTYPE_A15: library = "cortex-a15"; break;
 		case DeSmuME.CPUTYPE_X86: library = "x86"; break;
 		case DeSmuME.CPUTYPE_X86_64: library = "x86-64"; break;
+
 		default: library = "unknown";
 		}
 		
