@@ -41,10 +41,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/utils/libfat/libfat_public_api.cpp \
 							desmume/src/utils/libfat/lock.cpp \
 							desmume/src/utils/libfat/partition.cpp \
-							desmume/src/utils/tinyxml/tinyxml.cpp \
-							desmume/src/utils/tinyxml/tinyxmlparser.cpp \
-							desmume/src/utils/tinyxml/tinyxmlerror.cpp \
-							desmume/src/utils/tinyxml/tinystr.cpp \
+							desmume/src/utils/tinyxml/tinyxml2.cpp \
 							desmume/src/utils/ConvertUTF.c \
 							desmume/src/utils/datetime.cpp \
 							desmume/src/utils/dlditool.cpp \

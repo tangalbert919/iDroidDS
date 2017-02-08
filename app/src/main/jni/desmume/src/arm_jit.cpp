@@ -46,7 +46,7 @@
 #include <algorithm>
 #endif
 
-using namespace AsmJit;
+using namespace asmjit;
 
 #if (LOG_JIT_LEVEL > 0)
 #define LOG_JIT 1
