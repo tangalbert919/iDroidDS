@@ -34,7 +34,7 @@
 /* Version number of package */
 #define VERSION "1.2c"
 
-#define __WORDSIZE 32
+#define __WORDSIZE 64
 
 /* Define to enable assertions */
 /* #undef _ASM_SAFETY */
