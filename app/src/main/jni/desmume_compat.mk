@@ -13,7 +13,7 @@ LOCAL_C_INCLUDES		:= 	$(LOCAL_PATH)/desmume/src \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP/include_windows \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP/myWindows \
-							$(LOCAL_PATH)/desmume/src/utils/lightning/include
+							$(LOCAL_PATH)/desmume/src/utils/lightning/lib
 						   
 LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/addons/slot1_r4.cpp \

@@ -54,8 +54,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/decrypt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/libfat" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/tinyxml" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/tinycc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/cpudetect" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/lightning/lib" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/android/math-neon" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/debug" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/debug" isTestSource="false" generated="true" />
