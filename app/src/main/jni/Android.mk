@@ -16,6 +16,7 @@ include $(LOCAL_BUILD_PATH)/desmume_a9.mk
 include $(LOCAL_BUILD_PATH)/desmume_a15.mk
 include $(LOCAL_BUILD_PATH)/desmume_v7.mk
 include $(LOCAL_BUILD_PATH)/desmume/src/android/math-neon/Android.mk
+include $(LOCAL_BUILD_PATH)/desmume/src/utils/tinycc/Android_arm.mk
 endif
 
 ifeq ($(TARGET_ARCH_ABI),x86_64)
