@@ -1,2 +1,4 @@
 # nds4droid
-nds4droid is a free (including ad-free) open source Nintendo DS emulator for Android smartphones. It is based off of [DeSmuME](https://en.wikipedia.org/wiki/DeSmuME) and has a wide variety of options for balancing performance and accuracy. In addition, it has been translated into several languages. Enjoy!
+nds4droid is a free (including ad-free) open source Nintendo DS emulator for Android smartphones. It is based off of [DeSmuME](https://en.wikipedia.org/wiki/DeSmuME) 0.9.10, which is very old.
+
+This is the v47 branch. All updates are to be made in the v48 or master branch.
