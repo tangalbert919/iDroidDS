@@ -21,6 +21,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.preference.PreferenceManager;
+import android.provider.*;
+import android.provider.Settings;
 import android.util.Log;
 
 class DeSmuME {
@@ -32,6 +34,8 @@ class DeSmuME {
 	static final int CPUTYPE_V7 = 0;
 	static final int CPUTYPE_NEON = 1;
 	static final int CPUTYPE_X86 = 2;
+	static final int CPUTYPE_V8 = 3;
+	static final int CPUTYPE_X86_64 = 4;
 	
 	static void load()
 	{
@@ -40,18 +44,27 @@ class DeSmuME {
 		System.loadLibrary("cpudetect");
 		final int cpuType = getCPUType();
 		switch(cpuType) {
-		case CPUTYPE_V7:
-			System.loadLibrary("desmumev7");
-			Log.i(MainActivity.TAG, "Using ARMv7 native library");
-			break;
-		case CPUTYPE_NEON:
-			System.loadLibrary("desmumeneon");
-			Log.i(MainActivity.TAG, "Using NEON enhanced native library");
-			break;
-		case CPUTYPE_X86:
-			System.loadLibrary("desmumex86");
-			Log.i(MainActivity.TAG, "Using x86 native library");
-			break;
+			case CPUTYPE_V7:
+				System.loadLibrary("desmumev7");
+				Log.i(MainActivity.TAG, "Using ARMv7 native library");
+				break;
+			case CPUTYPE_NEON:
+				System.loadLibrary("desmumeneon");
+				Log.i(MainActivity.TAG, "Using NEON enhanced native library");
+				break;
+			case CPUTYPE_X86:
+				System.loadLibrary("desmumex86");
+				Log.i(MainActivity.TAG, "Using x86 native library");
+				break;
+			// Put this in once we got our DeSmuME 0.9.12 core put in
+			/*case CPUTYPE_V8:
+				System.loadLibrary("desmumev8");
+				Log.i(MainActivity.TAG, "Using ARM64 native library");
+				break;
+			case CPUTYPE_X86_64:
+				System.loadLibrary("desmumex86_64");
+				Log.i(MainActivity.TAG, "Using x86_64 native library");
+				break;*/
 		default:
 			System.loadLibrary("desmumev7");
 			Log.i(MainActivity.TAG, "Unable to detect - Using ARMv7 native library");

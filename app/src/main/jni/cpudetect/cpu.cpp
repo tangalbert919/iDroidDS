@@ -23,6 +23,8 @@
 #define CPUTYPE_V7 0
 #define CPUTYPE_NEON 1
 #define CPUTYPE_X86 2
+#define CPUTYPE_V8 3
+#define CPUTYPE_X86_64 4
 
 extern "C"
 {
@@ -42,10 +44,18 @@ jint JNI_NOARGS(getCPUType)
 			return CPUTYPE_V7;
 		}
 	}
+	/*else if (cpuFamily == ANDROID_CPU_FAMILY_ARM64)
+	{
+		return CPUTYPE_V8;
+	}*/
 	else if (cpuFamily == ANDROID_CPU_FAMILY_X86)
 	{
 		return CPUTYPE_X86;
 	}
+	/*else if (cpuFamily == ANDROID_CPU_FAMILY_X86_64)
+	{
+		return CPUTYPE_X86_64; // This is very rare, but just to be safe, we should keep this.
+	}*/
 	else
 	{
 		return CPUTYPE_V7; // There is absolutely no circumstance where this should occur, but fall back to V7
