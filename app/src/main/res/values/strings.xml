@@ -151,8 +151,9 @@
 	<string name="SoundSyncModeDesc">Synchronization of the game\'s sound. Dual sync/async is usually okay and is faster, but Sync is sometimes needed for movies or voice.</string>
 	
 	<!-- Release 29 -->
+    <!-- Removed in Release 48
 	<string name="JitSize">JIT block size</string>
-	<string name="JitSizeDesc">For the threaded interpreter/tinycc JIT execution engines, how big each JIT block should be. 1 is most accurate, while 100 is fastest</string>
+	<string name="JitSizeDesc">For the threaded interpreter/tinycc JIT execution engines, how big each JIT block should be. 1 is most accurate, while 100 is fastest</string>-->
 	<string name="about1">nds4droid is a free, open source Nintendo DS emulator.</string>
 	<string name="about2">nds4droid is the result of countless hours of work by dozens of contributators. The emulation core used by nds4droid is DeSmuME.</string>
 	<string name="about3">Jeffrey Quesnelle is the primary developer of nds4droid. nds4droid is a product of Sterling Heights, Michigan, United States of America.</string>
@@ -190,6 +191,8 @@
     <string-array name="filternames">
         <item>Normal</item>
 		<item>HQ2x</item>
+        <item>HQ3x</item>
+        <item>HQ4x</item>
 		<item>2XSaI</item>
 		<item>Super2XSaI</item>
 		<item>SuperEagle</item>
@@ -197,6 +200,8 @@
 		<item>Bilinear</item>
 		<item>Nearest 2X</item>
 		<item>HQ2xS</item>
+        <item>HQ3xS</item>
+        <item>HQ4xS</item>
 		<item>LQ2x</item>
 		<item>LQ2xS</item>
         <item>EPX</item>
@@ -205,7 +210,11 @@
         <item>EPX+</item>
         <item>EPX 1.5X</item>
         <item>EPX+ 1.5X</item>
-        <item>HQ4x</item>
+        <item>2xBRZ</item>
+        <item>3xBRZ</item>
+        <item>4xBRZ</item>
+        <item>5xBRZ</item>
+        <item>6xBRZ</item>
     </string-array>
         <string-array name="zerothroughnine">
         <item>0</item>
@@ -219,7 +228,7 @@
         <item>8</item>
         <item>9</item>
     </string-array>
-    <string-array name="zerothroughseventeen">
+    <string-array name="zerothroughtwentyfive">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -238,6 +247,14 @@
         <item>15</item>
         <item>16</item>
         <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+        <item>24</item>
+        <item>25</item>
     </string-array>
    	<string-array name="zerothroughtwo">
         <item>0</item>
@@ -263,7 +280,8 @@
     <string-array name="executionengines">
         <item>Interpreter</item>
         <item>Threaded interpreter</item>
-        <item>lightning JIT</item>
+        <!-- Removed in Release 48
+        <item>lightning JIT</item>-->
     </string-array>
     <string-array name="zerothroughthree">
         <item>0</item>

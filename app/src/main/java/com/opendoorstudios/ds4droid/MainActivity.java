@@ -443,11 +443,11 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 					if(coreThread != null)
 						coreThread.changeSound(newSound);
 				}
-				else if(key.equals(Settings.CPU_MODE) || key.equals(Settings.JIT_SIZE)) {
+				/*else if(key.equals(Settings.CPU_MODE) || key.equals(Settings.JIT_SIZE)) {
 					int newCpuMode = DeSmuME.getSettingInt(Settings.CPU_MODE, 1);
 					if(coreThread != null)
 						coreThread.changeCPUMode(newCpuMode);
-				}
+				}*/
 				else if(key.equals(Settings.SOUND_SYNC_MODE)) {
 					int newSoundSyncMode = DeSmuME.getSettingInt(Settings.SOUND_SYNC_MODE, 0);
 					if(coreThread != null)

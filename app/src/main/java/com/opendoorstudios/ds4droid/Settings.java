@@ -151,7 +151,7 @@ public class Settings extends PreferenceActivity {
 	public static final String LAST_ROM_DIR = "LastROMDir";
 	public static final String CPU_MODE = "CpuMode";
 	public static final String SOUND_SYNC_MODE = "SynchMode";
-	public static final String JIT_SIZE ="JitSize";
+	//public static final String JIT_SIZE ="JitSize";
 	public static final String ENABLE_FOG = "EnableFog";
 	public static final String ENABLE_AUTOSAVE = "EnableAutosave";
 	public static final String AUTOSVAE_FREQUENCY = "AutosaveFrequency";
@@ -222,8 +222,9 @@ public class Settings extends PreferenceActivity {
 			}
 			if(prefs.contains(CPU_MODE)) {
 				//the new default cpu engine in 35 is "lightning jit"
+				// As of version 48, lightning JIT is removed. cpu engine default is now 1
 				if(currentInstall <= 34)
-					editor.putString(CPU_MODE, "2");
+					editor.putString(CPU_MODE, "1");
 			}
 		}
 		
@@ -256,13 +257,13 @@ public class Settings extends PreferenceActivity {
 		if(!prefs.contains(LAST_ROM_DIR))
 			editor.putString(LAST_ROM_DIR, Environment.getExternalStorageDirectory().getPath() );
 		if(!prefs.contains(CPU_MODE))
-			editor.putString(CPU_MODE, "2");
+			editor.putString(CPU_MODE, "1");
 		if(!prefs.contains(SOUND_SYNC_MODE))
 			editor.putString(SOUND_SYNC_MODE, "0");
 		if(!prefs.contains(ENABLE_FOG))
 			editor.putBoolean(ENABLE_FOG, true);
-		if(!prefs.contains(JIT_SIZE))
-			editor.putInt(JIT_SIZE,10);
+		//if(!prefs.contains(JIT_SIZE))
+		//	editor.putInt(JIT_SIZE,10);
 		if(!prefs.contains(ENABLE_AUTOSAVE))
 			editor.putBoolean(ENABLE_AUTOSAVE, true);
 		if(!prefs.contains(AUTOSVAE_FREQUENCY))
