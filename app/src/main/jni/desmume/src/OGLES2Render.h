@@ -135,7 +135,7 @@ struct VERTLIST;
 struct POLYLIST;
 struct INDEXLIST;
 struct POLY;
-class TexCacheItem;
+class TextureCache;
 class OpenGLESRenderer;
 
 extern GPU3DInterface gpu3Dgles2;
@@ -178,7 +178,7 @@ protected:
 	bool isVAOSupported;
 	
 	// Textures
-	TexCacheItem *currTexture;
+	TextureCache *currTexture;
 	
 	u32 currentToonTable32[32];
 	bool toonTableNeedsUpdate;
@@ -243,7 +243,7 @@ public:
 	virtual Render3DError Reset() = 0;
 	virtual Render3DError RenderFinish() = 0;
 	
-	virtual Render3DError DeleteTexture(const TexCacheItem *item) = 0;
+	virtual Render3DError DeleteTexture(const TextureCache *item) = 0;
 	
 	bool IsExtensionPresent(const std::set<std::string> *oglExtensionSet, const std::string extensionName) const;
 	bool ValidateShaderCompile(GLuint theShader) const;
@@ -311,7 +311,7 @@ public:
 	virtual Render3DError Reset();
 	virtual Render3DError RenderFinish();
 	
-	virtual Render3DError DeleteTexture(const TexCacheItem *item);
+	virtual Render3DError DeleteTexture(const TextureCache *item);
 };
 
 #endif

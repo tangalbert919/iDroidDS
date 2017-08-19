@@ -288,7 +288,7 @@ bool IsVersionSupported(unsigned int checkVersionMajor, unsigned int checkVersio
 	return result;
 }
 
-static void texDeleteCallback(TexCacheItem *item)
+static void texDeleteCallback(TextureCache *item)
 {
 	_OGLRenderer->DeleteTexture(item);
 }
@@ -303,7 +303,7 @@ static char OGLInit(void)
 	if(!oglrender_init())
 		return result;
 	
-	result = Default3D_Init();
+	result = OGLInit();
 	if (result == 0)
 	{
 		return result;
@@ -405,15 +405,15 @@ static void OGLClose()
 	
 	ENDGL();
 	
-	Default3D_Close();
+	OGLClose();
 }
 
 static void OGLRender()
 {
 	if(!BEGINGL())
 		return;
-	
-	_OGLRenderer->Render(&gfx3d.renderState, gfx3d.vertlist, gfx3d.polylist, &gfx3d.indexlist, gfx3d.frameCtr);
+
+	_OGLRenderer->Render(GFX3D());
 	
 	ENDGL();
 }
@@ -441,11 +441,7 @@ static void OGLRenderFinish()
 GPU3DInterface gpu3Dgles2 = {
 	"OpenGLES2",
 	OGLInit,
-	OGLReset,
-	OGLClose,
-	OGLRender,
-	OGLRenderFinish,
-	OGLVramReconfigureSignal
+	OGLReset
 };
 
 OpenGLESRenderer::OpenGLESRenderer()
@@ -584,7 +580,7 @@ OpenGLES2Renderer::~OpenGLES2Renderer()
 	DestroyFBOs();
 	
 	//kill the tex cache to free all the texture ids
-	TexCache_Reset();
+	texCache.Reset();
 	
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
@@ -1200,7 +1196,7 @@ Render3DError OpenGLES2Renderer::ReadBackPixels()
 	return OGLERROR_NOERR;
 }
 
-Render3DError OpenGLES2Renderer::DeleteTexture(const TexCacheItem *item)
+Render3DError OpenGLES2Renderer::DeleteTexture(const TextureCache *item)
 {
 	this->ref->freeTextureIDs.push((GLuint)item->texid);
 	if(this->currTexture == item)
@@ -1322,7 +1318,7 @@ Render3DError OpenGLES2Renderer::PostRender()
 Render3DError OpenGLES2Renderer::EndRender(const u64 frameCount)
 {
 	//needs to happen before endgl because it could free some textureids for expired cache items
-	TexCache_EvictFrame();
+	texCache.Evict();
 	
 	this->ReadBackPixels();
 	
@@ -1396,7 +1392,7 @@ Render3DError OpenGLES2Renderer::UpdateToonTable(const u16 *toonTableBuffer)
 		memcpy(currentToonTable16, toonTableBuffer, sizeof(currentToonTable16));
 
 		for(int i=0;i<32;i++)
-			this->currentToonTable32[i] = RGB15TO32_NOALPHA(toonTableBuffer[i]);
+			this->currentToonTable32[i] = DS_DEPTH15TO24(toonTableBuffer[i]);
 
 		this->toonTableNeedsUpdate = true;
 	}
@@ -1483,7 +1479,7 @@ Render3DError OpenGLES2Renderer::SetupPolygon(const POLY *thePoly)
 	
 	// Set up depth test mode
 	static const GLenum oglDepthFunc[2] = {GL_LESS, GL_EQUAL};
-	glDepthFunc(oglDepthFunc[attr.enableDepthTest]);
+	glDepthFunc(oglDepthFunc[attr.enableDepthEqualTest]);
 	
 	// Set up culling mode
 	static const GLenum oglCullingMode[4] = {GL_FRONT_AND_BACK, GL_FRONT, GL_BACK, 0};
@@ -1597,7 +1593,7 @@ Render3DError OpenGLES2Renderer::SetupTexture(const POLY *thePoly, bool enableTe
 	glUniform1i(OGLRef.uniformHasTexture, GL_TRUE);
 	
 	//	texCacheUnit.TexCache_SetTexture<TexFormat_32bpp>(format, texpal);
-	TexCacheItem *newTexture = TexCache_SetTexture(TexFormat_32bpp, thePoly->texParam, thePoly->texPalette);
+	TextureCache *newTexture = TexCache_SetTexture(TexFormat_32bpp, thePoly->texParam, thePoly->texPalette);
 	if(newTexture != this->currTexture)
 	{
 		this->currTexture = newTexture;
@@ -1623,7 +1619,7 @@ Render3DError OpenGLES2Renderer::SetupTexture(const POLY *thePoly, bool enableTe
 			
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
 						 this->currTexture->sizeX, this->currTexture->sizeY, 0,
-						 GL_RGBA, GL_UNSIGNED_BYTE, this->currTexture->decoded);
+						 GL_RGBA, GL_UNSIGNED_BYTE, this->currTexture->deleteCallback);
 		}
 		else
 		{

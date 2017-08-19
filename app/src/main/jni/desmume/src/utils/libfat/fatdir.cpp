@@ -34,7 +34,7 @@
 
 #ifndef _MSC_VER
 #include <unistd.h>
-#include <sys/dir.h>
+//#include <sys/dir.h>
 #endif
 
 #include "fatdir.h"

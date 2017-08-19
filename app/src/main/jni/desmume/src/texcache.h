@@ -75,12 +75,15 @@ public:
 	void Evict();
 	void Reset();
 	void ForceReloadAllTextures();
-	
+	u64 texid; //used by ogl renderer for the texid
+	void (*deleteCallback)(TextureCache*);
 	TextureStore* GetTexture(u32 texAttributes, u32 palAttributes);
-	
 	void Add(TextureStore *texItem);
 	void Remove(TextureStore *texItem);
-	
+
+	u32 sizeX, sizeY;
+	float invSizeX, invSizeY;
+
 	static TextureCacheKey GenerateKey(const u32 texAttributes, const u32 palAttributes);
 };
 
@@ -182,6 +185,8 @@ public:
 	void DebugDump();
 };
 
+TextureCache* TexCache_SetTexture(TextureStoreUnpackFormat TEXFORMAT, u32 format, u32 texpal);
+
 template<TextureStoreUnpackFormat TEXCACHEFORMAT> void NDSTextureUnpackI2(const size_t srcSize, const u8 *__restrict srcData, const u16 *__restrict srcPal, const bool isPalZeroTransparent, u32 *__restrict dstBuffer);
 template<TextureStoreUnpackFormat TEXCACHEFORMAT> void NDSTextureUnpackI4(const size_t srcSize, const u8 *__restrict srcData, const u16 *__restrict srcPal, const bool isPalZeroTransparent, u32 *__restrict dstBuffer);
 template<TextureStoreUnpackFormat TEXCACHEFORMAT> void NDSTextureUnpackI8(const size_t srcSize, const u8 *__restrict srcData, const u16 *__restrict srcPal, const bool isPalZeroTransparent, u32 *__restrict dstBuffer);
@@ -191,5 +196,5 @@ template<TextureStoreUnpackFormat TEXCACHEFORMAT> void NDSTextureUnpack4x4(const
 template<TextureStoreUnpackFormat TEXCACHEFORMAT> void NDSTextureUnpackDirect16Bit(const size_t srcSize, const u16 *__restrict srcData, u32 *__restrict dstBuffer);
 
 extern TextureCache texCache;
-
+extern TextureStore texStore;
 #endif

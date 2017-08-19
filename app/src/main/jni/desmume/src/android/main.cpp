@@ -26,7 +26,7 @@
 #include <bits/sysconf.h>
 
 #include "main.h"
-#include "../OGLRender.h"
+#include "../OGLES2Render.h"
 #include "../rasterize.h"
 #include "../SPU.h"
 #include "../debug.h"
@@ -54,7 +54,7 @@ unsigned int frameCount = 0;
 
 GPU3DInterface *core3DList[] = {
 	&gpu3DNull,
-	&gpu3Dgl_3_2,
+	&gpu3Dgles2,
 	&gpu3DRasterize,
 	NULL
 };
