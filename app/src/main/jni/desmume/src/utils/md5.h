@@ -2,7 +2,7 @@
 #define _MD5_H
 
 #include "../types.h"
-#include "valuearray.h"
+#include "guid.h"
 
 struct md5_context
 {

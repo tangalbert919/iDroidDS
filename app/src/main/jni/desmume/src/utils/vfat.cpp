@@ -23,13 +23,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stack>
+#include <libretro-common/include/retro_dirent.h>
+#include <libretro-common/include/file/file_path.h>
+#include <libretro-common/include/retro_stat.h>
 
 #include "../types.h"
 #include "../debug.h"
 #include "../emufile.h"
-#include "retro_dirent.h"
-#include "retro_stat.h"
-#include "file/file_path.h"
 
 #include "emufat.h"
 #include "vfat.h"
