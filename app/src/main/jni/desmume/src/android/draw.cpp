@@ -103,12 +103,12 @@ extern VideoInfo video;
 //Since the loops will have constant numbers of iterations at compile times and the pointers are restricted, gcc should be able to use the NEON instruction set nicely here
 template<int width, int height> void doBitmapDrawTemplate(u8* __restrict__ pixels, u8* __restrict__ dest, int stride, int pixelFormat, int verticalOffset, bool rotate)
 {
-	DOBITMAPIMPL
+	//DOBITMAPIMPL
 }
 
 void doBitmapDrawStandard(u8* __restrict__ pixels, u8* __restrict__ dest, int width, int height, int stride, int pixelFormat, int verticalOffset, bool rotate)
 {
-	DOBITMAPIMPL
+	//DOBITMAPIMPL
 }
 	
 void doBitmapDraw(u8* pixels, u8* dest, int width, int height, int stride, int pixelFormat, int verticalOffset, bool rotate)

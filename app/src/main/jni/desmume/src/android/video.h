@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2009-2011 DeSmuME team
+	Copyright (C) 2009-2015 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -16,10 +16,17 @@
 */
 
 #include "filter/filter.h"
+#include "common.h"
 
 class VideoInfo
 {
 public:
+
+	VideoInfo()
+		: buffer(NULL)
+		, filteredbuffer(NULL)
+	{
+	}
 
 	int width;
 	int height;
@@ -32,10 +39,46 @@ public:
 	int	swap;
 
 	int currentfilter;
+	int prescaleHD;
+	int prescalePost; //not supported yet
+	int prescaleTotal;
 
-	CACHE_ALIGN u8* srcBuffer;
-	CACHE_ALIGN u32 buffer[16*256*192*2];
-	CACHE_ALIGN u32 filteredbuffer[16*256*192*2];
+	int scratchBufferSize;
+	u8* srcBuffer;
+	int srcBufferSize;
+	u32 *buffer, *buffer_raw;
+	u32 *filteredbuffer;
+
+	void SetPrescale(int prescaleHD, int prescalePost)
+	{
+		free_aligned(buffer_raw);
+		free_aligned(filteredbuffer);
+
+		this->prescaleHD = prescaleHD;
+		this->prescalePost = prescalePost;
+
+		prescaleTotal = prescaleHD;
+		
+		const int kInflationFactor = 5; //the largest filter is going up 5x in each dimension
+
+		//all these stupid video filters read outside of their buffer. let's allocate too much and hope it stays filled with black. geeze
+		const int kPadSize = 4;
+		
+		int scratchBufferWidth = 256*kInflationFactor*prescaleHD + (kPadSize*2);
+		int scratchBufferHeight = 192*2*prescaleHD*kInflationFactor + (kPadSize*2);
+		scratchBufferSize = scratchBufferWidth * scratchBufferHeight * 4;
+
+		//why are these the same size, anyway?
+		buffer_raw = buffer = (u32*)malloc_alignedCacheLine(scratchBufferSize);
+		filteredbuffer = (u32*)malloc_alignedCacheLine(scratchBufferSize);
+
+		clear();
+
+		//move the buffer pointer inside it's padded area so that earlier reads won't go out of the buffer we allocated
+		buffer += (kPadSize*scratchBufferWidth + kPadSize)*4;
+
+		setfilter(currentfilter);
+	}
 
 	enum {
 		NONE,
@@ -49,19 +92,34 @@ public:
 		HQ2XS,
 		LQ2X,
 		LQ2XS,
-        EPX,
-        NEARESTPLUS1POINT5,
-        NEAREST1POINT5,
-        EPXPLUS,
-        EPX1POINT5,
-        EPXPLUS1POINT5,
-    HQ4X,
+		EPX,
+		NEARESTPLUS1POINT5,
+		NEAREST1POINT5,
+		EPXPLUS,
+		EPX1POINT5,
+		EPXPLUS1POINT5,
+		HQ4X,
+		_2XBRZ,
+		_3XBRZ,
+		_4XBRZ,
+		_5XBRZ,
 
 		NUM_FILTERS,
 	};
 
+	void clear()
+	{
+		//I dont understand this...
+		//if (srcBuffer)
+		//{
+		//	memset(srcBuffer, 0xFF, size() * 2);
+		//}
+		memset(buffer_raw, 0, scratchBufferSize);
+		memset(filteredbuffer, 0, scratchBufferSize);
+	}
 
 	void reset() {
+		SetPrescale(1,1); //should i do this here?
 		width = 256;
 		height = 384;
 	}
@@ -86,15 +144,32 @@ public:
 				width = 256*3/2;
 				height = 384*3/2;
 				break;
-      case HQ4X:
+
+			case _5XBRZ:
+				width = 256*5;
+				height = 384*5;
+				break;
+
+			case HQ4X:
+			case _4XBRZ:
 				width = 256*4;
 				height = 384*4;
-        break;
+				break;
+
+			case _3XBRZ:
+				width = 256*3;
+				height = 384*3;
+				break;
+
+			case _2XBRZ:
 			default:
 				width = 256*2;
 				height = 384*2;
 				break;
 		}
+
+		width *= prescaleHD;
+		height *= prescaleHD;
 	}
 
 	SSurface src;
@@ -109,13 +184,13 @@ public:
 
 	void filter() {
 
-		src.Height = 384;
-		src.Width = 256;
-		src.Pitch = 512;
+		src.Height = 384 * prescaleHD;
+		src.Width = 256 * prescaleHD;
+		src.Pitch = src.Width * 2;
 		src.Surface = (u8*)buffer;
 
-		dst.Height = height;
-		dst.Width = width;
+		dst.Height = height * prescaleHD;
+		dst.Width = width * prescaleHD;
 		dst.Pitch = width*2;
 		dst.Surface = (u8*)filteredbuffer;
 
@@ -173,6 +248,18 @@ public:
 				break;
 			case NEARESTPLUS1POINT5:
 				RenderNearestPlus_1Point5x(src,dst);
+				break;
+			case _2XBRZ:
+				Render2xBRZ(src,dst);
+				break;
+			case _3XBRZ:
+				Render3xBRZ(src,dst);
+				break;
+			case _4XBRZ:
+				Render4xBRZ(src,dst);
+				break;
+			case _5XBRZ:
+				Render5xBRZ(src,dst);
 				break;
 		}
 	}

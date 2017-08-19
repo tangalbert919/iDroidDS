@@ -21,27 +21,27 @@
 #include <android/native_window_jni.h>
 
 #include <EGL/egl.h>
-#include <GLES/gl.h>
 #include <android/sensor.h>
 #include <android/bitmap.h>
-
+#include <bits/sysconf.h>
 
 #include "main.h"
-#include "../OGLES2Render.h"
+#include "../OGLRender.h"
 #include "../rasterize.h"
 #include "../SPU.h"
 #include "../debug.h"
 #include "../NDSSystem.h"
 #include "../path.h"
-#include "../GPU_OSD.h"
-#include "../addons.h"
 #include "../slot1.h"
 #include "../saves.h"
+#include "slot2.h"
 #include "throttle.h"
 #include "video.h"
 #include "OpenArchive.h"
 #include "sndopensl.h"
 #include "cheatSystem.h"
+#include "7zip.h"
+
 #ifdef HAVE_NEON
 #include "neontest.h"
 #endif
@@ -54,7 +54,7 @@ unsigned int frameCount = 0;
 
 GPU3DInterface *core3DList[] = {
 	&gpu3DNull,
-	&gpu3Dgles2,
+	&gpu3Dgl_3_2,
 	&gpu3DRasterize,
 	NULL
 };
@@ -252,8 +252,8 @@ void nds4droid_display()
 	if(int diff = (currDisplayBuffer+1)%3 - newestDisplayBuffer)
 		newestDisplayBuffer += diff;
 	else newestDisplayBuffer = (currDisplayBuffer+2)%3;
-
-	memcpy(displayBuffers[newestDisplayBuffer],GPU_screen,256*192*4);
+	// Very dangerous fix
+	memcpy(displayBuffers[newestDisplayBuffer], GPU->GetDisplayMain(), 256*192*4);
 }
 
 static void nds4droid_throttle(bool allowSleep = true, int forceFrameSkip = -1)
@@ -341,13 +341,13 @@ void nds4droid_user()
 	Hud.fps3d = mainLoopData.fps3d;
 
 	nds4droid_display();
-
-	gfx3d.frameCtrRaw++;
+	// This probably flushes the frames.
+	/*gfx3d.render3DFrameCount++;
 	if(gfx3d.frameCtrRaw == 60) {
 		mainLoopData.fps3d = gfx3d.frameCtr;
 		gfx3d.frameCtrRaw = 0;
 		gfx3d.frameCtr = 0;
-	}
+	}*/
 
 	mainLoopData.toolframecount++;
 
@@ -487,11 +487,12 @@ jint JNI(draw, jobject bitmapMain, jobject bitmapTouch, jboolean rotate)
 	//const int size = video.size();
 	const int size = 256*384;
 	u16* src = (u16*)video.srcBuffer;
+	// These next hacks are most likely wrong.
 	if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_8888)
 	{
 		u32* dest = video.buffer;
 		for(int i=0;i<size;++i)
-			*dest++ = 0xFF000000ul | RGB15TO32_NOALPHA(*src++);
+			*dest++ = 0xFF000000ul | WINDOW_FORMAT_RGBA_8888;
 
 		video.filter();
 	}
@@ -499,7 +500,7 @@ jint JNI(draw, jobject bitmapMain, jobject bitmapTouch, jboolean rotate)
 	{
 		u16* dest = (u16*)video.buffer;
 		for(int i=0;i<size;++i)
-			*dest++ = RGB15TO16_REVERSE(*src++);
+			*dest++ = WINDOW_FORMAT_RGB_565;
 	}
 
 	//here the magic happens
@@ -619,10 +620,8 @@ void loadSettings(JNIEnv* env)
 	snd_synchmethod = GetPrivateProfileInt(env, "Sound","SynchMethod",0,IniName);
 
 	CommonSettings.advanced_timing = GetPrivateProfileBool(env,"Emulation", "AdvancedTiming", false, IniName);
-	CommonSettings.CpuMode = GetPrivateProfileInt(env, "Emulation","CpuMode", 2, IniName);
 	CommonSettings.jit_max_block_size = GetPrivateProfileInt(env, "Emulation", "JitSize", 10, IniName);
-	
-	CommonSettings.GFX3D_Zelda_Shadow_Depth_Hack = GetPrivateProfileInt(env,"3D", "ZeldaShadowDepthHack", 0, IniName);
+
 	CommonSettings.GFX3D_HighResolutionInterpolateColor = GetPrivateProfileBool(env, "3D", "HighResolutionInterpolateColor", 0, IniName);
 	CommonSettings.GFX3D_EdgeMark = GetPrivateProfileBool(env, "3D", "EnableEdgeMark", 0, IniName);
 	CommonSettings.GFX3D_Fog = GetPrivateProfileBool(env, "3D", "EnableFog", 1, IniName);
@@ -673,20 +672,48 @@ void JNI(init, jobject _inst)
 	Hud.reset();
 	
 	INFO("Init NDS");
-	
-	int slot1_device_type = NDS_SLOT1_RETAIL;
+
+	int slot1_device_type = NDS_SLOT1_RETAIL_AUTO;
 	switch (slot1_device_type)
 	{
 		case NDS_SLOT1_NONE:
-		case NDS_SLOT1_RETAIL:
+		case NDS_SLOT1_RETAIL_AUTO:
 		case NDS_SLOT1_R4:
 		case NDS_SLOT1_RETAIL_NAND:
 			break;
 		default:
-			slot1_device_type = NDS_SLOT1_RETAIL;
+			slot1_device_type = NDS_SLOT1_RETAIL_AUTO;
 			break;
 	}
-	
+
+	// Version 48
+	int slot2_device_type = NDS_SLOT2_NONE;
+	switch (slot2_device_type) {
+		case NDS_SLOT2_NONE:
+			break;
+		case NDS_SLOT2_AUTO:
+			break;
+		case NDS_SLOT2_CFLASH:
+			break;
+		case NDS_SLOT2_EASYPIANO:
+			break;
+		case NDS_SLOT2_EXPMEMORY:
+			break;
+		case NDS_SLOT2_GBACART:
+			break;
+		case NDS_SLOT2_GUITARGRIP:
+			break;
+		case NDS_SLOT2_PADDLE:
+			break;
+		case NDS_SLOT2_PASSME:
+			break;
+		case NDS_SLOT2_RUMBLEPAK:
+			break;
+		default:
+			slot2_device_type = NDS_SLOT2_NONE;
+			break;
+	}
+	/*
 	switch (addon_type)
 	{
 	case NDS_ADDON_NONE:
@@ -714,10 +741,10 @@ void JNI(init, jobject _inst)
 	default:
 		addon_type = NDS_ADDON_NONE;
 		break;
-	}
+	}*/
 
-	slot1Change((NDS_SLOT1_TYPE)slot1_device_type);
-	addonsChangePak(addon_type);
+	slot1_Change((NDS_SLOT1_TYPE)slot1_device_type);
+	slot2_Change((NDS_SLOT2_TYPE)slot2_device_type);
 
 	
 	NDS_Init();
@@ -755,7 +782,7 @@ void JNI(init, jobject _inst)
 
 void JNI(changeCpuMode, int type)
 {
-	armcpu_setjitmode(type);
+	//armcpu_setjitmode(type);
 }
 
 void JNI(change3D, int type)
@@ -859,7 +886,7 @@ void JNI(addCheat, jstring description, jstring code)
 	jboolean isCopy;
 	const char* descBuff = env->GetStringUTFChars(description, &isCopy);
 	const char* codeBuff = env->GetStringUTFChars(code, &isCopy);
-	cheats->add_AR(codeBuff, descBuff, TRUE);
+	cheats->add_AR((char *) codeBuff, (char *) descBuff, TRUE);
 	env->ReleaseStringUTFChars(description, descBuff);
 	env->ReleaseStringUTFChars(code, codeBuff);
 }
@@ -871,7 +898,7 @@ void JNI(updateCheat, jstring description, jstring code, jint pos)
 	jboolean isCopy;
 	const char* descBuff = env->GetStringUTFChars(description, &isCopy);
 	const char* codeBuff = env->GetStringUTFChars(code, &isCopy);
-	cheats->update_AR(codeBuff, descBuff, TRUE, pos);
+	cheats->update_AR((char *) codeBuff, (char *) descBuff, TRUE, pos);
 	env->ReleaseStringUTFChars(description, descBuff);
 	env->ReleaseStringUTFChars(code, codeBuff);
 }

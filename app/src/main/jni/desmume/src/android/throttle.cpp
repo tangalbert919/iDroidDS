@@ -3,7 +3,7 @@
 //(the code might look quite different by now, though...)
 
 /*
-	Many Modifications Copyright (C) 2009-2010 DeSmuME team
+	Many Modifications Copyright (C) 2009-2016 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,14 +19,18 @@
 	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common.h"
-#include "../types.h"
-#include "../debug.h"
-#ifndef ANDROID
-#include "../console.h"
-#endif
 #include "throttle.h"
-#include "GPU_osd.h"
+
+#include <windows.h>
+#include <android/7z/CPP/myWindows/StdAfx.h>
+
+#include "types.h"
+#include "debug.h"
+//#include "console.h"
+#include "driver.h"
+#include "NDSSystem.h"
+#include "main.h"
+//#include "winutil.h"
 
 int FastForward=0;
 static u64 tmethod,tfreq,afsfreq;
@@ -55,49 +59,6 @@ static u64 desiredFpsScalers [] = {
 	16,
 };
 
-#ifdef ANDROID
-#include <sys/time.h>
-#include <time.h>
-#include <android/log.h>
-unsigned int GetTickCount()
-{
-	timeval timer;
-	gettimeofday(&timer, NULL);
-	return (timer.tv_sec * 1000) + (timer.tv_usec/1000);
-}
-
-#if 0
-unsigned long long RawGetTickCount()
-{
-	return clock();
-}
-
-unsigned long long RawGetTickPerSecond()
-{
-	return (unsigned long long)CLOCKS_PER_SEC;
-}
-#else
-unsigned long long RawGetTickCount()
-{
-	timespec timer;
-	clock_gettime(CLOCK_MONOTONIC, &timer);
-	return ((unsigned long long)timer.tv_sec * 1000000000ULL) + timer.tv_nsec;
-}
-
-unsigned long long RawGetTickPerSecond()
-{
-	return 1000000000ULL;
-}
-#endif
-
-void Sleep(int ms)
-{
-	//__android_log_print(ANDROID_LOG_INFO,"nds4droid","Sleep of %i ms",ms);
-	usleep(ms * 1000);
-}
-
-#endif
-
 void IncreaseSpeed(void) {
 
 	if(desiredFpsScalerIndex)
@@ -106,10 +67,10 @@ void IncreaseSpeed(void) {
 	desiredfps = core_desiredfps * desiredFpsScaler / 256;
 	desiredspf = 65536.0f / desiredfps;
 	printf("Throttle fps scaling increased to: %f\n",desiredFpsScaler/256.0);
-	osd->addLine("Target FPS up to %2.04f",desiredFpsScaler/256.0);
-	#ifndef ANDROID
+	driver->AddLine("Target FPS up to %2.04f",desiredFpsScaler/256.0);
+#ifndef ANDROID
 	WritePrivateProfileInt("Video","FPS Scaler Index", desiredFpsScalerIndex, IniName);
-	#endif
+#endif
 }
 
 void DecreaseSpeed(void) {
@@ -120,7 +81,7 @@ void DecreaseSpeed(void) {
 	desiredfps = core_desiredfps * desiredFpsScaler / 256;
 	desiredspf = 65536.0f / desiredfps;
 	printf("Throttle fps scaling decreased to: %f\n",desiredFpsScaler/256.0);
-	osd->addLine("Target FPS down to %2.04f",desiredFpsScaler/256.0);
+	driver->AddLine("Target FPS down to %2.04f",desiredFpsScaler/256.0);
 #ifndef ANDROID
 	WritePrivateProfileInt("Video","FPS Scaler Index", desiredFpsScalerIndex, IniName);
 #endif
@@ -180,7 +141,7 @@ waiter:
 		else
 			sleepy = 0;
 		if(sleepy >= 10)
-			Sleep((sleepy / 2)); // reduce it further beacuse Sleep usually sleeps for more than the amount we tell it to
+			Sleep((DWORD)(sleepy / 2)); // reduce it further beacuse Sleep usually sleeps for more than the amount we tell it to
 #ifndef ANDROID
 		else if(sleepy > 0) // spin for <1 millisecond waits
 			SwitchToThread(); // limit to other threads on the same CPU core for other short waits

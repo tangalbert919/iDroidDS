@@ -4,6 +4,7 @@
  **	Written: 6/14/00 - JSF
  **/
 
+#include "filter.h"
 #include "types.h"
 
 int systemRedShift    = 16;
@@ -15,6 +16,12 @@ int systemBlueShift   = 0;
   ((b) >> 3) << systemBlueShift\
 */
 #define RGB1(r,g,b) (((r))<<systemRedShift) | (((g)) << systemGreenShift) | (((b)) << systemBlueShift)
+
+//kind of a waste of memory, it'd be nice if we could share this with other filters
+//then again, we may want to multi-thread them later, so.. we should allocate filter objects which carry their own buffers
+//the largest conceivable prescale... 32x!
+static u8 row_cur[3*(256+8)*32];
+static u8 row_next[3*(256+8)*32];
 
 static void fill_rgb_row_16(u16 *from, int src_width, u8 *row, int width)
 {
@@ -65,8 +72,6 @@ static void fill_rgb_row_32(u32 *from, int src_width, u8 *row, int width)
 void Bilinear(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
               u8 *dstPtr, u32 dstPitch, int width, int height)
 {
-  u8 row_cur[3*322];
-  u8 row_next[3*322];
   u8 *rgb_row_cur = row_cur;
   u8 *rgb_row_next = row_next;
 
@@ -145,18 +150,9 @@ void Bilinear(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
   }
 }
 
-struct SSurface {
-	unsigned char *Surface;
-
-	unsigned int Pitch;
-	unsigned int Width, Height;
-};
-
 void BilinearPlus(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
                   u8 *dstPtr, u32 dstPitch, int width, int height)
 {
-  u8 row_cur[3*322];
-  u8 row_next[3*322];
   u8 *rgb_row_cur = row_cur;
   u8 *rgb_row_next = row_next;
 
@@ -249,8 +245,6 @@ void BilinearPlus(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
 void Bilinear32(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
                 u8 *dstPtr, u32 dstPitch, int width, int height)
 {
-  u8 row_cur[3*322];
-  u8 row_next[3*322];
   u8 *rgb_row_cur = row_cur;
   u8 *rgb_row_next = row_next;
 
@@ -337,8 +331,6 @@ void Bilinear32(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
 void BilinearPlus32(u8 *srcPtr, u32 srcPitch, u8 * /* deltaPtr */,
                     u8 *dstPtr, u32 dstPitch, int width, int height)
 {
-  u8 row_cur[3*322];
-  u8 row_next[3*322];
   u8 *rgb_row_cur = row_cur;
   u8 *rgb_row_next = row_next;
 

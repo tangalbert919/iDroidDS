@@ -30,8 +30,4 @@ void AutoFrameSkip_NextFrame();
 void AutoFrameSkip_IgnorePreviousDelay();
 int AutoFrameSkip_GetSkipAmount(int min=0, int max=9);
 
-#ifdef ANDROID
-unsigned int GetTickCount();
-#endif
-
 #endif

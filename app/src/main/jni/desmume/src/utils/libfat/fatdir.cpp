@@ -34,9 +34,7 @@
 
 #ifndef _MSC_VER
 #include <unistd.h>
-#ifndef ANDROID
 #include <sys/dir.h>
-#endif
 #endif
 
 #include "fatdir.h"

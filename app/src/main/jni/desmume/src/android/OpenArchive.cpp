@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2009 DeSmuME team
+	Copyright (C) 2009-2017 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -26,6 +26,8 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <unistd.h>
+#include <utils/decrypt/header.h>
 #include "7zip.h"
 //#include "G_main.h"
 //#include "G_dsound.h"
@@ -95,9 +97,7 @@ tryagain:
 				}
 				if(ok)
 				{
-					ArchiveFileChooserInfo::FileInfo* fi = new ArchiveFileChooserInfo::FileInfo();
-					fi->name = name;
-					fi->itemIndex = i;
+					ArchiveFileChooserInfo::FileInfo fi = { name, i };
 					files.push_back(fi);
 				}
 			}
@@ -114,22 +114,22 @@ tryagain:
 		bool stripping = !files.empty();
 		while(stripping)
 		{
-			const char* firstName = files[0]->name.c_str();
+			const char* firstName = files[0].name.c_str();
 			const char* slash = strchr(firstName, '\\');
 			const char* slash2 = strchr(firstName, '/');
 			slash = std::max(slash, slash2);
 			if(!slash++)
 				break;
 			for(size_t i = 1; i < files.size(); i++)
-				if(strncmp(firstName, files[i]->name.c_str(), slash - firstName))
+				if(strncmp(firstName, files[i].name.c_str(), slash - firstName))
 					stripping = false;
 			if(stripping)
 				for(size_t i = 0; i < files.size(); i++)
-					files[i]->name = files[i]->name.substr(slash - firstName, files[i]->name.length() - (slash - firstName));
+					files[i].name = files[i].name.substr(slash - firstName, files[i].name.length() - (slash - firstName));
 		}
 
 		// sort by filename
-		//std::sort(files.begin(), files.end(), FileInfo::Sort);
+		std::sort(files.begin(), files.end(), FileInfo::Sort);
 	}
 
 //protected:
@@ -138,7 +138,7 @@ tryagain:
 	{
 		std::string name;
 		int itemIndex;
-		
+
 		static bool Sort(const FileInfo& elem1, const FileInfo& elem2)
 		{
 			int comp = elem1.name.compare(elem2.name);
@@ -147,7 +147,7 @@ tryagain:
 	};
 
 	ArchiveFile& archive;
-	std::vector<FileInfo*> files;
+	std::vector<FileInfo> files;
 };
 
 int ChooseItemFromArchive(ArchiveFile& archive, bool autoChooseIfOnly1, const char** ignoreExtensions, int numIgnoreExtensions)
@@ -172,7 +172,7 @@ int ChooseItemFromArchive(ArchiveFile& archive, bool autoChooseIfOnly1, const ch
 
 	// if there's only 1 item, choose it
 	if(info.files.size() == 1 && autoChooseIfOnly1 && numIgnoreExtensions == prevNumIgnoreExtensions)
-		return info.files[0]->itemIndex;
+		return info.files[0].itemIndex;
 
 #ifndef ANDROID
 	// bring up a dialog to choose the index if there's more than 1
@@ -185,6 +185,7 @@ int ChooseItemFromArchive(ArchiveFile& archive, bool autoChooseIfOnly1, const ch
 
 
 
+
 #define DEFAULT_EXTENSION ".tmp"
 #define DEFAULT_CATEGORY "desmume"
 
@@ -192,17 +193,17 @@ static struct TempFiles
 {
 	struct TemporaryFile
 	{
-	
-	
+
+
 		TemporaryFile(const char* path)
 		{
 			char tempPath [1024];
 			GetTempPath(1024, tempPath);
 			strcat(tempPath, path);
 			strcpy(filename, tempPath);
-			
+
 		}
-		
+
 		TemporaryFile(const char* cat, const char* ext)
 		{
 			if(!ext || !*ext) ext = DEFAULT_EXTENSION;
@@ -247,7 +248,7 @@ static struct TempFiles
 		TemporaryFile()
 		{
 			filename[0] = 0;
-			category[0] = 0;
+			category.resize(0);
 		}
 		bool Delete(bool returnFalseOnRegistryRemovalFailure=false)
 		{
@@ -290,7 +291,7 @@ static struct TempFiles
 		tempFiles.push_back(TemporaryFile(category, extension));
 		return tempFiles.back().filename;
 	}
-	
+
 	const char* GetFile(const char* path)
 	{
 		tempFiles.push_back(TemporaryFile(path));
@@ -463,6 +464,16 @@ bool ObtainFile(const char* Name, char *const & LogicalName, char *const & Physi
 
 	while(true)
 	{
+		//before sending to FEX, see if we're known to be an NDS file
+		//(this will stop games beginning with the name ZOO from being mis-recognized as a zoo file)
+		FILE* inf = fopen(PhysicalName,"rb");
+		if(!inf) return false;
+		u8 bytes512[512];
+		bool got512 = fread(bytes512,1,512,inf)==512;
+		fclose(inf);
+		if(got512 && DetectAnyRom(bytes512))
+			return true;
+
 		ArchiveFile archive (PhysicalName);
 		if(!archive.IsCompressed())
 		{
@@ -500,10 +511,9 @@ bool ObtainFile(const char* Name, char *const & LogicalName, char *const & Physi
 			if(item < 0)
 				item = ChooseItemFromArchive(archive, !forceManual, ignoreExtensions, numIgnoreExtensions);
 
-			const char* TempFileName = s_tempFiles.GetFile(archive.GetItemName(item));
+			const char* TempFileName = s_tempFiles.GetFile(category, strrchr(archive.GetItemName(item), '.'));
 			if(!archive.ExtractItem(item, TempFileName))
 				s_tempFiles.ReleaseFile(TempFileName);
-			LOGI("Extracting temporary ROM to %s", TempFileName);
 			s_tempFiles.ReleaseFile(PhysicalName);
 			strcpy(PhysicalName, TempFileName);
 			//_snprintf(LogicalName + strlen(LogicalName), 1024 - (strlen(LogicalName)+1), "|%s", archive.GetItemName(item));
@@ -516,7 +526,7 @@ bool ObtainFile(const char* Name, char *const & LogicalName, char *const & Physi
 struct ControlLayoutInfo
 {
 	int controlID;
-	
+
 	enum LayoutType // what to do when the containing window resizes
 	{
 		NONE, // leave the control where it was
@@ -558,7 +568,7 @@ LRESULT CALLBACK ArchiveFileChooser(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 		{
 //			DialogsOpen++;
 //			Clear_Sound_Buffer();
-			
+
 //			if(Full_Screen)
 //			{
 //				while (ShowCursor(false) >= 0);
@@ -702,7 +712,7 @@ LRESULT CALLBACK ArchiveFileChooser(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 					return TRUE;
 
 				case IDOK:
-				{	
+				{
 					int listIndex = SendDlgItemMessage(hDlg, IDC_LIST1, LB_GETCURSEL, (WPARAM) 0, (LPARAM) 0);
 					s_archiveFileChooserResult = s_listToItemsMap[listIndex];
 					s_listToItemsMap.clear();
@@ -743,4 +753,3 @@ LRESULT CALLBACK ArchiveFileChooser(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
 	return false;
 }
-#endif
