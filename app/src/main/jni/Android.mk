@@ -13,8 +13,8 @@ endif
 
 ifeq ($(TARGET_ARCH_ABI),x86)
 include $(LOCAL_BUILD_PATH)/desmume_x86.mk
+include $(LOCAL_BUILD_PATH)/desmume/src/utils/colorspacehandler/colorspacehandler.mk
 endif
 
 include $(LOCAL_BUILD_PATH)/desmume/src/android/7z/7z.mk
-include $(LOCAL_BUILD_PATH)/desmume/src/utils/colorspacehandler/colorspacehandler.mk
 

@@ -9,10 +9,9 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := libcolorspacehandler
 
 LOCAL_SRC_FILES :=  colorspacehandler.cpp \
-					colorspacehandler_AVX2.cpp \
 					colorspacehandler_SSE2.cpp
 
-LOCAL_ARM_MODE 			:= 	arm
+LOCAL_ARM_MODE 			:= 	thumb
 LOCAL_ARM_NEON 			:= 	false
 LOCAL_CFLAGS			:= -DCOMPRESS_MT
 
