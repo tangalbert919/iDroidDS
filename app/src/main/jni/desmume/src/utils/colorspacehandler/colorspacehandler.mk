@@ -8,8 +8,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := libcolorspacehandler
 
-LOCAL_SRC_FILES := colorspacehandler.cpp \
-					colorspacehandler_AltiVec.cpp \
+LOCAL_SRC_FILES :=  colorspacehandler.cpp \
 					colorspacehandler_AVX2.cpp \
 					colorspacehandler_SSE2.cpp
 

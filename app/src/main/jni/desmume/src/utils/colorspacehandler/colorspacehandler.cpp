@@ -24,10 +24,10 @@
 	#include "colorspacehandler_SSE2.cpp"
 #elif defined(ENABLE_SSE2)
 	#include "colorspacehandler_SSE2.cpp"
+/*
 #elif defined(ENABLE_ALTIVEC)
-	#include "colorspacehandler_AltiVec.cpp"
+	#include "colorspacehandler_AltiVec.cpp"*/
 #endif
-
 #if defined(ENABLE_AVX2)
 	#define USEVECTORSIZE_256
 #elif defined(ENABLE_SSE2) || defined(ENABLE_ALTIVEC)
@@ -47,8 +47,10 @@
 	static const ColorspaceHandler_AVX2 csh;
 	#elif defined(ENABLE_SSE2)
 	static const ColorspaceHandler_SSE2 csh;
+/*
 	#elif defined(ENABLE_ALTIVEC)
 	static const ColorspaceHandler_AltiVec csh;
+ */
 	#else
 	static const ColorspaceHandler csh;
 	#endif
@@ -192,7 +194,7 @@ void ColorspaceConvertBuffer555To8888Opaque(const u16 *__restrict src, u32 *__re
 	
 	for (; i < pixCount; i++)
 	{
-		dst[i] = ColorspaceConvert555To8888Opaque(src[i]);
+		dst[i] = ColorspaceConvert555To8888Opaque<SWAP_RB>(src[i]);
 	}
 }
 
@@ -240,7 +242,7 @@ void ColorspaceConvertBuffer555To6665Opaque(const u16 *__restrict src, u32 *__re
 	
 	for (; i < pixCount; i++)
 	{
-		dst[i] = ColorspaceConvert555To6665Opaque(src[i]);
+		dst[i] = ColorspaceConvert555To6665Opaque<SWAP_RB>(src[i]);
 	}
 }
 

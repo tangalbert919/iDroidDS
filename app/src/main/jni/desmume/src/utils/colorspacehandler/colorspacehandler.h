@@ -18,7 +18,7 @@
 #ifndef COLORSPACEHANDLER_H
 #define COLORSPACEHANDLER_H
 
-#include "types.h"
+#include "../../types.h"
 #include <stdio.h>
 #include <stdint.h>
 

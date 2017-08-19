@@ -397,7 +397,7 @@ int ArchiveFile::ExtractItem(int index, const char* outFilename) const
 			InFileStream* ifs = new InFileStream(m_filename);
 			if(SUCCEEDED(object->Open(ifs,0,0)))
 			{
-				gameInfo.resize(rv);
+				gameInfo.readROM(rv);
 				OutStream* os = new OutStream(index, outFilename);
 				const UInt32 indices [1] = {index};
 				hr = object->Extract(indices, 1, 0, os);
