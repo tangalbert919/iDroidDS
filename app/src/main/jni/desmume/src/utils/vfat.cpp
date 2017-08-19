@@ -199,18 +199,18 @@ bool VFAT::build(const char* path, int extra_MB)
 
 	if(dataSectors>=(0x80000000>>9))
 	{
-		printf("error allocating memory for fat (%d KBytes)\n",(dataSectors*512)/1024);
+		printf("error allocating memory for fat (%d KBytes)\n", (int) ((dataSectors * 512) / 1024));
 		printf("total fat sizes > 2GB are never going to work\n");
 	}
 	
 	delete file;
 	try 
 	{
-		file = new EMUFILE_MEMORY(dataSectors*512);
+		file = new EMUFILE_MEMORY((u32) (dataSectors * 512));
 	}
 	catch(std::bad_alloc)
 	{
-		printf("error allocating memory for fat (%d KBytes)\n",(dataSectors*512)/1024);
+		printf("error allocating memory for fat (%d KBytes)\n", (int) ((dataSectors * 512) / 1024));
 		printf("(out of memory)\n");
 		return false;
 	}
@@ -222,8 +222,8 @@ bool VFAT::build(const char* path, int extra_MB)
 	{
 		EmuFat fat(file);
 		EmuFatVolume vol;
-		u8 ok = vol.init(&fat);
-		vol.formatNew(dataSectors);
+		u8 ok = (u8) vol.init(&fat);
+		vol.formatNew((u32) dataSectors);
 
 		//ensure we are working in memory, just in case we were testing with a disk file.
 		//libfat will need to go straight to memory (for now; we could easily change it to work with the disk)
