@@ -16,6 +16,7 @@
 */
 
 #include "colorspacehandler.h"
+#include "../../types.h"
 #include <string.h>
 
 #if defined(ENABLE_AVX2)
@@ -191,7 +192,7 @@ void ColorspaceConvertBuffer555To8888Opaque(const u16 *__restrict src, u32 *__re
 	
 	for (; i < pixCount; i++)
 	{
-		dst[i] = ColorspaceConvert555To8888Opaque<SWAP_RB>(src[i]);
+		dst[i] = ColorspaceConvert555To8888Opaque(src[i]);
 	}
 }
 
@@ -239,7 +240,7 @@ void ColorspaceConvertBuffer555To6665Opaque(const u16 *__restrict src, u32 *__re
 	
 	for (; i < pixCount; i++)
 	{
-		dst[i] = ColorspaceConvert555To6665Opaque<SWAP_RB>(src[i]);
+		dst[i] = ColorspaceConvert555To6665Opaque(src[i]);
 	}
 }
 

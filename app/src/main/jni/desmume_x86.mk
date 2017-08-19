@@ -14,7 +14,7 @@ LOCAL_C_INCLUDES		:= 	$(LOCAL_PATH)/desmume/src \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP/include_windows
 						   
 LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
-                            							desmume/src/addons/slot1_r4.cpp \
+                            desmume/src/addons/slot1_r4.cpp \
                             							desmume/src/addons/slot1_retail_auto.cpp \
                             							desmume/src/addons/slot1_retail_mcrom.cpp \
                             							desmume/src/addons/slot1_retail_mcrom_debug.cpp \
@@ -50,7 +50,6 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
                             							desmume/src/utils/tinyxml/tinyxmlparser.cpp \
                             							desmume/src/utils/tinyxml/tinyxmlerror.cpp \
                             							desmume/src/utils/tinyxml/tinystr.cpp \
-                            							desmume/src/utils/colorspacehandler/colorspacehandler.cpp \
                             							desmume/src/utils/ConvertUTF.c \
                             							desmume/src/utils/datetime.cpp \
                             							desmume/src/utils/dlditool.cpp \

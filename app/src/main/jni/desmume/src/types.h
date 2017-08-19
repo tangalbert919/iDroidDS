@@ -19,9 +19,9 @@
 #ifndef TYPES_HPP
 #define TYPES_HPP
 
-/*#include <retro_miscellaneous.h>
-#include <retro_inline.h>
-#include <math/fxp.h>*/
+#include "libretro-common/include/retro_miscellaneous.h"
+#include "libretro-common/include/retro_inline.h"
+#include "libretro-common/include/math/fxp.h"
 
 //analyze microsoft compilers
 #ifdef _MSC_VER
@@ -346,6 +346,38 @@ inline double u64_to_double(u64 u) {
 	} fuxor;
 	fuxor.a = u;
 	return fuxor.b;
+}
+
+inline void en32lsb(u8 *buf, u32 morp)
+{
+	buf[0]=(u8)(morp);
+	buf[1]=(u8)(morp>>8);
+	buf[2]=(u8)(morp>>16);
+	buf[3]=(u8)(morp>>24);
+}
+
+inline void en16lsb(u8* buf, u16 morp)
+{
+	buf[0]=(u8)morp;
+	buf[1]=(u8)(morp>>8);
+}
+
+///unpacks a 64bit little endian value from the provided byte array into host byte order
+inline u64 de64lsb(u8 *morp)
+{
+	return morp[0]|(morp[1]<<8)|(morp[2]<<16)|(morp[3]<<24)|((u64)morp[4]<<32)|((u64)morp[5]<<40)|((u64)morp[6]<<48)|((u64)morp[7]<<56);
+}
+
+///unpacks a 32bit little endian value from the provided byte array into host byte order
+inline u32 de32lsb(u8 *morp)
+{
+	return morp[0]|(morp[1]<<8)|(morp[2]<<16)|(morp[3]<<24);
+}
+
+///unpacks a 16bit little endian value from the provided byte array into host byte order
+inline u16 de16lsb(u8 *morp)
+{
+	return morp[0]|(morp[1]<<8);
 }
 
 //fairly standard for loop macros
