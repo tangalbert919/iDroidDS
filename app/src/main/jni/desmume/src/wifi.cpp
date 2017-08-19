@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2007 Tim Seidel
-	Copyright (C) 2008-2012 DeSmuME team
+	Copyright (C) 2008-2016 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -16,25 +16,17 @@
 	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
-#include "wifi.h"
-#include "armcpu.h"
-#include "NDSSystem.h"
-#include "debug.h"
-#include "bits.h"
+#include "types.h"
 
-
-#ifdef _WINDOWS
-	#include <winsock2.h> 	 
+#ifdef HOST_WINDOWS
+	#include <winsock2.h>
 	#include <ws2tcpip.h>
 	#define socket_t    SOCKET 	 
 	#define sockaddr_t  SOCKADDR
-	#ifndef WXPORT
-		#include "windriver.h"
-	#endif
+	#include "windriver.h"
 	#define PCAP_DEVICE_NAME description
 #else
-	#include <unistd.h> 	 
+	#include <unistd.h>
 	#include <stdlib.h> 	 
 	#include <string.h> 	 
 	#include <arpa/inet.h> 	 
@@ -44,6 +36,16 @@
 	#define closesocket close
 	#define PCAP_DEVICE_NAME name
 #endif
+
+#include "wifi.h"
+
+#include <assert.h>
+
+#include "utils/bits.h"
+#include "armcpu.h"
+#include "NDSSystem.h"
+#include "debug.h"
+#include "registers.h"
 
 #ifndef INVALID_SOCKET 	 
 	#define INVALID_SOCKET  (socket_t)-1 	 
@@ -69,9 +71,14 @@ pcap_t *wifi_bridge = NULL;
 #define PCAP_OPENFLAG_PROMISCUOUS 1
 #endif
 
+static WifiHandler _defaultHandler;
+WifiHandler *CurrentWifiHandler = &_defaultHandler;
+
 wifimac_t wifiMac;
 SoftAP_t SoftAP;
 int wifi_lastmode;
+static const u8 _wifiMinRSSI = 10;
+static const u8 _wifiMaxRSSI = 255;
 
 /*******************************************************************************
 
@@ -303,15 +310,19 @@ WifiComInterface* wifiCom;
 // 3: medium logging, for debugging, shows lots of stuff
 // 4: high logging, for debugging, shows almost everything, may slow down
 // 5: highest logging, for debugging, shows everything, may slow down a lot
-#define WIFI_LOGGING_LEVEL 3
+#ifdef EXPERIMENTAL_WIFI_COMM
+	#define WIFI_LOGGING_LEVEL 3
+#else
+	#define WIFI_LOGGING_LEVEL 0
+#endif
 
 #define WIFI_LOG_USE_LOGC 0
 
 #if (WIFI_LOGGING_LEVEL >= 1)
 	#if WIFI_LOG_USE_LOGC
-		#define WIFI_LOG(level, ...) if(level <= WIFI_LOGGING_LEVEL) LOGC(8, "WIFI: "__VA_ARGS__);
+		#define WIFI_LOG(level, ...) if(level <= WIFI_LOGGING_LEVEL) LOGC(8, "WIFI: " __VA_ARGS__);
 	#else
-		#define WIFI_LOG(level, ...) if(level <= WIFI_LOGGING_LEVEL) printf("WIFI: "__VA_ARGS__);
+		#define WIFI_LOG(level, ...) if(level <= WIFI_LOGGING_LEVEL) printf("WIFI: " __VA_ARGS__);
 	#endif
 #else
 #define WIFI_LOG(level, ...) {}
@@ -772,9 +783,8 @@ INLINE void WIFI_MakeRXHeader(u8* buf, u16 flags, u16 xferRate, u16 len, u8 maxR
 	*(u16*)&buf[6] = xferRate;
 	*(u16*)&buf[8] = len;
 
-	// idk about those, really
-	buf[10] = 0x20;//maxRSSI;
-	buf[11] = 0xA0;//minRSSI;
+	buf[10] = maxRSSI;
+	buf[11] = minRSSI;
 }
 
 static void WIFI_RXPutWord(u16 val)
@@ -1775,7 +1785,7 @@ bool Adhoc_Init()
 	BOOL opt_true = TRUE;
 	int res;
 
-	if (!driver->WIFI_SocketsAvailable())
+	if (!CurrentWifiHandler->WIFI_SocketsAvailable())
 	{
 		WIFI_LOG(1, "Ad-hoc: failed to initialize sockets.\n");
 		wifi_socket = INVALID_SOCKET;
@@ -1837,7 +1847,7 @@ void Adhoc_DeInit()
 
 void Adhoc_Reset()
 {
-	driver->WIFI_GetUniqueMAC(FW_Mac);
+	CurrentWifiHandler->WIFI_GetUniqueMAC(FW_Mac);
 	NDS_PatchFirmwareMAC();
 
 	printf("WIFI: ADHOC: MAC = %02X:%02X:%02X:%02X:%02X:%02X\n",
@@ -1931,7 +1941,7 @@ void Adhoc_msTrigger()
 
 				u8* packet = new u8[12 + packetLen];
 
-				WIFI_MakeRXHeader(packet, WIFI_GetRXFlags(ptr), 20, packetLen, 0, 0);
+				WIFI_MakeRXHeader(packet, WIFI_GetRXFlags(ptr), 20, packetLen, _wifiMinRSSI, _wifiMaxRSSI);
 				memcpy(&packet[12], ptr, packetLen);
 				WIFI_RXQueuePacket(packet, 12+packetLen);
 			}
@@ -2062,7 +2072,7 @@ static pcap_if_t * WIFI_index_device(pcap_if_t *alldevs, int index)
 
 bool SoftAP_Init()
 {
-	if (!driver->WIFI_PCapAvailable())
+	if (!CurrentWifiHandler->WIFI_PCapAvailable())
 	{
 		WIFI_LOG(1, "SoftAP: PCap library not available on your system.\n");
 		wifi_bridge = NULL;
@@ -2073,7 +2083,7 @@ bool SoftAP_Init()
 	pcap_if_t *alldevs;
 	int ret = 0;
 
-	ret = driver->PCAP_findalldevs(&alldevs, errbuf);
+	ret = CurrentWifiHandler->PCAP_findalldevs(&alldevs, errbuf);
 	if (ret == -1 || alldevs == NULL)
 	{
 		WIFI_LOG(1, "SoftAP: PCap: failed to find any network adapter: %s\n", errbuf);
@@ -2081,20 +2091,20 @@ bool SoftAP_Init()
 	}
 
 	pcap_if_t* dev = WIFI_index_device(alldevs,CommonSettings.wifi.infraBridgeAdapter);
-	wifi_bridge = driver->PCAP_open(dev->name, PACKET_SIZE, PCAP_OPENFLAG_PROMISCUOUS, 1, errbuf);
+	wifi_bridge = CurrentWifiHandler->PCAP_open(dev->name, PACKET_SIZE, PCAP_OPENFLAG_PROMISCUOUS, 1, errbuf);
 	if(wifi_bridge == NULL)
 	{
 		WIFI_LOG(1, "SoftAP: PCap: failed to open %s: %s\n", dev->PCAP_DEVICE_NAME, errbuf);
 		return false;
 	}
 
-	driver->PCAP_freealldevs(alldevs);
+	CurrentWifiHandler->PCAP_freealldevs(alldevs);
 
 	// Set non-blocking mode
-	if (driver->PCAP_setnonblock(wifi_bridge, 1, errbuf) == -1)
+	if (CurrentWifiHandler->PCAP_setnonblock(wifi_bridge, 1, errbuf) == -1)
 	{
 		WIFI_LOG(1, "SoftAP: PCap: failed to set non-blocking mode: %s\n", errbuf);
-		driver->PCAP_close(wifi_bridge); wifi_bridge = NULL;
+		CurrentWifiHandler->PCAP_close(wifi_bridge); wifi_bridge = NULL;
 		return false;
 	}
 
@@ -2106,7 +2116,7 @@ bool SoftAP_Init()
 void SoftAP_DeInit()
 {
 	if(wifi_bridge != NULL)
-		driver->PCAP_close(wifi_bridge);
+		CurrentWifiHandler->PCAP_close(wifi_bridge);
 }
 
 void SoftAP_Reset()
@@ -2171,7 +2181,7 @@ static void SoftAP_Deauthenticate()
 	if (WIFI_compareMAC(wifiMac.bss.bytes, &packet[12 + 16]))
 		rxflags |= 0x8000;
 
-	WIFI_MakeRXHeader(packet, rxflags, 20, packetLen, 0, 0);
+	WIFI_MakeRXHeader(packet, rxflags, 20, packetLen, _wifiMinRSSI, _wifiMaxRSSI);
 	WIFI_RXQueuePacket(packet, 12 + packetLen);
 
 	SoftAP.status = APStatus_Disconnected;
@@ -2260,7 +2270,7 @@ void SoftAP_SendPacket(u8 *packet, u32 len)
 			if (WIFI_compareMAC(wifiMac.bss.bytes, &rpacket[12 + 16]))
 				rxflags |= 0x8000;
 
-			WIFI_MakeRXHeader(rpacket, rxflags, 20, packetLen, 0, 0); // make the RX header
+			WIFI_MakeRXHeader(rpacket, rxflags, 20, packetLen, _wifiMinRSSI, _wifiMaxRSSI); // make the RX header
 			WIFI_RXQueuePacket(rpacket, 12 + packetLen);
 		}
 		break;
@@ -2275,8 +2285,7 @@ void SoftAP_SendPacket(u8 *packet, u32 len)
 
 				if (SoftAP_IsDNSRequestToWFC(*(u16*)&packet[30], &packet[32]))
 				{
-					SoftAP_Deauthenticate();
-					return;
+					WIFI_LOG(1, "SoftAP: Requesting Nintendo WFC server...\n");
 				}
 
 				u32 epacketLen = ((len - 30 - 4) + 14);
@@ -2291,7 +2300,7 @@ void SoftAP_SendPacket(u8 *packet, u32 len)
 				memcpy(&epacket[14], &packet[32], epacketLen - 14);
 
 				if(wifi_bridge != NULL)
-					driver->PCAP_sendpacket(wifi_bridge, epacket, epacketLen);
+					CurrentWifiHandler->PCAP_sendpacket(wifi_bridge, epacket, epacketLen);
 			}
 			else
 			{
@@ -2318,7 +2327,7 @@ INLINE void SoftAP_SendBeacon()
 	if (WIFI_compareMAC(wifiMac.bss.bytes, &packet[12 + 16]))
 		rxflags |= 0x8000;
 
-	WIFI_MakeRXHeader(packet, rxflags, 20, packetLen, 0, 0);
+	WIFI_MakeRXHeader(packet, rxflags, 20, packetLen, _wifiMinRSSI, _wifiMaxRSSI);
 	WIFI_RXQueuePacket(packet, 12 + packetLen);
 }
 
@@ -2347,7 +2356,7 @@ static void SoftAP_RXHandler(u_char* user, const struct pcap_pkthdr* h, const u_
 		rxflags |= 0x8000;
 
 	// Make a valid 802.11 frame
-	WIFI_MakeRXHeader(wpacket, rxflags, 20, wpacketLen, 0, 0);
+	WIFI_MakeRXHeader(wpacket, rxflags, 20, wpacketLen, _wifiMinRSSI, _wifiMaxRSSI);
 	*(u16*)&wpacket[12+0] = 0x0208;
 	*(u16*)&wpacket[12+2] = 0x0000;
 	memcpy(&wpacket[12+4], &data[0], 6);
@@ -2376,7 +2385,7 @@ void SoftAP_msTrigger()
 	// Can now receive 64 packets per millisecond. Completely arbitrary limit. Todo: tweak if needed.
 	// But due to using non-blocking mode, this shouldn't be as slow as it used to be.
 	if (wifi_bridge != NULL)
-		driver->PCAP_dispatch(wifi_bridge, 64, SoftAP_RXHandler, NULL);
+		CurrentWifiHandler->PCAP_dispatch(wifi_bridge, 64, SoftAP_RXHandler, NULL);
 }
 
 #endif

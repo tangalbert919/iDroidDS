@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2009-2012 DeSmuME team
+	Copyright (C) 2009-2016 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -15,31 +15,47 @@
 	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "types.h"
 #include "lua-engine.h"
-#include "movie.h"
+
+#if defined(WIN32)
+	#include <windows.h>
+	#include <direct.h>
+
+	typedef HMENU PlatformMenu;    // hMenu
+	#define MAX_MENU_COUNT (IDC_LUAMENU_RESERVE_END - IDC_LUAMENU_RESERVE_START + 1)
+
+	#include "frontend/windows/main.h"
+	#include "frontend/windows/video.h"
+	#include "frontend/windows/resource.h"
+#else
+	// TODO: define appropriate types for menu
+	typedef void* PlatformMenu;
+	#define MAX_MENU_COUNT 0
+
+	#include <unistd.h>
+#endif
+
+#if HAVE_LIBAGG
+#include "frontend/modules/osd/agg/agg_osd.h"
+#endif
+
 #include <assert.h>
 #include <vector>
 #include <map>
 #include <string>
 #include <algorithm>
+
+#include "armcpu.h"
+#include "movie.h"
 #include "zlib.h"
+#include "driver.h"
 #include "NDSSystem.h"
 #include "movie.h"
-#include "GPU_osd.h"
+#include "MMU.h"
+#include "GPU.h"
+#include "SPU.h"
 #include "saves.h"
 #include "emufile.h"
-#if defined(WIN32) && !defined(WXPORT)
-#include <windows.h>
-#include "main.h"
-#include "video.h"
-#include "resource.h"
-#endif
-#ifdef WIN32
-#include <direct.h>
-#else
-#include <unistd.h>
-#endif
 
 using namespace std;
 
@@ -56,10 +72,10 @@ static bool IsHardwareAddressValid(u32 address) {
 // adapted from gens-rr, nitsuja + upthorn
 
 extern "C" {
-	#include "lua.h"
-	#include "lauxlib.h"
-	#include "lualib.h"
-	#include "lstate.h"
+	#include "frontend/windows/lua/include/lua.h"
+	#include "frontend/windows/lua/include/lauxlib.h"
+	#include "frontend/windows/lua/include/lualib.h"
+	#include "frontend/windows/lua/include/lstate.h"
 };
 
 enum SpeedMode
@@ -165,7 +181,9 @@ static std::map<lua_CFunction, const char*> s_cFuncInfoMap;
 	static int name(lua_State* L)
 
 #ifdef _MSC_VER
-	#define snprintf _snprintf
+	#ifndef snprintf
+		#define snprintf _snprintf
+	#endif
 	#define vscprintf _vscprintf
 #else
 	#define stricmp strcasecmp
@@ -482,7 +500,7 @@ static int doPopup(lua_State* L, const char* deftype, const char* deficon)
 
 	static const char * const titles [] = {"Notice", "Question", "Warning", "Error"};
 	const char* answer = "ok";
-#if defined(_WIN32) && !defined(WXPORT)
+#if defined(_WIN32)
 	static const int etypes [] = {MB_OK, MB_YESNO, MB_YESNOCANCEL, MB_OKCANCEL, MB_ABORTRETRYIGNORE};
 	static const int eicons [] = {MB_ICONINFORMATION, MB_ICONQUESTION, MB_ICONWARNING, MB_ICONERROR};
 //	DialogsOpen++;
@@ -904,7 +922,7 @@ static void toCStringConverter(lua_State* L, int i, char*& ptr, int& remaining)
 		case LUA_TNIL: APPENDPRINT "nil" END break;
 		case LUA_TBOOLEAN: APPENDPRINT lua_toboolean(L,i) ? "true" : "false" END break;
 		case LUA_TSTRING: APPENDPRINT "%s",lua_tostring(L,i) END break;
-		case LUA_TNUMBER: APPENDPRINT "%.12Lg",lua_tonumber(L,i) END break;
+		case LUA_TNUMBER: APPENDPRINT "%.12g",lua_tonumber(L,i) END break;
 		case LUA_TFUNCTION: 
 			if((L->base + i-1)->value.gc->cl.c.isC)
 			{
@@ -1223,6 +1241,9 @@ typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 #else
 #include <stdint.h>
+#include <frontend/modules/osd/agg/aggdraw.h>
+#include <frontend/modules/osd/agg/agg_osd.h>
+
 #endif
 
 typedef int32_t SBits;
@@ -1345,7 +1366,7 @@ bool luabitop_validate(lua_State *L) // originally named as luaopen_bit
   if (b != (UBits)1437217655L || BAD_SAR) {  /* Perform a simple self-test. */
     const char *msg = "compiled with incompatible luaconf.h";
 #ifdef LUA_NUMBER_DOUBLE
-#if defined(_WIN32) && !defined(WXPORT)
+#if defined(_WIN32)
     if (b == (UBits)1610612736L)
       msg = "use D3DCREATE_FPU_PRESERVE with DirectX";
 #endif
@@ -1417,7 +1438,7 @@ void indicateBusy(lua_State* L, bool busy)
 		lua_pop(L, 1);
 	}
 */
-#if defined(_WIN32) && !defined(WXPORT)
+#if defined(_WIN32)
 	int uid = luaStateToUIDMap[L->l_G->mainthread];
 	HWND hDlg = (HWND)uid;
 	char str [1024];
@@ -1471,7 +1492,7 @@ void LuaRescueHook(lua_State* L, lua_Debug *dbg)
 		if(!info.panic)
 		{
 			SPU_ClearOutputBuffer();
-#if defined(ASK_USER_ON_FREEZE) && defined(_WIN32) && !defined(WXPORT)
+#if defined(ASK_USER_ON_FREEZE) && defined(_WIN32)
 			DialogsOpen++;
 			int answer = MessageBox(HWnd, "A Lua script has been running for quite a while. Maybe it is in an infinite loop.\n\nWould you like to stop the script?\n\n(Yes to stop it now,\n No to keep running and not ask again,\n Cancel to keep running but ask again later)", "Lua Alert", MB_YESNOCANCEL | MB_DEFBUTTON3 | MB_ICONASTERISK);
 			DialogsOpen--;
@@ -2197,7 +2218,7 @@ public:
 
 	std::vector<std::string> differences;
 
-	virtual void fwrite(const void *ptr, size_t bytes)
+	virtual size_t fwrite(const void *ptr, size_t bytes)
 	{
 		if(!failbit)
 		{
@@ -2212,10 +2233,11 @@ public:
 						failbit = true;
 					else
 					{
+						const NDSDisplayInfo &dispInfo = GPU->GetDisplayInfo();
 						char temp [256];
 						sprintf(temp, " " /*"mismatch at "*/ "byte %d(0x%X at 0x%X): %d(0x%X) != %d(0x%X)\n", i, i, dst, *src,*src, *dst,*dst);
 
-						if(ptr == GPU_screen || ptr == gfx3d_convertedScreen) // ignore screen-only differences since frame skipping can cause them and it's probably ok
+						if(ptr == dispInfo.masterNativeBuffer || ptr == dispInfo.masterCustomBuffer || ptr == GPU->GetEngineMain()->Get3DFramebufferMain()) // ignore screen-only differences since frame skipping can cause them and it's probably ok
 							break;
 
 						differences.push_back(temp); // <-- probably the best place for a breakpoint
@@ -2230,6 +2252,8 @@ public:
 		}
 
 		pos += bytes;
+		
+		return bytes;
 	}
 };
 
@@ -2585,6 +2609,7 @@ static void prepare_drawing()
 }
 static void prepare_reading()
 {
+#if HAVE_LIBAGG
 	curGuiData = GetCurrentInfo().guiData;
 	u32* buf = (u32*)aggDraw.screen->buf().buf();
 	if(buf)
@@ -2594,12 +2619,13 @@ static void prepare_reading()
 	}
 	else
 	{
-#if defined(WIN32) && !defined(WXPORT)
+#if defined(WIN32)
 		extern VideoInfo video;
 		curGuiData.data = video.buffer;
 		curGuiData.stridePix = 256;
 #endif
 	}
+#endif
 }
 
 // note: prepare_drawing or prepare_reading must be called,
@@ -3442,7 +3468,7 @@ static void GetCurrentScriptDir(char* buffer, int bufLen)
 
 DEFINE_LUA_FUNCTION(emu_openscript, "filename")
 {
-#if defined(WIN32) && !defined(WXPORT)
+#if defined(WIN32)
 	char curScriptDir[1024]; GetCurrentScriptDir(curScriptDir, 1024); // make sure we can always find scripts that are in the same directory as the current script
 	const char* filename = lua_isstring(L,1) ? lua_tostring(L,1) : NULL;
 	extern const char* OpenLuaScript(const char* filename, const char* extraDirToCheck, bool makeSubservient);
@@ -3464,7 +3490,7 @@ DEFINE_LUA_FUNCTION(emu_reset, "")
 
 static bool IsLuaMenuItem(PlatformMenuItem menuItem)
 {
-#if defined(WIN32) && !defined(WXPORT)
+#if defined(WIN32)
 	return (menuItem >= IDC_LUAMENU_RESERVE_START && menuItem <= IDC_LUAMENU_RESERVE_END);
 #else
 	return false;
@@ -3473,7 +3499,7 @@ static bool IsLuaMenuItem(PlatformMenuItem menuItem)
 
 static bool SearchFreeMenuItem(PlatformMenu menu, PlatformMenuItem& menuItem)
 {
-#if defined(WIN32) && !defined(WXPORT)
+#if defined(WIN32)
 	for (UINT menuItemId = IDC_LUAMENU_RESERVE_START; menuItemId <= IDC_LUAMENU_RESERVE_END; menuItemId++)
 	{
 		MENUITEMINFO mii;
@@ -3495,7 +3521,7 @@ static bool SearchFreeMenuItem(PlatformMenu menu, PlatformMenuItem& menuItem)
 
 static PlatformMenu AddSubMenu(PlatformMenu topMenu, PlatformMenu menu, const char* menuName)
 {
-#if defined(WIN32) && !defined(WXPORT)
+#if defined(WIN32)
 	LuaContextInfo& info = GetCurrentInfo();
 	MENUITEMINFO mii;
 
@@ -3523,7 +3549,7 @@ static PlatformMenu AddSubMenu(PlatformMenu topMenu, PlatformMenu menu, const ch
 	}
 
 	// add new submenu
-	UINT subMenuId;
+	PlatformMenuItem subMenuId;
 	if (!SearchFreeMenuItem(topMenu, subMenuId))
 	{
 		return NULL;
@@ -3553,7 +3579,7 @@ static PlatformMenu AddSubMenu(PlatformMenu topMenu, PlatformMenu menu, const ch
 
 bool AddMenuEntries(PlatformMenu topMenu, PlatformMenu menu)
 {
-#if defined(WIN32) && !defined(WXPORT)
+#if defined(WIN32)
 	LuaContextInfo& info = GetCurrentInfo();
 	lua_State* L = info.L;
 	luaL_checktype(L, -1, LUA_TTABLE);
@@ -3567,7 +3593,7 @@ bool AddMenuEntries(PlatformMenu topMenu, PlatformMenu menu)
 		lua_rawgeti(L, -1, index);
 		if (lua_isnil(L, -1))
 		{
-			UINT menuItem;
+			PlatformMenuItem menuItem;
 			if (!SearchFreeMenuItem(topMenu, menuItem))
 			{
 				luaL_error(L, "too many menu items");
@@ -3597,7 +3623,7 @@ bool AddMenuEntries(PlatformMenu topMenu, PlatformMenu menu)
 			lua_rawgeti(L, -1, 2);
 			if (lua_isfunction(L, -1))
 			{
-				UINT menuItem;
+				PlatformMenuItem menuItem;
 				if (!SearchFreeMenuItem(topMenu, menuItem))
 				{
 					luaL_error(L, "too many menu items");
@@ -3657,7 +3683,7 @@ bool AddMenuEntries(PlatformMenu topMenu, PlatformMenu menu)
 
 DEFINE_LUA_FUNCTION(emu_addmenu, "menuName, menuEntries")
 {
-#if defined(WIN32) && !defined(WXPORT)
+#if defined(WIN32)
 	int nargs = lua_gettop(L);
 	if (nargs > 1 && !lua_isnil(L, 1))
 	{
@@ -3693,7 +3719,7 @@ DEFINE_LUA_FUNCTION(emu_setmenuiteminfo, "menuItem, infoTable")
 {
 	luaL_checktype(L, 1, LUA_TFUNCTION);
 	luaL_checktype(L, 2, LUA_TTABLE);
-#if defined(WIN32) && !defined(WXPORT)
+#if defined(WIN32)
 	LuaContextInfo& info = GetCurrentInfo();
 	map<PlatformMenuItem, PlatformMenu>::iterator it = info.menuData.menuItemMap.begin();
 	while(it != info.menuData.menuItemMap.end())
@@ -3948,7 +3974,7 @@ DEFINE_LUA_FUNCTION(sound_clear, "")
 	return 0;
 }
 
-#if defined(_WIN32) && !defined(WXPORT)
+#if defined(_WIN32)
 const char* s_keyToName[256] =
 {
 	NULL,
@@ -4062,7 +4088,7 @@ DEFINE_LUA_FUNCTION(input_getcurrentinputstatus, "")
 {
 	lua_newtable(L);
 
-#if defined(_WIN32) && !defined(WXPORT)
+#if defined(_WIN32)
 	// keyboard and mouse button status
 	{
 		extern bool allowBackgroundInput;
@@ -4152,8 +4178,6 @@ int dontworry(LuaContextInfo& info)
 
 //agg basic shapes
 //TODO polygon and polyline, maybe the overloads for roundedRect and curve
-
-#include "aggdraw.h"
 
 static int line(lua_State *L) {
 
@@ -5338,7 +5362,7 @@ void StopLuaScript(int uid)
 			for(int i = 0; i < LUAMEMHOOK_COUNT; i++)
 				CalculateMemHookRegions((LuaMemHookType)i);
 
-#if defined(WIN32) && !defined(WXPORT)
+#if defined(WIN32)
 			// remove items
 			map<PlatformMenuItem, PlatformMenu>::iterator it = info.menuData.menuItemMap.begin();
 			while(it != info.menuData.menuItemMap.end())

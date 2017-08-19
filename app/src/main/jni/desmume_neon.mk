@@ -11,8 +11,7 @@ LOCAL_MODULE    		:= 	libdesmumeneon
 LOCAL_C_INCLUDES		:= 	$(LOCAL_PATH)/desmume/src \
 							$(LOCAL_PATH)/desmume/src/android \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP \
-							$(LOCAL_PATH)/desmume/src/android/7z/CPP/include_windows \
-							$(LOCAL_PATH)/desmume/src/utils/lightning/include
+							$(LOCAL_PATH)/desmume/src/android/7z/CPP/include_windows
 						   
 LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/addons/slot1_r4.cpp \
@@ -115,7 +114,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							
 LOCAL_ARM_NEON 			:= true
 LOCAL_ARM_MODE 			:= arm
-LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -DLIGHTNING_ARM -DHAVE_NEON=1 -mfloat-abi=softfp -mfpu=neon -marm -march=armv7-a -mtune=cortex-a9
+LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -DHAVE_NEON=1 -mfloat-abi=softfp -mfpu=neon -marm -march=armv7-a -mtune=cortex-a9
 LOCAL_STATIC_LIBRARIES 	:= mathneon sevenzip
 LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -ljnigraphics -lOpenSLES -landroid
 

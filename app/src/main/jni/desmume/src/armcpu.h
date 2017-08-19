@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2006 yopyop
-	Copyright (C) 2006-2012 DeSmuME team
+	Copyright (C) 2006-2017 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -16,21 +16,21 @@
 	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ARM_CPU
-#define ARM_CPU
+#ifndef DESMUME_ARMCPU_H
+#define DESMUME_ARMCPU_H
+
+//half of this stuff is arm cpu internals
+//half is public API
+//really a mess
 
 #include "types.h"
-#include "bits.h"
 #include "MMU.h"
-#include "common.h"
-#include "instructions.h"
-#include "cp15.h"
-#include "sequencer.h"
-#define USE_BITFLOWCALC 0
 
-#define CODE(i)     (((i)>>25)&0x7)
-#define OPCODE(i)   (((i)>>21)&0xF)
-#define SIGNEBIT(i) BIT_N(i,20)
+#define CONDITION(i) ((i)>>28)
+#define REG_POS(i,n) (((i)>>n)&0xF)
+#define CODE(i) (((i)>>25)&0x7)
+#define OPCODE(i) (((i)>>21)&0xF)
+#define SIGNEBIT(i) (((i)>>20)&1)
 
 #define EXCEPTION_RESET 0x00
 #define EXCEPTION_UNDEFINED_INSTRUCTION 0x04
@@ -41,66 +41,73 @@
 #define EXCEPTION_IRQ 0x18
 #define EXCEPTION_FAST_IRQ 0x1C
 
+
+#define CPU_FREEZE_NONE 0x00
+#define CPU_FREEZE_WAIT_IRQ 0x01 //waiting for some IRQ to happen, any IRQ
+#define CPU_FREEZE_IE_IF 0x02 //waiting for IE&IF to signal something (probably edge triggered on IRQ too)
+#define CPU_FREEZE_IRQ_IE_IF (CPU_FREEZE_WAIT_IRQ|CPU_FREEZE_IE_IF)
+#define CPU_FREEZE_OVERCLOCK_HACK 0x04
+
 #define INSTRUCTION_INDEX(i) ((((i)>>16)&0xFF0)|(((i)>>4)&0xF))
 
-FORCEINLINE u32 ROR(u32 i, u32 j)   { return ((((u32)(i))>>(j)) | (((u32)(i))<<(32-(j)))); }
-
-//template<typename T>
-//FORCEINLINE T UNSIGNED_OVERFLOW(T a,T b,T c) { return BIT31(((a)&(b)) | (((a)|(b))&(~c))); }
-//
-//template<typename T>
-//FORCEINLINE T UNSIGNED_UNDERFLOW(T a,T b,T c) { return BIT31(((~a)&(b)) | (((~a)|(b))&(c))); }
-
-#if USE_BITFLOWCALC
-template<typename T>
-FORCEINLINE T SIGNED_OVERFLOW(T a,T b,T c) { return BIT31((~(a^b))&(a^c)); }
+inline u32 ROR(u32 i, u32 j)   { return ((((u32)(i))>>(j)) | (((u32)(i))<<(32-(j)))); }
 
 template<typename T>
-FORCEINLINE T SIGNED_UNDERFLOW(T a,T b,T c) { return BIT31((a^b)&(a^c)); }
-#else
-template<typename T>
-FORCEINLINE T SIGNED_OVERFLOW(T a,T b,T c) { return BIT31(((a)&(b)&(~c)) | ((~a)&(~(b))&(c))); }
+inline T UNSIGNED_OVERFLOW(T a,T b,T c) { return BIT31(((a)&(b)) | (((a)|(b))&(~c))); }
 
 template<typename T>
-FORCEINLINE T SIGNED_UNDERFLOW(T a,T b,T c) { return BIT31(((a)&(~(b))&(~c)) | ((~a)&(b)&(c))); }
+inline T UNSIGNED_UNDERFLOW(T a,T b,T c) { return BIT31(((~a)&(b)) | (((~a)|(b))&(c))); }
+
+template<typename T>
+inline T SIGNED_OVERFLOW(T a,T b,T c) { return BIT31(((a)&(b)&(~c)) | ((~a)&(~(b))&(c))); }
+
+template<typename T>
+inline T SIGNED_UNDERFLOW(T a,T b,T c) { return BIT31(((a)&(~(b))&(~c)) | ((~a)&(b)&(c))); }
+
+#if !defined(bswap32)
+#define bswap32(val) \
+			( (val << 24) & 0xFF000000) | \
+			( (val <<  8) & 0x00FF0000) | \
+			( (val >>  8) & 0x0000FF00) | \
+			( (val >> 24) & 0x000000FF) 
+#endif
+
+#if !defined(bswap64)
+#define bswap64(x) \
+			( (x << 56) & 0xff00000000000000ULL ) | \
+			( (x << 40) & 0x00ff000000000000ULL ) | \
+			( (x << 24) & 0x0000ff0000000000ULL ) | \
+			( (x <<  8) & 0x000000ff00000000ULL ) | \
+			( (x >>  8) & 0x00000000ff000000ULL ) | \
+			( (x >> 24) & 0x0000000000ff0000ULL ) | \
+			( (x >> 40) & 0x000000000000ff00ULL ) | \
+			( (x >> 56) & 0x00000000000000ffULL ) 
 #endif
 
 // ============================= CPRS flags funcs
-FORCEINLINE bool CarryFrom(s32 left, s32 right)
+inline bool CarryFrom(s32 left, s32 right)
 {
   u32 res  = (0xFFFFFFFFU - (u32)left);
 
   return ((u32)right > res);
 }
 
-FORCEINLINE bool BorrowFrom(s32 left, s32 right)
+inline bool BorrowFrom(s32 left, s32 right)
 {
   return ((u32)right > (u32)left);
 }
 
-#if USE_BITFLOWCALC
-FORCEINLINE bool OverflowFromADD(s32 alu_out, s32 left, s32 right)
-{
-    return BIT31((~(left^right))&(left^alu_out));
-}
-
-FORCEINLINE bool OverflowFromSUB(s32 alu_out, s32 left, s32 right)
-{
-    return BIT31((left^right)&(left^alu_out));
-}
-#else
-FORCEINLINE bool OverflowFromADD(s32 alu_out, s32 left, s32 right)
+inline bool OverflowFromADD(s32 alu_out, s32 left, s32 right)
 {
     return ((left >= 0 && right >= 0) || (left < 0 && right < 0))
 			&& ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
 }
 
-FORCEINLINE bool OverflowFromSUB(s32 alu_out, s32 left, s32 right)
+inline bool OverflowFromSUB(s32 alu_out, s32 left, s32 right)
 {
     return ((left < 0 && right >= 0) || (left >= 0 && right < 0))
 			&& ((left < 0 && alu_out >= 0) || (left >= 0 && alu_out < 0));
 }
-#endif
 
 //zero 15-feb-2009 - these werent getting used and they were getting in my way
 //#define EQ	0x0
@@ -184,11 +191,11 @@ enum Mode
 	SYS = 0x1F
 };
 
-#ifdef WORDS_BIGENDIAN
 typedef union
 {
 	struct
 	{
+#ifdef MSB_FIRST
 		u32 N : 1,
 		Z : 1,
 		C : 1,
@@ -198,16 +205,9 @@ typedef union
 		I : 1,
 		F : 1,
 		T : 1,
-                mode : 5;
-	} bits;
-        u32 val;
-} Status_Reg;
+      mode : 5;
 #else
-typedef union
-{
-	struct
-	{
-                u32 mode : 5,
+      u32 mode : 5,
 		T : 1,
 		F : 1,
 		I : 1,
@@ -217,15 +217,16 @@ typedef union
 		C : 1,
 		Z : 1,
 		N : 1;
-	} bits;
-        u32 val;
-} Status_Reg;
 #endif
+	} bits;
+   u32 val;
+} Status_Reg;
 
 /**
  * The control interface to a CPU
  */
-struct armcpu_ctrl_iface {
+struct armcpu_ctrl_iface
+{
   /** stall the processor */
   void (*stall)( void *instance);
 
@@ -260,10 +261,27 @@ struct armcpu_t
 	u32 instruct_adr; //8
 	u32 next_instruction; //12
 
-	CACHE_ALIGN u32 R[16]; //16
-	CACHE_ALIGN Status_Reg CPSR;  //80
+	u32 R[16]; //16
+	Status_Reg CPSR;  //80
 	Status_Reg SPSR;
-
+	
+	void SetControlInterface(const armcpu_ctrl_iface *theCtrlInterface);
+	armcpu_ctrl_iface* GetControlInterface();
+	void SetControlInterfaceData(void *theData);
+	void* GetControlInterfaceData();
+	
+	void SetCurrentMemoryInterface(armcpu_memory_iface *theMemInterface);
+	armcpu_memory_iface* GetCurrentMemoryInterface();
+	void SetCurrentMemoryInterfaceData(void *theData);
+	void* GetCurrentMemoryInterfaceData();
+	
+	void SetBaseMemoryInterface(const armcpu_memory_iface *theMemInterface);
+	armcpu_memory_iface* GetBaseMemoryInterface();
+	void SetBaseMemoryInterfaceData(void *theData);
+	void* GetBaseMemoryInterfaceData();
+	
+	void ResetMemoryInterfaceToBase();
+	
 	void changeCPSR();
 
 	u32 R13_usr, R14_usr;
@@ -276,8 +294,11 @@ struct armcpu_t
 
 	u32 intVector;
 	u8 LDTBit;  //1 : ARMv5 style 0 : non ARMv5 (earlier)
-	BOOL waitIRQ;
-	BOOL halt_IE_and_IF; //the cpu is halted, waiting for IE&IF to signal something
+	
+	u32 freeze;
+	//BOOL waitIRQ;
+	//BOOL halt_IE_and_IF; 
+
 	u8 intrWaitARM_state;
 
 	BOOL BIOS_loaded;
@@ -290,36 +311,28 @@ struct armcpu_t
 #if defined(_M_X64) || defined(__x86_64__)
 	u8 cond_table[16*16];
 #endif
-
-#ifdef GDB_STUB
-  /** there is a pending irq for the cpu */
-  int irq_flag;
-
-  /** the post executed function (if installed) */
-  void (*post_ex_fn)( void *, u32 adr, int thumb);
-
-  /** data for the post executed function */
-  void *post_ex_fn_data;
-
-
-
-  /** the memory interface */
-  struct armcpu_memory_iface *mem_if;
-
-  /** the ctrl interface */
-  struct armcpu_ctrl_iface ctrl_iface;
-#endif
+	
+	/** there is a pending irq for the cpu */
+	int irq_flag;
+	
+	/** the post executed function (if installed) */
+	void (*post_ex_fn)( void *, u32 adr, int thumb);
+	
+	/** data for the post executed function */
+	void *post_ex_fn_data;
+	
+	/** the memory interface */
+	armcpu_memory_iface *mem_if;		// This is the memory interface currently in use.
+	armcpu_memory_iface base_mem_if;	// This is the CPU's base memory interface.
+	
+	/** the ctrl interface */
+	armcpu_ctrl_iface ctrl_iface;
 };
 
-#ifdef GDB_STUB
-int armcpu_new( armcpu_t *armcpu, u32 id, struct armcpu_memory_iface *mem_if,
-                struct armcpu_ctrl_iface **ctrl_iface_ret);
-#else
 int armcpu_new( armcpu_t *armcpu, u32 id);
-#endif
 void armcpu_init(armcpu_t *armcpu, u32 adr);
 u32 armcpu_switchMode(armcpu_t *armcpu, u8 mode);
-void armcpu_changeCPSR(armcpu_t *armcpu);
+
 
 BOOL armcpu_irqException(armcpu_t *armcpu);
 BOOL armcpu_flagIrq( armcpu_t *armcpu);
@@ -327,45 +340,20 @@ void armcpu_exception(armcpu_t *cpu, u32 number);
 u32 TRAPUNDEF(armcpu_t* cpu);
 u32 armcpu_Wait4IRQ(armcpu_t *cpu);
 
-extern CACHE_ALIGN armcpu_t NDS_ARM7;
-extern CACHE_ALIGN armcpu_t NDS_ARM9;
+extern armcpu_t NDS_ARM7;
+extern armcpu_t NDS_ARM9;
+extern const armcpu_ctrl_iface arm_default_ctrl_iface;
 
+template<int PROCNUM> u32 armcpu_exec();
+#ifdef HAVE_JIT
+template<int PROCNUM, bool jit> u32 armcpu_exec();
+#endif
 
-template<int PROCNUM, int cpuMode> u32 armcpu_exec();
-
-void armcpu_setjitmode(int jitmode);
-void armcpu_sync();
-
-static INLINE void setIF(int PROCNUM, u32 flag)
-{
-	//don't set generated bits!!!
-	assert(!(flag&0x00200000));
-
-	MMU.reg_IF_bits[PROCNUM] |= flag;
-
-	NDS_Reschedule();
-}
+void setIF(int PROCNUM, u32 flag);
 
 static INLINE void NDS_makeIrq(int PROCNUM, u32 num)
 {
 	setIF(PROCNUM,1<<num);
-}
-
-static INLINE char *decodeIntruction(bool thumb_mode, u32 instr)
-{
-	char txt[20] = {0};
-	u32 tmp = 0;
-	if (thumb_mode == true)
-	{
-		tmp = (instr >> 6);
-		strcpy(txt, intToBin((u16)tmp)+6);
-	}
-	else
-	{
-		tmp = ((instr >> 16) & 0x0FF0) | ((instr >> 4) & 0x0F);
-		strcpy(txt, intToBin((u32)tmp)+20);
-	}
-	return strdup(txt);
 }
 
 #endif

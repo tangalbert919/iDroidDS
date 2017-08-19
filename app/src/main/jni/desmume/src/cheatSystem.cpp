@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2009-2012 DeSmuME team
+	Copyright (C) 2009-2017 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -15,20 +15,23 @@
 	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <string.h>
 #include "cheatSystem.h"
+#include "utils/bits.h"
+
 #include "NDSSystem.h"
 #include "mem.h"
 #include "MMU.h"
 #include "debug.h"
 #include "utils/xstring.h"
 
-#ifndef _MSC_VER
+#ifndef _MSC_VER 
 #include <stdint.h>
 #endif
 
 CHEATS *cheats = NULL;
 CHEATSEARCH *cheatSearch = NULL;
+
+static bool cheatsResetJit;
 
 void CHEATS::clear()
 {
@@ -48,7 +51,7 @@ BOOL CHEATS::add(u8 size, u32 address, u32 val, char *description, BOOL enabled)
 {
 	size_t num = list.size();
 	list.push_back(CHEATS_LIST());
-	list[num].code[0][0] = address & 0x00FFFFFF;
+	list[num].code[0][0] = address & 0x0FFFFFFF;
 	list[num].code[0][1] = val;
 	list[num].num = 1;
 	list[num].type = 0;
@@ -61,7 +64,7 @@ BOOL CHEATS::add(u8 size, u32 address, u32 val, char *description, BOOL enabled)
 BOOL CHEATS::update(u8 size, u32 address, u32 val, char *description, BOOL enabled, u32 pos)
 {
 	if (pos >= list.size()) return FALSE;
-	list[pos].code[0][0] = address & 0x00FFFFFF;
+	list[pos].code[0][0] = address & 0x0FFFFFFF;
 	list[pos].code[0][1] = val;
 	list[pos].num = 1;
 	list[pos].type = 0;
@@ -71,337 +74,535 @@ BOOL CHEATS::update(u8 size, u32 address, u32 val, char *description, BOOL enabl
 	return TRUE;
 }
 
+#define CHEATLOG(...) 
+//#define CHEATLOG(...) printf(__VA_ARGS__)
+
+static void CheatWrite(int size, int proc, u32 addr, u32 val)
+{
+	bool dirty = true;
+
+	bool isDangerous = false;
+	if(addr >= 0x02000000 && addr < 0x02400000)
+		isDangerous = true;
+
+	if(isDangerous)
+	{
+		//test dirtiness
+		if(size == 8) dirty = _MMU_read08(proc, MMU_AT_DEBUG, addr) != val;
+		if(size == 16) dirty = _MMU_read16(proc, MMU_AT_DEBUG, addr) != val;
+		if(size == 32) dirty = _MMU_read32(proc, MMU_AT_DEBUG, addr) != val;
+	}
+
+	if(!dirty) return;
+
+	if(size == 8) _MMU_write08(proc, MMU_AT_DEBUG, addr, val);
+	if(size == 16) _MMU_write16(proc, MMU_AT_DEBUG, addr, val);
+	if(size == 32) _MMU_write32(proc, MMU_AT_DEBUG, addr, val);
+
+	if(isDangerous)
+		cheatsResetJit = true;
+}
+
+
 void CHEATS::ARparser(CHEATS_LIST& list)
 {
-	u8	type = 0;
-	u8	subtype = 0;
-	u32	hi = 0;
-	u32	lo = 0;
-	u32	addr = 0;
-	u32	val = 0;
-	// AR temporary vars & flags
-	u32	offset = 0;
-	u32	datareg = 0;
-	u32	loopcount = 0;
-	u32	counter = 0;
-	u32	if_flag = 0;
-	s32 loopbackline = 0;
-	u32 loop_flag = 0;
-	
-	for (int i=0; i < list.num; i++)
+	//primary organizational source (seems to be referenced by cheaters the most) - http://doc.kodewerx.org/hacking_nds.html
+	//secondary clarification and details (for programmers) - http://problemkaputt.de/gbatek.htm#dscartcheatactionreplayds
+	//more here: http://www.kodewerx.org/forum/viewtopic.php?t=98
+
+	//general note: gbatek is more precise with the maths; it does not indicate any special wraparound/masking behaviour so it's assumed to be standard 32bit masking
+	//general note: <gbatek>  For all word/halfword accesses, the address should be aligned accordingly -- OR ELSE WHAT? (probably the default behaviour of our MMU interface)
+
+	//TODO: "Code Hacks" from kodewerx (seems frail, but we should at least detect them and print some diagnostics
+	//TODO: v154 special stuff
+
+	bool v154 = true; //on advice of power users, v154 is so old, we can assume all cheats use it
+	bool vEmulator = true;
+
+	struct {
+		//LSB is 
+		u32 status;
+
+		struct {
+			//backup copy of status managed by loop commands
+			u32 status;
+
+			//loop counter index
+			u32 idx;
+
+			//loop iterations goal (runs rpt+1 times generally)
+			u32 iterations;
+		
+			//target of loop
+			u32 top;
+		} loop;
+
+		//registers
+		u32 offset, data;
+
+		//nu fake registers
+		int proc;
+
+	} st;
+
+	memset(&st,0,sizeof(st));
+	st.proc = ARMCPU_ARM7;
+
+	CHEATLOG("-----------------------------------\n");
+
+	for (u32 i=0; i < list.num; i++)
 	{
-		type = list.code[i][0] >> 28;
-		subtype = (list.code[i][0] >> 24) & 0x0F;
+		const u32 hi = list.code[i][0];
+		const u32 lo = list.code[i][1];
 
-		hi = list.code[i][0] & 0x0FFFFFFF;
-		lo = list.code[i][1];
+		CHEATLOG("executing [%02d] %08X %08X (ofs=%08X)\n",i, hi,lo, st.offset);
 
-		if (if_flag > 0) 
+		//parse codes into types by kodewerx standards
+		u32 type = list.code[i][0] >> 28;
+		//these two are broken down into subtypes
+		if(type == 0x0C || type == 0x0D)
+			type = list.code[i][0] >> 24;
+
+		//process current execution status:
+		u32 statusSkip = st.status & 1;
+		//<gbatek> The condition register is checked, for all code types but the D0, D1 and D2 code type
+		//<gbatek> and for the C5 code type it's checked AFTER the counter has been incremented (so the counter is always incremented)
+		//but first: we must run this for IFs regardless of the condition flag to track the nest level
+		if(type >= 0x03 && type <= 0x0A)
 		{
-			if ( (type == 0x0D) && (subtype == 0)) if_flag--;	// ENDIF
-			if ( (type == 0x0D) && (subtype == 2))				// NEXT & Flush
-			{
-				if (loop_flag)
-					i = (loopbackline-1);
-				else
-				{
-					offset = 0;
-					datareg = 0;
-					loopcount = 0;
-					counter = 0;
-					if_flag = 0;
-					loop_flag = 0;
-				}
+			//pretty wild guess as to how this is implemented (I could be off by one)
+			//we begin by assuming the current status is disabled, since we wont have a chance to correct if this IF is not supposed to be evaluated
+			st.status = (st.status<<1) | 1;
+		}
+		if(type == 0xD0 || type == 0xD1 || type == 0xD2) {}
+		else if(type == 0xC5) {}
+		else
+		{
+			if(statusSkip) {
+				CHEATLOG(" (skip!)\n");
+				continue;
 			}
-			continue;
 		}
 
-		switch (type)
+		u32 operand,x,y,z,addr;
+
+		switch(type)
 		{
-			case 0x00:
+		case 0x00:
+			//(hi == 0x00000000) implies: "manual hook code" -- sometimes
+			//maybe a type "M" code -- impossible to enter into desmume? not supported right now.
+			//otherwise:
+
+			//32-bit (Constant RAM Writes)
+			//0XXXXXXX YYYYYYYY
+			//Writes word YYYYYYYY to [XXXXXXX+offset].
+			x = hi & 0x0FFFFFFF;
+			y = lo;
+			addr = x + st.offset;
+			CheatWrite(32,st.proc,addr, y);
+			break;
+		
+		case 0x01:
+			//16-bit (Constant RAM Writes)
+			//1XXXXXXX 0000YYYY
+			//Writes halfword YYYY to [XXXXXXX+offset].
+			x = hi & 0x0FFFFFFF;
+			y = lo & 0xFFFF;
+			addr = x + st.offset;
+			CheatWrite(16,st.proc,addr, y);
+			break;
+
+		case 0x02:
+			//8-bit (Constant RAM Writes)
+			//2XXXXXXX 000000YY
+			//Writes byte YY to [XXXXXXX+offset].
+			x = hi & 0x0FFFFFFF;
+			y = lo & 0xFF;
+			addr = x + st.offset;
+			CheatWrite(8,st.proc,addr, y);
+			break;
+
+		case 0x03:
+			//Greater Than (Conditional 32-Bit Code Types)
+			//3XXXXXXX YYYYYYYY
+			//Checks if YYYYYYYY > (word at [XXXXXXX])
+			//If not, the code(s) following this one are not executed (ie. execution status is set to false) until a code type D0 or D2 is encountered, or until the end of the code list is reached.
+			x = hi & 0x0FFFFFFF;
+			y = lo;
+			if(v154) if(x == 0) x = st.offset;
+			operand = _MMU_read32(st.proc,MMU_AT_DEBUG,x);
+			if(y > operand) st.status &= ~1;
+			break;
+
+		case 0x04:
+			//Less Than (Conditional 32-Bit Code Types)
+			//4XXXXXXX YYYYYYYY
+			//Checks if YYYYYYYY < (word at [XXXXXXX])
+			//If not, the code(s) following this one are not executed (ie. execution status is set to false) until a code type D0 or D2 is encountered, or until the end of the code list is reached.
+			x = hi & 0x0FFFFFFF;
+			y = lo;
+			if(v154) if(x == 0) x = st.offset;
+			operand = _MMU_read32(st.proc,MMU_AT_DEBUG,x);
+			if(y < operand) st.status &= ~1;
+			break;
+
+		case 0x05:
+			//Equal To (Conditional 32-Bit Code Types)
+			//5XXXXXXX YYYYYYYY
+			//Checks if YYYYYYYY == (word at [XXXXXXX])
+			//If not, the code(s) following this one are not executed (ie. execution status is set to false) until a code type D0 or D2 is encountered, or until the end of the code list is reached.
+			x = hi & 0x0FFFFFFF;
+			y = lo;
+			if(v154) if(x == 0) x = st.offset;
+			operand = _MMU_read32(st.proc,MMU_AT_DEBUG,x);
+			if(y == operand) st.status &= ~1;
+			break;
+
+		case 0x06:
+			//Not Equal To (Conditional 32-Bit Code Types)
+			//6XXXXXXX YYYYYYYY
+			//Checks if YYYYYYYY != (word at [XXXXXXX])
+			//If not, the code(s) following this one are not executed (ie. execution status is set to false) until a code type D0 or D2 is encountered, or until the end of the code list is reached.
+			x = hi & 0x0FFFFFFF;
+			y = lo;
+			if(v154) if(x == 0) x = st.offset;
+			operand = _MMU_read32(st.proc,MMU_AT_DEBUG,x);
+			if(y != operand) st.status &= ~1;
+			break;
+
+		case 0x07:
+			//Greater Than (Conditional 16-Bit + Masking RAM "Writes") (but WRITING has nothing to do with this)
+			//7XXXXXXX ZZZZYYYY
+			//Checks if (YYYY) > (not (ZZZZ) & halfword at [XXXX]).
+			//If not, the code(s) following this one are not executed (ie. execution status is set to false) until a code type D0 or D2 is encountered, or until the end of the code list is reached.
+			x = hi & 0x0FFFFFFF;
+			y = lo&0xFFFF;
+			z = lo>>16;
+			if(v154) if(x == 0) x = st.offset;
+			operand = _MMU_read16(st.proc,MMU_AT_DEBUG,x);
+			if(y > (u16)( (~z) & operand) ) st.status &= ~1;
+			break;
+
+		case 0x08:
+			//Less Than (Conditional 16-Bit + Masking RAM "Writes") (but WRITING has nothing to do with this)
+			//8XXXXXXX ZZZZYYYY
+			//Checks if (YYYY) < (not (ZZZZ) & halfword at [XXXX]).
+			//If not, the code(s) following this one are not executed (ie. execution status is set to false) until a code type D0 or D2 is encountered, or until the end of the code list is reached.
+			x = hi & 0x0FFFFFFF;
+			y = lo&0xFFFF;
+			z = lo>>16;
+			if(v154) if(x == 0) x = st.offset;
+			operand = _MMU_read16(st.proc,MMU_AT_DEBUG,x);
+			if(y < (u16)( (~z) & operand) ) st.status &= ~1;
+			break;
+
+		case 0x09:
+			//Equal To (Conditional 16-Bit + Masking RAM "Writes") (but WRITING has nothing to do with this)
+			//9XXXXXXX ZZZZYYYY
+			//Checks if (YYYY) == (not (ZZZZ) & halfword at [XXXX]).
+			//If not, the code(s) following this one are not executed (ie. execution status is set to false) until a code type D0 or D2 is encountered, or until the end of the code list is reached.
+			x = hi & 0x0FFFFFFF;
+			y = lo&0xFFFF;
+			z = lo>>16;
+			if(v154) if(x == 0) x = st.offset;
+			operand = _MMU_read16(st.proc,MMU_AT_DEBUG,x);
+			if(y == (u16)( (~z) & operand) ) st.status &= ~1;
+			break;
+
+		case 0x0A:
+			//Not Equal To (Conditional 16-Bit + Masking RAM "Writes") (but WRITING has nothing to do with this)
+			//AXXXXXXX ZZZZYYYY
+			//Checks if (YYYY) != (not (ZZZZ) & halfword at [XXXX]).
+			//If not, the code(s) following this one are not executed (ie. execution status is set to false) until a code type D0 or D2 is encountered, or until the end of the code list is reached.
+			x = hi & 0x0FFFFFFF;
+			y = lo&0xFFFF;
+			z = lo>>16;
+			if(v154) if(x == 0) x = st.offset;
+			operand = _MMU_read16(st.proc,MMU_AT_DEBUG,x);
+			if(y != (u16)( (~z) & operand) ) st.status &= ~1;
+			break;
+
+		case 0x0B:
+			//Load offset (Offset Codes)
+			//BXXXXXXX 00000000
+			//Loads the 32-bit value into the 'offset'.
+			//Offset = word at [0XXXXXXX + offset].
+			x = hi & 0x0FFFFFFF;
+			addr = x + st.offset;
+			st.offset = _MMU_read32(st.proc,MMU_AT_DEBUG,addr);
+			break;
+
+		case 0xC0:
+			//(Loop Code)
+			//C0000000 YYYYYYYY 
+			//This sets the 'Dx repeat value' to YYYYYYYY and saves the 'Dx nextcode to be executed' and the 'Dx execution status'. Repeat will be executed when a D1/D2 code is encountered.
+			//When repeat is executed, the AR reloads the 'next code to be executed' and the 'execution status' from the Dx registers.
+			//<gbatek> FOR loopcount=0 to YYYYYYYY  ;execute Y+1 times
+			y = lo;
+			st.loop.idx = 0; //<gbatek> any FOR statement does forcefully terminate any prior loop
+			st.loop.iterations = y;
+			st.loop.top = i; //current instruction is saved as top for branching back up
+			//<gbatek> FOR does backup the current IF condidition flags, and NEXT does restore these flags
+			st.loop.status = st.status;
+			break;
+
+		case 0xC4:
+			//Rewrite Code (v1.54 only) (trainer toolkit codes)
+			//<gbatek> offset = address of the C4000000 code
+			//it seems this lets us rewrite the code at runtime. /his will be very difficult to emulate. 
+			//But it would be possible: we could copy whenever it's activated and allow that to be rewritten
+			//we would try to select a special sentinel pointer which couldn't be confused for a useful address
+			if(!v154) break;
+			CHEATLOG("Unsupported C4 code");
+			break;
+
+		case 0xC5:
+			//If Counter  (trainer toolkit codes)
+			//counter=counter+1, IF (counter AND YYYY) = XXXX ;v1.54
+			//http://www.kodewerx.org/forum/viewtopic.php?t=98 has more details, but this can't be executed readily without adding something to the cheat engine
+			if(!v154) break;
+			CHEATLOG("Unsupported C5 code");
+			break;
+
+		case 0xC6:
+			//Store Offset  (trainer toolkit codes)
+			//<gbatek> C6000000 XXXXXXXX   [XXXXXXXX]=offset  
+			if(!v154) break;
+			x = lo;
+			CheatWrite(32,st.proc,x, st.offset);
+			break;
+
+		case 0xD0:
+			//Terminator (Special Codes)
+			//D0000000 00000000
+			//Loads the previous execution status. If none exists, the execution status stays at 'execute codes'
+			
+			//wild guess as to fine details of how this is implemented
+			st.status >>= 1;
+			//"If none exists, the execution status stays at 'execute codes'." 
+			//0 will be shifted in, so execution will always proceed
+			//in other words, a stack underflow results in the original state of execution
+
+			break;
+
+		case 0xD1:
+			//Loop execute variant (Special Codes)
+			//D1000000 00000000 
+			//Executes the next block of codes 'n' times (specified by the 0x0C codetype), but doesn't clear the Dx register upon completion.
+			//<gbatek> FOR does backup the current IF condidition flags, and NEXT does restore these flags
+			st.status = st.loop.status;
+			if(st.loop.idx < st.loop.iterations)
 			{
-				if (hi==0)
-				{
-					//manual hook
-				}
-				else
-				if ((hi==0x0000AA99) && (lo==0))	// 0000AA99 00000000   parameter bytes 9..10 for above code (padded with 00s)
-				{
-					//parameter bytes 9..10 for above code (padded with 00s)
-				}
-				else	// 0XXXXXXX YYYYYYYY   word[XXXXXXX+offset] = YYYYYYYY
-				{
-					addr = hi + offset;
-					_MMU_write32<ARMCPU_ARM9,MMU_AT_DEBUG>(addr, lo);
+				st.loop.idx++;
+				i = st.loop.top;
+			}
+			break;
+
+		case 0xD2:
+			//Loop Execute Variant/ Full Terminator (Special Codes)
+			//D2000000 00000000 
+			//Executes the next block of codes 'n' times (specified by the 0x0C codetype), and clears all temporary data. (i.e. execution status, offsets, code C settings, etc.)
+			//This code can also be used as a full terminator, giving the same effects to any block of code. 
+			//<gbatek> FOR does backup the current IF condidition flags, and NEXT does restore these flags
+			st.status = st.loop.status;
+			if(st.loop.idx < st.loop.iterations)
+			{
+				st.loop.idx++;
+				i = st.loop.top;
+			}
+			else
+			{
+				//<gbatek> The NEXT+FLUSH command does (after finishing the loop) reset offset=0, datareg=0, and does clear all condition flags, so further ENDIF(s) aren't required after the loop.
+				memset(&st,0,sizeof(st));
+				st.proc = ARMCPU_ARM7;
+			}
+			break;
+
+		case 0xD3: 
+			//Set offset (Offset Codes)
+			//D3000000 XXXXXXXX
+			//Sets the offset value to XXXXXXXX.
+			x = lo;
+			st.offset = x;
+			break;
+
+		case 0xD4:
+			//Add Value (Data Register Codes)
+			//D4000000 XXXXXXXX 
+			//Adds 'XXXXXXXX' to the data register used by codetypes 0xD6 - 0xDB.
+			//<gbatek> datareg = datareg + XXXXXXXX
+			x = lo;
+			st.data += x;
+			break;
+
+		case 0xD5:
+			//Set Value (Data Register Codes)
+			//D5000000 XXXXXXXX 
+			//Set 'XXXXXXXX' to the data register used by code types 0xD6 - 0xD8.
+			x = lo;
+			st.data = x;
+			break;
+
+		case 0xD6:
+			//32-Bit Incrementive Write (Data Register Codes)
+			//D6000000 XXXXXXXX 
+			//Writes the 'Dx data' word to [XXXXXXXX+offset], and increments the offset by 4.
+			//<gbatek> word[XXXXXXXX+offset]=datareg, offset=offset+4
+			x = lo;
+			addr = x + st.offset;
+			CheatWrite(32,st.proc,addr, st.data);
+			st.offset += 4;
+			break;
+
+		case 0xD7:
+			//16-Bit Incrementive Write (Data Register Codes)
+			//D7000000 XXXXXXXX 
+			//Writes the 'Dx data' halfword to [XXXXXXXX+offset], and increments the offset by 2.
+			//<gbatek> half[XXXXXXXX+offset]=datareg, offset=offset+2
+			x = lo;
+			addr = x + st.offset;
+			CheatWrite(16,st.proc,addr, st.data);
+			st.offset += 2;
+			break;
+
+		case 0xD8:
+			//8-Bit Incrementive Write (Data Register Codes)
+			//D8000000 XXXXXXXX 
+			//Writes the 'Dx data' byte to [XXXXXXXX+offset], and increments the offset by 1.
+			//<gbatek> byte[XXXXXXXX+offset]=datareg, offset=offset+1
+			x = lo;
+			addr = x + st.offset;
+			CheatWrite(8,st.proc,addr, st.data);
+			st.offset += 1;
+			break;
+
+		case 0xD9:
+			//32-Bit Load (Data Register Codes)
+			//D9000000 XXXXXXXX 
+			//Loads the word at [XXXXXXXX+offset] and stores it in the'Dx data register'.
+			x = lo;
+			addr = x + st.offset;
+			st.data = _MMU_read32(st.proc,MMU_AT_DEBUG,addr);
+			break;
+
+		case 0xDA:
+			//16-Bit Load (Data Register Codes)
+			//DA000000 XXXXXXXX 
+			//Loads the halfword at [XXXXXXXX+offset] and stores it in the'Dx data register'.
+			x = lo;
+			addr = x + st.offset;
+			st.data = _MMU_read16(st.proc,MMU_AT_DEBUG,addr);
+			break;
+
+		case 0xDB:
+			//8-Bit Load (Data Register Codes)
+			//DB000000 XXXXXXXX 
+			//Loads the byte at [XXXXXXXX+offset] and stores it in the'Dx data register'.
+			//This is a bugged code type. Check 'AR Hack #0' for the fix. 
+			x = lo;
+			addr = x + st.offset;
+			st.data = _MMU_read08(st.proc,MMU_AT_DEBUG,addr);
+			//<gbatek> Before v1.54, the DB000000 code did accidently set offset=offset+XXXXXXX after execution of the code
+			if(!v154)
+				st.offset = addr;
+			break;
+
+		case 0xDC: 
+			//Set offset (Offset Codes)
+			//DC000000 XXXXXXXX
+			//Adds an offset to the current offset. (Dual Offset)
+			x = lo;
+			st.offset += x;
+			break;
+
+		case 0xDF:
+			if(vEmulator)
+			{
+				if(hi == 0xDFFFFFFF) {
+					if(lo == 0x99999999)
+						st.proc = ARMCPU_ARM9;
+					else if(lo == 0x77777777)
+						st.proc = ARMCPU_ARM7;
 				}
 			}
 			break;
 
-			case 0x01:	// 1XXXXXXX 0000YYYY   half[XXXXXXX+offset] = YYYY
-				addr = hi + offset;
-				_MMU_write16<ARMCPU_ARM9,MMU_AT_DEBUG>(addr, lo);
-			break;
+		case 0x0E:
+			//Patch Code (Miscellaneous Memory Manipulation Codes)
+			//EXXXXXXX YYYYYYYY 
+			//Copies YYYYYYYY bytes from (current code location + 8) to [XXXXXXXX + offset].
+			//<gbatek> Copy YYYYYYYY parameter bytes to [XXXXXXXX+offset...]
+			//<gbatek> For the COPY commands, addresses should be aligned by four (all data is copied with ldr/str, except, on odd lengths, the last 1..3 bytes do use ldrb/strb).
+			//attempting to emulate logic the way they may have implemented it, just in case
+			x = hi & 0x0FFFFFFF;
+			y = lo;
+			addr = x + st.offset;
 
-			case 0x02:	// 2XXXXXXX 000000YY   byte[XXXXXXX+offset] = YY
-				addr = hi + offset;
-				_MMU_write08<ARMCPU_ARM9,MMU_AT_DEBUG>(addr, lo);
-			break;
-
-			case 0x03:	// 3XXXXXXX YYYYYYYY   IF YYYYYYYY > word[XXXXXXX]   ;unsigned
-				if (hi == 0) hi = offset;	// V1.54+
-				val = _MMU_read32<ARMCPU_ARM9,MMU_AT_DEBUG>(hi);
-				if ( lo > val )
-				{
-					if (if_flag > 0) if_flag--;
-				}
-				else
-				{
-					if_flag++;
-				}
-			break;
-
-			case 0x04:	// 4XXXXXXX YYYYYYYY   IF YYYYYYYY < word[XXXXXXX]   ;unsigned
-				if ((hi == 0x04332211) && (lo == 88776655))	//44332211 88776655   parameter bytes 1..8 for above code  (example)
-				{
-					break;
-				}
-				if (hi == 0) hi = offset;	// V1.54+
-				val = _MMU_read32<ARMCPU_ARM9,MMU_AT_DEBUG>(hi);
-				if ( lo < val )
-				{
-					if (if_flag > 0) if_flag--;
-				}
-				else
-				{
-					if_flag++;
-				}
-			break;
-
-			case 0x05:	// 5XXXXXXX YYYYYYYY   IF YYYYYYYY = word[XXXXXXX]
-				if (hi == 0) hi = offset;	// V1.54+
-				val = _MMU_read32<ARMCPU_ARM9,MMU_AT_DEBUG>(hi);
-				if ( lo == val )
-				{
-					if (if_flag > 0) if_flag--;
-				}
-				else
-				{
-					if_flag++;
-				}
-			break;
-
-			case 0x06:	// 6XXXXXXX YYYYYYYY   IF YYYYYYYY <> word[XXXXXXX]
-				if (hi == 0) hi = offset;	// V1.54+
-				val = _MMU_read32<ARMCPU_ARM9,MMU_AT_DEBUG>(hi);
-				if ( lo != val )
-				{
-					if (if_flag > 0) if_flag--;
-				}
-				else
-				{
-					if_flag++;
-				}
-			break;
-
-			case 0x07:	// 7XXXXXXX ZZZZYYYY   IF YYYY > ((not ZZZZ) AND half[XXXXXXX])
-				if (hi == 0) hi = offset;	// V1.54+
-				val = _MMU_read16<ARMCPU_ARM9,MMU_AT_DEBUG>(hi);
-				if ( (lo & 0xFFFF) > ( (~(lo >> 16)) & val) )
-				{
-					if (if_flag > 0) if_flag--;
-				}
-				else
-				{
-					if_flag++;
-				}
-			break;
-
-			case 0x08:	// 8XXXXXXX ZZZZYYYY   IF YYYY < ((not ZZZZ) AND half[XXXXXXX])
-				if (hi == 0) hi = offset;	// V1.54+
-				val = _MMU_read16<ARMCPU_ARM9,MMU_AT_DEBUG>(hi);
-				if ( (lo & 0xFFFF) < ( (~(lo >> 16)) & val) )
-				{
-					if (if_flag > 0) if_flag--;
-				}
-				else
-				{
-					if_flag++;
-				}
-			break;
-
-			case 0x09:	// 9XXXXXXX ZZZZYYYY   IF YYYY = ((not ZZZZ) AND half[XXXXXXX])
-				if (hi == 0) hi = offset;	// V1.54+
-				val = _MMU_read16<ARMCPU_ARM9,MMU_AT_DEBUG>(hi);
-				if ( (lo & 0xFFFF) == ( (~(lo >> 16)) & val) )
-				{
-					if (if_flag > 0) if_flag--;
-				}
-				else
-				{
-					if_flag++;
-				}
-			break;
-
-			case 0x0A:	// AXXXXXXX ZZZZYYYY   IF YYYY <> ((not ZZZZ) AND half[XXXXXXX])
-				if (hi == 0) hi = offset;	// V1.54+
-				val = _MMU_read16<ARMCPU_ARM9,MMU_AT_DEBUG>(hi);
-				if ( (lo & 0xFFFF) != ( (~(lo >> 16)) & val) )
-				{
-					if (if_flag > 0) if_flag--;
-				}
-				else
-				{
-					if_flag++;
-				}
-			break;
-
-			case 0x0B:	// BXXXXXXX 00000000   offset = word[XXXXXXX+offset]
-				addr = hi + offset;
-				offset = _MMU_read32<ARMCPU_ARM9,MMU_AT_DEBUG>(addr);;
-			break;
-
-			case 0x0C:
-				switch (subtype)
-				{
-					case 0x0:	// C0000000 YYYYYYYY   FOR loopcount=0 to YYYYYYYY  ;execute Y+1 times
-						if (loopcount < (lo+1))
-							loop_flag = 1;
-						else
-							loop_flag = 0;
-						loopcount++;
-						loopbackline = i;
-					break;
-
-					case 0x4:	// C4000000 00000000   offset = address of the C4000000 code ; V1.54
-						printf("AR: untested code C4\n");
-					break;
-
-					case 0x5:	// C5000000 XXXXYYYY   counter=counter+1, IF (counter AND YYYY) = XXXX ; V1.54
-						counter++;
-						if ( (counter & (lo & 0xFFFF)) == ((lo >> 8) & 0xFFFF) )
-						{
-							if (if_flag > 0) if_flag--;
-						}
-						else
-						{
-							if_flag++;
-						}
-					break;
-
-					case 0x6:	// C6000000 XXXXXXXX   [XXXXXXXX]=offset ; V1.54
-						_MMU_write32<ARMCPU_ARM9,MMU_AT_DEBUG>(lo, offset);
-					break;
-				}
-			break;
-
-			case 0x0D:
 			{
-				switch (subtype)
+				u32 j=0,t=0,b=0;
+				if(y>0) i++; //skip over the current code
+				while(y>=4)
 				{
-					case 0x0:	// D0000000 00000000   ENDIF
-					break;
-
-					case 0x1:	// D1000000 00000000   NEXT loopcount
-						if (loop_flag)
-							i = (loopbackline-1);
-					break;
-
-					case 0x2:	// D2000000 00000000   NEXT loopcount, and then FLUSH everything
-						if (loop_flag)
-							i = (loopbackline-1);
-						else
-						{
-							offset = 0;
-							datareg = 0;
-							loopcount = 0;
-							counter = 0;
-							if_flag = 0;
-							loop_flag = 0;
-						}
-					break;
-
-					case 0x3:	// D3000000 XXXXXXXX   offset = XXXXXXXX
-						offset = lo;
-					break;
-
-					case 0x4:	// D4000000 XXXXXXXX   datareg = datareg + XXXXXXXX
-						datareg += lo;
-					break;
-
-					case 0x5:	// D5000000 XXXXXXXX   datareg = XXXXXXXX
-						datareg = lo;
-					break;
-
-					case 0x6:	// D6000000 XXXXXXXX   word[XXXXXXXX+offset]=datareg, offset=offset+4
-						addr = lo + offset;
-						_MMU_write32<ARMCPU_ARM9,MMU_AT_DEBUG>(addr, datareg);
-						offset += 4;
-					break;
-
-					case 0x7:	// D7000000 XXXXXXXX   half[XXXXXXXX+offset]=datareg, offset=offset+2
-						addr = lo + offset;
-						_MMU_write16<ARMCPU_ARM9,MMU_AT_DEBUG>(addr, datareg);
-						offset += 2;
-					break;
-
-					case 0x8:	// D8000000 XXXXXXXX   byte[XXXXXXXX+offset]=datareg, offset=offset+1
-						addr = lo + offset;
-						_MMU_write08<ARMCPU_ARM9,MMU_AT_DEBUG>(addr, datareg);
-						offset += 1;
-					break;
-
-					case 0x9:	// D9000000 XXXXXXXX   datareg = word[XXXXXXXX+offset]
-						addr = lo + offset;
-						datareg = _MMU_read32<ARMCPU_ARM9,MMU_AT_DEBUG>(addr);
-					break;
-
-					case 0xA:	// DA000000 XXXXXXXX   datareg = half[XXXXXXXX+offset]
-						addr = lo + offset;
-						datareg = _MMU_read16<ARMCPU_ARM9,MMU_AT_DEBUG>(addr);
-					break;
-
-					case 0xB:	// DB000000 XXXXXXXX   datareg = byte[XXXXXXXX+offset] ;bugged on pre-v1.54
-						addr = lo + offset;
-						datareg = _MMU_read08<ARMCPU_ARM9,MMU_AT_DEBUG>(addr);
-					break;
-
-					case 0xC:	// DC000000 XXXXXXXX   offset = offset + XXXXXXXX
-						offset += lo;
-					break;
+					if(i==list.num) break; //if we erroneously went off the end, bail
+					u32 tmp = list.code[i][t];
+					if(t==1) i++;
+					t ^= 1;
+					CheatWrite(32,st.proc,addr,tmp);
+					addr += 4;
+					y -= 4;
 				}
+				while(y>0)
+				{
+					if(i==list.num) break; //if we erroneously went off the end, bail
+					u32 tmp = list.code[i][t]>>b;
+					CheatWrite(8,st.proc,addr,tmp);
+					addr += 1;
+					y -= 1;
+					b += 4;
+				}
+
+				//the main loop will increment to the next cheat, but the loop above may have gone one too far
+				if(t==0)
+					i--;
 			}
 			break;
 
-			case 0xE:		// EXXXXXXX YYYYYYYY   Copy YYYYYYYY parameter bytes to [XXXXXXXX+offset...]
+		case 0x0F:
+			//Memory Copy Code (Miscellaneous Memory Manipulation Codes)
+			//FXXXXXXX YYYYYYYY 
+			//<gbatek> Copy YYYYYYYY bytes from [offset..] to [XXXXXXX...]
+			//<gbatek> For the COPY commands, addresses should be aligned by four (all data is copied with ldr/str, except, on odd lengths, the last 1..3 bytes do use ldrb/strb).
+			//attempting to emulate logic the way they may have implemented it, just in case
+			x = hi & 0x0FFFFFFF;
+			y = lo;
+			addr = st.offset;
+			operand = x; //mis-use of this variable to store dst
+			while(y>=4)
 			{
-				u8	*tmp_code = (u8*)(list.code[i+1]);
-				u32 addr = hi+offset;
-				u32 maxByteReadLocation = ((2 * 4) * (MAX_XX_CODE - i - 1)) - 1; // 2 = 2 array dimensions, 4 = 4 bytes per array element
-				
-				if (lo <= maxByteReadLocation)
-				{
-					for (u32 t = 0; t < lo; t++)
-					{
-						u8	tmp = tmp_code[t];
-						_MMU_write08<ARMCPU_ARM9,MMU_AT_DEBUG>(addr, tmp);
-						addr++;
-					}
-				}
-				
-				i += (lo / 8);
+				if(i==list.num) break; //if we erroneously went off the end, bail
+				u32 tmp = _MMU_read32(st.proc,MMU_AT_DEBUG,addr);
+				CheatWrite(32, st.proc,operand,tmp);
+				addr += 4;
+				operand += 4;
+				y -= 4;
+			}
+			while(y>0)
+			{
+				if(i==list.num) break; //if we erroneously went off the end, bail
+				u8 tmp = _MMU_read08(st.proc,MMU_AT_DEBUG,addr);
+				CheatWrite(8,st.proc,operand,tmp);
+				addr += 1;
+				operand += 1;
+				y -= 1;
 			}
 			break;
 
-			case 0xF:		// FXXXXXXX YYYYYYYY   Copy YYYYYYYY bytes from [offset..] to [XXXXXXX...]
-				for (u32 t = 0; t < lo; t++)
-				{
-					u8 tmp = _MMU_read08<ARMCPU_ARM9,MMU_AT_DEBUG>(offset+t);
-					_MMU_write08<ARMCPU_ARM9,MMU_AT_DEBUG>(hi+t, tmp);
-				}
+		default:
+			printf("AR: ERROR unknown command %08X %08X\n", hi, lo);
 			break;
-			default: PROGINFO("AR: ERROR unknown command 0x%2X at %08X:%08X\n", type, hi, lo); break;
 		}
 	}
+
 }
 
 BOOL CHEATS::add_AR_Direct(CHEATS_LIST cheat)
@@ -412,7 +613,7 @@ BOOL CHEATS::add_AR_Direct(CHEATS_LIST cheat)
 	return TRUE;
 }
 
-BOOL CHEATS::add_AR(const char *code, const char *description, BOOL enabled)
+BOOL CHEATS::add_AR(char *code, char *description, BOOL enabled)
 {
 	//if (num == MAX_CHEAT_LIST) return FALSE;
 	size_t num = list.size();
@@ -429,7 +630,7 @@ BOOL CHEATS::add_AR(const char *code, const char *description, BOOL enabled)
 	return TRUE;
 }
 
-BOOL CHEATS::update_AR(const char *code, const char *description, BOOL enabled, u32 pos)
+BOOL CHEATS::update_AR(char *code, char *description, BOOL enabled, u32 pos)
 {
 	if (pos >= list.size()) return FALSE;
 
@@ -444,7 +645,7 @@ BOOL CHEATS::update_AR(const char *code, const char *description, BOOL enabled, 
 	return TRUE;
 }
 
-BOOL CHEATS::add_CB(const char *code, const char *description, BOOL enabled)
+BOOL CHEATS::add_CB(char *code, char *description, BOOL enabled)
 {
 	//if (num == MAX_CHEAT_LIST) return FALSE;
 	size_t num = list.size();
@@ -458,7 +659,7 @@ BOOL CHEATS::add_CB(const char *code, const char *description, BOOL enabled)
 	return TRUE;
 }
 
-BOOL CHEATS::update_CB(const char *code, const char *description, BOOL enabled, u32 pos)
+BOOL CHEATS::update_CB(char *code, char *description, BOOL enabled, u32 pos)
 {
 	if (pos >= list.size()) return FALSE;
 
@@ -536,11 +737,43 @@ u32	CHEATS::getSize()
 	return list.size();
 }
 
+size_t CHEATS::getActiveCount()
+{
+	size_t activeCheatCount = 0;
+	const size_t cheatListCount = this->getSize();
+	
+	for (size_t i = 0; i < cheatListCount; i++)
+	{
+		if (list[i].enabled)
+		{
+			activeCheatCount++;
+		}
+	}
+	
+	return activeCheatCount;
+}
+
 void CHEATS::setDescription(const char *description, u32 pos)
 {
 	strncpy(list[pos].description, description, sizeof(list[pos].description));
 	list[pos].description[sizeof(list[pos].description) - 1] = '\0';
 }
+
+
+static char *trim(char *s, int len = -1)
+{
+	char *ptr = NULL;
+	if (!s) return NULL;
+	if (!*s) return s;
+	
+	if(len==-1)
+		ptr = s + strlen(s) - 1;
+	else ptr = s+len - 1;
+	for (; (ptr >= s) && (!*ptr || isspace((u8)*ptr)) ; ptr--);
+	ptr[1] = '\0';
+	return s;
+}
+
 
 BOOL CHEATS::save()
 {
@@ -653,7 +886,7 @@ BOOL CHEATS::load()
 			continue;
 		}
 		trim(buf);
-		if ((strlen(buf) == 0) || (buf[0] == ';')) continue;
+		if ((buf[0] == 0) || (buf[0] == ';')) continue;
 		if(!strncasecmp(buf,"name=",5)) continue;
 		if(!strncasecmp(buf,"serial=",7)) continue;
 
@@ -703,16 +936,16 @@ BOOL CHEATS::load()
 			char tmp_buf[9] = {0};
 
 			strncpy(tmp_buf, &codeStr[i * 16], 8);
-			sscanf_s(tmp_buf, "%x", &tmp_cht.code[i][0]);
+			sscanf(tmp_buf, "%x", &tmp_cht.code[i][0]);
 
 			if (tmp_cht.type == 0)
 			{
 				tmp_cht.size = std::min<u32>(3, ((tmp_cht.code[i][0] & 0xF0000000) >> 28));
-				tmp_cht.code[i][0] &= 0x00FFFFFF;
+				tmp_cht.code[i][0] &= 0x0FFFFFFF;
 			}
 			
 			strncpy(tmp_buf, &codeStr[(i * 16) + 8], 8);
-			sscanf_s(tmp_buf, "%x", &tmp_cht.code[i][1]);
+			sscanf(tmp_buf, "%x", &tmp_cht.code[i][1]);
 		}
 
 		list.push_back(tmp_cht);
@@ -728,21 +961,30 @@ BOOL CHEATS::load()
 	return TRUE;
 }
 
-void CHEATS::process()
+void CHEATS::process(int targetType)
 {
 	if (CommonSettings.cheatsDisable) return;
+
 	if (list.size() == 0) return;
+
+	cheatsResetJit = false;
+
 	size_t num = list.size();
 	for (size_t i = 0; i < num; i++)
 	{
 		if (!list[i].enabled) continue;
 
-		switch (list[i].type)
+		int type = list[i].type;
+		
+		if(type != targetType)
+		continue;
+
+		switch(type)
 		{
 			case 0:		// internal cheat system
 			{
-				//INFO("list at 0x02|%06X value %i (size %i)\n",list[i].code[0], list[i].lo[0], list[i].size);
-				u32 addr = list[i].code[0][0] | 0x02000000;
+				//INFO("list at 0x0|%07X value %i (size %i)\n",list[i].code[0], list[i].lo[0], list[i].size);
+				u32 addr = list[i].code[0][0];
 				u32 val = list[i].code[0][1];
 				switch (list[i].size)
 				{
@@ -775,6 +1017,14 @@ void CHEATS::process()
 			default: continue;
 		}
 	}
+	
+#ifdef HAVE_JIT
+	if(cheatsResetJit)
+	{
+		if(CommonSettings.use_jit)
+			arm_jit_reset(true,true);
+	}
+#endif
 }
 
 void CHEATS::getXXcodeString(CHEATS_LIST list, char *res_buf)

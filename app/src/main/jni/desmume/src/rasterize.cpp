@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2009-2013 DeSmuME team
+	Copyright (C) 2009-2017 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -26,6 +26,15 @@
 //a performance improvement would be to change the winding order logic
 //so that this is done less frequently
 
+//Shadow test cases
+// * SM64 -- Standing near signs and blocks. Note: shadows-behind-trees looks bad in that game.
+// * MKDS -- Shadows under cart in kart selector (the shadows in mario kart are complicated concave shapes)
+// * MKDS -- no junk beneath platform in kart selector / no shadow beneath grate floor in bowser stage
+// * MKDS -- 150cc mirror cup turns all the models inside out
+// * The Wizard of Oz: Beyond the Yellow Brick Road -- shadows under Dorothy and Toto
+// * Kingdom Hearts Re:coded -- shadow under Sora
+// * Golden Sun: Dark Dawn -- shadow under the main character
+
 #include "rasterize.h"
 
 #include <algorithm>
@@ -33,22 +42,29 @@
 #include <math.h>
 #include <string.h>
 
-#ifndef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER == 1600
+#define SLEEP_HACK_2011
+#endif
+
+#ifdef SLEEP_HACK_2011
+#include <Windows.h>
+#endif
+
+#ifndef _MSC_VER 
 #include <stdint.h>
 #endif
 
-#include "bits.h"
-#include "common.h"
+#ifdef ENABLE_SSE2
+#include <emmintrin.h>
+#endif
+
 #include "matrix.h"
 #include "render3D.h"
-#include "gfx3d.h"
-#include "texcache.h"
+#include "MMU.h"
 #include "NDSSystem.h"
 #include "utils/task.h"
-
-#ifdef ANDROID
-#include <android/log.h>
-#endif
+#include "filter/filter.h"
+#include "filter/xbrz.h"
 
 //#undef FORCEINLINE
 //#define FORCEINLINE
@@ -64,14 +80,8 @@ template<typename T> T _max(T a, T b, T c) { return max(max(a,b),c); }
 template<typename T> T _min(T a, T b, T c, T d) { return min(_min(a,b,d),c); }
 template<typename T> T _max(T a, T b, T c, T d) { return max(_max(a,b,d),c); }
 
-static const int kUnsetTranslucentPolyID = 255;
-
-static CACHE_ALIGN u8 modulate_table[64][64];
-static CACHE_ALIGN u8 decal_table[32][64][64];
-static CACHE_ALIGN u8 index_lookup_table[65];
-static CACHE_ALIGN u8 index_start_table[8];
-
-static bool softRastHasNewData = false;
+static u8 modulate_table[64][64];
+static u8 decal_table[32][64][64];
 
 ////optimized float floor useful in limited cases
 ////from http://www.stereopsis.com/FPU.html#convert
@@ -81,7 +91,7 @@ static bool softRastHasNewData = false;
 //	const double _double2fixmagic = 68719476736.0*1.5;     //2^36 * 1.5,  (52-_shiftamt=36) uses limited precisicion to floor
 //	const int _shiftamt        = 16;                    //16.16 fixed point representation,
 //
-//	#ifdef WORDS_BIGENDIAN
+//	#ifdef MSB_FIRST
 //		#define iman_				1
 //	#else
 //		#define iman_				0
@@ -118,9 +128,6 @@ static FORCEINLINE int fastFloor(float f)
 //{
 //	verts[vert_index] = &rawvert;
 //}
-
-static Fragment _screen[256*192];
-static FragmentColor _screenColor[256*192];
 
 static FORCEINLINE int iround(float f) {
 	return (int)f; //lol
@@ -304,438 +311,337 @@ FORCEINLINE int edge_fx_fl::Step() {
 
 
 
-static FORCEINLINE void alphaBlend(FragmentColor & dst, const FragmentColor & src)
+static FORCEINLINE void alphaBlend(FragmentColor &dst, const FragmentColor src)
 {
-	if(gfx3d.renderState.enableAlphaBlending)
+	if (src.a == 0)
 	{
-		if(src.a == 31 || dst.a == 0)
-		{
-			dst = src;
-		}
-		//else if(src.a == 0) { } //this is not necessary since it was handled earlier
-		else
-		{
-			u8 alpha = src.a+1;
-			u8 invAlpha = 32 - alpha;
-			dst.r = (alpha*src.r + invAlpha*dst.r)>>5;
-			dst.g = (alpha*src.g + invAlpha*dst.g)>>5;
-			dst.b = (alpha*src.b + invAlpha*dst.b)>>5;
-		}
-
-		dst.a = max(src.a,dst.a);
+		return;
+	}
+	
+	if (src.a == 31 || dst.a == 0 || !gfx3d.renderState.enableAlphaBlending)
+	{
+		dst = src;
 	}
 	else
 	{
-		if(src.a == 0)
-		{
-			//do nothing; the fragment is totally transparent
-		}
-		else
-		{
-			dst = src;
-		}
+		const u8 alpha = src.a + 1;
+		const u8 invAlpha = 32 - alpha;
+		dst.r = (alpha*src.r + invAlpha*dst.r) >> 5;
+		dst.g = (alpha*src.g + invAlpha*dst.g) >> 5;
+		dst.b = (alpha*src.b + invAlpha*dst.b) >> 5;
+		dst.a = max(src.a, dst.a);
 	}
 }
 
-// TODO: wire-frame
-struct PolyAttr
+static FORCEINLINE void EdgeBlend(FragmentColor &dst, const FragmentColor src)
 {
-	u32 val;
-
-	bool decalMode;
-	bool translucentDepthWrite;
-	bool drawBackPlaneIntersectingPolys;
-	u8 polyid;
-	u8 alpha;
-	bool backfacing;
-	bool translucent;
-	u8 fogged;
-
-	bool isVisible(bool backfacing) 
+	if (src.a == 31 || dst.a == 0)
 	{
-		//this was added after adding multi-bit stencil buffer
-		//it seems that we also need to prevent drawing back faces of shadow polys for rendering
-		u32 mode = (val>>4)&0x3;
-		if(mode==3 && polyid !=0) return !backfacing;
-		//another reasonable possibility is that we should be forcing back faces to draw (mariokart doesnt use them)
-		//and then only using a single bit buffer (but a cursory test of this doesnt actually work)
-		//
-		//this code needs to be here for shadows in wizard of oz to work.
-
-		switch((val>>6)&3) {
-			case 0: return false;
-			case 1: return backfacing;
-			case 2: return !backfacing;
-			case 3: return true;
-			default: assert(false); return false;
-		}
+		dst = src;
 	}
-
-	void setup(u32 polyAttr)
+	else
 	{
-		val = polyAttr;
-		decalMode = BIT14(val);
-		translucentDepthWrite = BIT11(val);
-		polyid = (polyAttr>>24)&0x3F;
-		alpha = (polyAttr>>16)&0x1F;
-		drawBackPlaneIntersectingPolys = BIT12(val);
-		fogged = BIT15(val);
+		const u8 alpha = src.a + 1;
+		const u8 invAlpha = 32 - alpha;
+		dst.r = (alpha*src.r + invAlpha*dst.r) >> 5;
+		dst.g = (alpha*src.g + invAlpha*dst.g) >> 5;
+		dst.b = (alpha*src.b + invAlpha*dst.b) >> 5;
+		dst.a = max(src.a, dst.a);
 	}
-
-};
+}
 
 template<bool RENDERER>
 class RasterizerUnit
 {
+protected:
+	SoftRasterizerRenderer *_softRender;
+	SoftRasterizerTexture *currentTexture;
+	VERT* verts[MAX_CLIPPED_VERTS];
+	int polynum;
+	u8 _textureWrapMode;
+	
 public:
-
-	int SLI_MASK, SLI_VALUE;
 	bool _debug_thisPoly;
-
-	RasterizerUnit()
-		: _debug_thisPoly(false)
+	int SLI_MASK;
+	int SLI_VALUE;
+	
+	void SetRenderer(SoftRasterizerRenderer *theRenderer)
 	{
+		this->_softRender = theRenderer;
+	}
+	
+	Render3DError SetupTexture(const POLY &thePoly, size_t polyRenderIndex)
+	{
+		SoftRasterizerTexture *theTexture = (SoftRasterizerTexture *)this->_softRender->GetTextureByPolygonRenderIndex(polyRenderIndex);
+		this->currentTexture = theTexture;
+		
+		if (!theTexture->IsSamplingEnabled())
+		{
+			return RENDER3DERROR_NOERR;
+		}
+		
+		this->_textureWrapMode = (thePoly.texParam >> 16) & 0x0F;
+		
+		theTexture->ResetCacheAge();
+		theTexture->IncreaseCacheUsageCount(1);
+		
+		return RENDER3DERROR_NOERR;
 	}
 
-	TexCacheItem* lastTexKey;
-	
-	VERT* verts[MAX_CLIPPED_VERTS];
-
-    PolyAttr polyAttr;
-	int polynum;
-
-
-	struct Sampler
+	FORCEINLINE FragmentColor sample(const float u, const float v)
 	{
-		Sampler() {}
-
-		bool enabled;
-		int width, height;
-		int wmask, hmask;
-		int wrap;
-		int wshift;
-		int texFormat;
-		void setup(u32 texParam)
-		{
-			texFormat = (texParam>>26)&7;
-			wshift = ((texParam>>20)&0x07) + 3;
-			width=(1 << wshift);
-			height=(8 << ((texParam>>23)&0x07));
-			wmask = width-1;
-			hmask = height-1;
-			wrap = (texParam>>16)&0xF;
-			enabled = gfx3d.renderState.enableTexturing && (texFormat!=0);
-		}
-
-		/*FORCEINLINE void clamp(int &val, const int size, const int sizemask){
-			if(val<0) val = 0;
-			if(val>sizemask) val = sizemask;
-		}*/
-
-		//jeffq: branchless clamp
-		#define clamp(val, unused, sizemax) \
-			((val = val + ( -val & ( val >> 31 ) )), (val = sizemax + ( ( val - sizemax ) & ( (val - sizemax) >> 31))))
-
-
-		/*FORCEINLINE void hclamp(int &val) { clamp(val,width,wmask); }
-		FORCEINLINE void vclamp(int &val) { clamp(val,height,hmask); }*/
-
-		#define hclamp(val) clamp(val,width,wmask)
-		#define vclamp(val) clamp(val,height,hmask)
-
-		/*FORCEINLINE void repeat(int &val, const int size, const int sizemask) {
-			val &= sizemask;
-		}*/
-
-		#define repeat(val, unused, sizemask) val &= sizemask
-
-		/*FORCEINLINE void hrepeat(int &val) { repeat(val,width,wmask); }
-		FORCEINLINE void vrepeat(int &val) { repeat(val,height,hmask); }*/
-
-		#define hrepeat(val) repeat(val,width,wmask)
-		#define vrepeat(val) repeat(val,height,hmask)
-
-		FORCEINLINE void flip(int &val, const int size, const int sizemask) {
-			val &= ((size<<1)-1);
-			if(val>=size) val = (size<<1)-val-1;
-		}
-		FORCEINLINE void hflip(int &val) { flip(val,width,wmask); }
-		FORCEINLINE void vflip(int &val) { flip(val,height,hmask); }
-
-		FORCEINLINE void dowrap(int& iu, int& iv)
-		{
-			switch(wrap) {
-				//flip none
-				case 0x0: hclamp(iu); vclamp(iv); break;
-				case 0x1: hrepeat(iu); vclamp(iv); break;
-				case 0x2: hclamp(iu); vrepeat(iv); break;
-				case 0x3: hrepeat(iu); vrepeat(iv); break;
-				//flip S
-				case 0x4: hclamp(iu); vclamp(iv); break;
-				case 0x5: hflip(iu); vclamp(iv); break;
-				case 0x6: hclamp(iu); vrepeat(iv); break;
-				case 0x7: hflip(iu); vrepeat(iv); break;
-				//flip T
-				case 0x8: hclamp(iu); vclamp(iv); break;
-				case 0x9: hrepeat(iu); vclamp(iv); break;
-				case 0xA: hclamp(iu); vflip(iv); break;
-				case 0xB: hrepeat(iu); vflip(iv); break;
-				//flip both
-				case 0xC: hclamp(iu); vclamp(iv); break;
-				case 0xD: hflip(iu); vclamp(iv); break;
-				case 0xE: hclamp(iu); vflip(iv); break;
-				case 0xF: hflip(iu); vflip(iv); break;
-			}
-		}
-	} sampler;
-
-	FORCEINLINE FragmentColor sample(float u, float v)
-	{
-		static const FragmentColor white = MakeFragmentColor(63,63,63,31);
-		if(!sampler.enabled) return white;
-
 		//finally, we can use floor here. but, it is slower than we want.
 		//the best solution is probably to wait until the pipeline is full of fixed point
-		s32 iu = s32floor(u);
-		s32 iv = s32floor(v);
-		sampler.dowrap(iu,iv);
-
-		FragmentColor color;
-		color.color = ((u32*)lastTexKey->decoded)[(iv<<sampler.wshift)+iu];
-		return color;
-	}
-
-	struct Shader
-	{
-		u8 mode;
-		float invu, invv, w;
-		FragmentColor materialColor;
-	} shader;
-
-	FORCEINLINE void shade(FragmentColor& dst)
-	{
-		FragmentColor texColor;
-		float u,v;
-
-		switch(shader.mode)
+		const float fu = u * (float)this->currentTexture->GetRenderWidth()  / (float)this->currentTexture->GetWidth();
+		const float fv = v * (float)this->currentTexture->GetRenderHeight() / (float)this->currentTexture->GetHeight();
+		s32 iu = 0;
+		s32 iv = 0;
+		
+		if (!CommonSettings.GFX3D_TXTHack)
 		{
-		case 0: //modulate
-			u = shader.invu*shader.w;
-			v = shader.invv*shader.w;
-			texColor = sample(u,v);
-			dst.r = modulate_table[texColor.r][shader.materialColor.r];
-			dst.g = modulate_table[texColor.g][shader.materialColor.g];
-			dst.b = modulate_table[texColor.b][shader.materialColor.b];
-			dst.a = modulate_table[GFX3D_5TO6(texColor.a)][GFX3D_5TO6(shader.materialColor.a)]>>1;
-			//dst.a = 28;
-			//#ifdef _MSC_VER
-			//if(GetAsyncKeyState(VK_SHIFT)) {
-			//	//debugging tricks
-			//	dst = shader.materialColor;
-			//	if(GetAsyncKeyState(VK_TAB)) {
-			//		u8 alpha = dst.a;
-			//		dst.color = polynum*8+8;
-			//		dst.a = alpha;
-			//	}
-			//}
-			//#endif
-			break;
-		case 1: //decal
-			if(sampler.enabled)
-			{
-				u = shader.invu*shader.w;
-				v = shader.invv*shader.w;
-				texColor = sample(u,v);
-				dst.r = decal_table[texColor.a][texColor.r][shader.materialColor.r];
-				dst.g = decal_table[texColor.a][texColor.g][shader.materialColor.g];
-				dst.b = decal_table[texColor.a][texColor.b][shader.materialColor.b];
-				dst.a = shader.materialColor.a;
-			} else dst = shader.materialColor;
-			break;
-		case 2: //toon/highlight shading
-			{
-				u = shader.invu*shader.w;
-				v = shader.invv*shader.w;
-				texColor = sample(u,v);
-				FragmentColor toonColor = engine->toonTable[shader.materialColor.r>>1];
-			
-				if(gfx3d.renderState.shading == GFX3D_State::HIGHLIGHT)
-				{
-					dst.r = modulate_table[texColor.r][shader.materialColor.r];
-					dst.g = modulate_table[texColor.g][shader.materialColor.r];
-					dst.b = modulate_table[texColor.b][shader.materialColor.r];
-					dst.a = modulate_table[GFX3D_5TO6(texColor.a)][GFX3D_5TO6(shader.materialColor.a)]>>1;
-
-					dst.r = min<u8>(63, (dst.r + toonColor.r));
-					dst.g = min<u8>(63, (dst.g + toonColor.g));
-					dst.b = min<u8>(63, (dst.b + toonColor.b));
-				}
-				else
-				{
-					dst.r = modulate_table[texColor.r][toonColor.r];
-					dst.g = modulate_table[texColor.g][toonColor.g];
-					dst.b = modulate_table[texColor.b][toonColor.b];
-					dst.a = modulate_table[GFX3D_5TO6(texColor.a)][GFX3D_5TO6(shader.materialColor.a)]>>1;
-				}
-
-			}
-			break;
-		case 3: //shadows
-			//is this right? only with the material color?
-			dst = shader.materialColor;
-			break;
-		}
-	}
-
-	void setupShader(u32 polyattr)
-	{
-		shader.mode = (polyattr>>4)&0x3;
-	}
-
-	FORCEINLINE void pixel(int adr,float r, float g, float b, float invu, float invv, float w, float z)
-	{
-		Fragment &destFragment = engine->screen[adr];
-		FragmentColor &destFragmentColor = engine->screenColor[adr];
-
-		//not sure about this
-		//this value was chosen to make the skybox, castle window decals, and water level render correctly in SM64
-		const u32 depth = gfx3d.renderState.wbuffer ? w*4096 : ((u32)(z*0x7FFF))<<9;
-
-		if(polyAttr.decalMode)
-		{
-			/*if ( CommonSettings.GFX3D_Zelda_Shadow_Depth_Hack > 0)
-			{
-				if(depth<destFragment.depth - CommonSettings.GFX3D_Zelda_Shadow_Depth_Hack
-					|| depth>destFragment.depth + CommonSettings.GFX3D_Zelda_Shadow_Depth_Hack) 
-				{
-					goto depth_fail;
-				}
-
-			}
-			else*/
-			{
-				if(depth != destFragment.depth)
-				{
-					goto depth_fail;
-				}
-			}
-
+			iu = s32floor(fu);
+			iv = s32floor(fv);
 		}
 		else
 		{
-			if(depth>=destFragment.depth) 
+			iu = round_s(fu);
+			iv = round_s(fv);
+		}
+		
+		const u32 *textureData = this->currentTexture->GetRenderData();
+		this->currentTexture->GetRenderSamplerCoordinates(this->_textureWrapMode, iu, iv);
+		
+		FragmentColor color;
+		color.color = textureData[( iv << this->currentTexture->GetRenderWidthShift() ) + iu];
+		
+		return color;
+	}
+
+	//round function - tkd3
+	float round_s(double val)
+	{
+		if (val > 0.0)
+		{
+			return floorf(val*256.0f+0.5f)/256.0f; //this value(256.0) is good result.(I think)
+		}
+		else
+		{
+			return -1.0*floorf(fabs(val)*256.0f+0.5f)/256.0f;
+		}
+	}
+	
+	FORCEINLINE void shade(const PolygonMode polygonMode, const FragmentColor src, FragmentColor &dst, const float texCoordU, const float texCoordV)
+	{
+		static const FragmentColor colorWhite = MakeFragmentColor(0x3F, 0x3F, 0x3F, 0x1F);
+		const FragmentColor mainTexColor = (this->currentTexture->IsSamplingEnabled()) ? sample(texCoordU, texCoordV) : colorWhite;
+		
+		switch (polygonMode)
+		{
+			case POLYGON_MODE_MODULATE:
+				dst.r = modulate_table[mainTexColor.r][src.r];
+				dst.g = modulate_table[mainTexColor.g][src.g];
+				dst.b = modulate_table[mainTexColor.b][src.b];
+				dst.a = modulate_table[GFX3D_5TO6_LOOKUP(mainTexColor.a)][GFX3D_5TO6_LOOKUP(src.a)]>>1;
+				//dst.a = 28;
+				//#ifdef _MSC_VER
+				//if(GetAsyncKeyState(VK_SHIFT)) {
+				//	//debugging tricks
+				//	dst = shader.materialColor;
+				//	if(GetAsyncKeyState(VK_TAB)) {
+				//		u8 alpha = dst.a;
+				//		dst.color = polynum*8+8;
+				//		dst.a = alpha;
+				//	}
+				//}
+				//#endif
+				break;
+				
+			case POLYGON_MODE_DECAL:
 			{
-				goto depth_fail;
+				if (this->currentTexture->IsSamplingEnabled())
+				{
+					dst.r = decal_table[mainTexColor.a][mainTexColor.r][src.r];
+					dst.g = decal_table[mainTexColor.a][mainTexColor.g][src.g];
+					dst.b = decal_table[mainTexColor.a][mainTexColor.b][src.b];
+					dst.a = src.a;
+				}
+				else
+				{
+					dst = src;
+				}
+			}
+				break;
+				
+			case POLYGON_MODE_TOONHIGHLIGHT:
+			{
+				const FragmentColor toonColor = this->_softRender->toonColor32LUT[src.r >> 1];
+				
+				if (gfx3d.renderState.shading == PolygonShadingMode_Highlight)
+				{
+					// Tested in the "Shadows of Almia" logo in the Pokemon Ranger: Shadows of Almia title screen.
+					// Also tested in Advance Wars: Dual Strike and Advance Wars: Days of Ruin when tiles highlight
+					// during unit selection.
+					dst.r = modulate_table[mainTexColor.r][src.r];
+					dst.g = modulate_table[mainTexColor.g][src.r];
+					dst.b = modulate_table[mainTexColor.b][src.r];
+					dst.a = modulate_table[GFX3D_5TO6_LOOKUP(mainTexColor.a)][GFX3D_5TO6_LOOKUP(src.a)] >> 1;
+					
+					dst.r = min<u8>(0x3F, (dst.r + toonColor.r));
+					dst.g = min<u8>(0x3F, (dst.g + toonColor.g));
+					dst.b = min<u8>(0x3F, (dst.b + toonColor.b));
+				}
+				else
+				{
+					dst.r = modulate_table[mainTexColor.r][toonColor.r];
+					dst.g = modulate_table[mainTexColor.g][toonColor.g];
+					dst.b = modulate_table[mainTexColor.b][toonColor.b];
+					dst.a = modulate_table[GFX3D_5TO6_LOOKUP(mainTexColor.a)][GFX3D_5TO6_LOOKUP(src.a)] >> 1;
+				}
+			}
+				break;
+				
+			case POLYGON_MODE_SHADOW:
+				//is this right? only with the material color?
+				dst = src;
+				break;
+		}
+	}
+	
+	template<bool ISSHADOWPOLYGON>
+	FORCEINLINE void pixel(const PolygonAttributes &polyAttr, const size_t fragmentIndex, FragmentColor &dstColor, float r, float g, float b, float invu, float invv, float w, float z)
+	{
+		FragmentColor srcColor;
+		FragmentColor shaderOutput;
+		bool isOpaquePixel;
+		
+		u32 &dstAttributeDepth				= this->_softRender->_framebufferAttributes->depth[fragmentIndex];
+		u8 &dstAttributeOpaquePolyID		= this->_softRender->_framebufferAttributes->opaquePolyID[fragmentIndex];
+		u8 &dstAttributeTranslucentPolyID	= this->_softRender->_framebufferAttributes->translucentPolyID[fragmentIndex];
+		u8 &dstAttributeStencil				= this->_softRender->_framebufferAttributes->stencil[fragmentIndex];
+		u8 &dstAttributeIsFogged			= this->_softRender->_framebufferAttributes->isFogged[fragmentIndex];
+		u8 &dstAttributeIsTranslucentPoly	= this->_softRender->_framebufferAttributes->isTranslucentPoly[fragmentIndex];
+		
+		// not sure about the w-buffer depth value: this value was chosen to make the skybox, castle window decals, and water level render correctly in SM64
+		//
+		// When using z-depth, be sure to test against the following test cases:
+		// - The drawing of the overworld map in Dragon Quest IV
+		// - The drawing of all units on the map in Advance Wars: Days of Ruin
+		const u32 newDepth = (gfx3d.renderState.wbuffer) ? u32floor(4096*w) : (u32floor(z*0x7FFF) << 9);
+		
+		// run the depth test
+		bool depthFail = false;
+		if (polyAttr.enableDepthEqualTest)
+		{
+			const u32 minDepth = max<u32>(0x00000000, dstAttributeDepth - SOFTRASTERIZER_DEPTH_EQUAL_TEST_TOLERANCE);
+			const u32 maxDepth = min<u32>(0x00FFFFFF, dstAttributeDepth + SOFTRASTERIZER_DEPTH_EQUAL_TEST_TOLERANCE);
+			
+			if (newDepth < minDepth || newDepth > maxDepth)
+			{
+				depthFail = true;
+			}
+		}
+		else
+		{
+			if (newDepth >= dstAttributeDepth)
+			{
+				depthFail = true;
 			}
 		}
 
-		//handle shadow polys
-		if(shader.mode == 3)
+		if(depthFail)
 		{
-			if(polyAttr.polyid == 0)
+			//shadow mask polygons set stencil bit here
+			if (ISSHADOWPOLYGON && polyAttr.polygonID == 0)
+				dstAttributeStencil=1;
+			return;
+		}
+		
+		//handle shadow polys
+		if (ISSHADOWPOLYGON)
+		{
+			if (polyAttr.polygonID == 0)
 			{
-				goto rejected_fragment;
+				//shadow mask polygons only affect the stencil buffer, and then only when they fail depth test
+				//if we made it here, the shadow mask polygon fragment needs to be trashed
+				return;
 			}
 			else
 			{
-				if(destFragment.stencil==0)
+				//shadow color polygon conditions
+				if (dstAttributeStencil == 0)
 				{
-					goto rejected_fragment;
+					//draw only where stencil bit is set
+					return;
 				}	
+				if (dstAttributeOpaquePolyID == polyAttr.polygonID)
+				{
+					//draw only when polygon ID differs
+					//TODO: are we using the right dst polyID?
+					return;
+				}
 
-				//shadow polys have a special check here to keep from self-shadowing when user
-				//has tried to prevent it from happening
-				//if this isnt here, then the vehicle select in mariokart will look terrible
-				if(destFragment.polyid.opaque == polyAttr.polyid)
-					goto rejected_fragment;
+				//once drawn, stencil bit is always cleared
+				dstAttributeStencil = 0;
 			}
 		}
-		
-		shader.w = w;
-		shader.invu = invu;
-		shader.invv = invv;
 
 		//perspective-correct the colors
 		r = (r * w) + 0.5f;
 		g = (g * w) + 0.5f;
 		b = (b * w) + 0.5f;
-
-
+		
 		//this is a HACK: 
 		//we are being very sloppy with our interpolation precision right now
 		//and rather than fix it, i just want to clamp it
-		shader.materialColor.r = max(0U,min(63U,u32floor(r)));
-		shader.materialColor.g = max(0U,min(63U,u32floor(g)));
-		shader.materialColor.b = max(0U,min(63U,u32floor(b)));
-
-		shader.materialColor.a = polyAttr.alpha;
-
+		srcColor = MakeFragmentColor(max<u8>(0x00, min<u32>(0x3F,u32floor(r))),
+									 max<u8>(0x00, min<u32>(0x3F,u32floor(g))),
+									 max<u8>(0x00, min<u32>(0x3F,u32floor(b))),
+									 polyAttr.alpha);
+		
 		//pixel shader
-		FragmentColor shaderOutput;
-		shade(shaderOutput);
-
-		//we shouldnt do any of this if we generated a totally transparent pixel
-		if(shaderOutput.a != 0)
+		shade(polyAttr.polygonMode, srcColor, shaderOutput, invu * w, invv * w);
+		
+		// handle alpha test
+		if ( shaderOutput.a == 0 ||
+			(this->_softRender->currentRenderState->enableAlphaTest && shaderOutput.a < this->_softRender->currentRenderState->alphaTestRef) )
 		{
-			//alpha test (don't have any test cases for this...? is it in the right place...?)
-			if(gfx3d.renderState.enableAlphaTest)
-			{
-				if(shaderOutput.a < gfx3d.renderState.alphaTestRef)
-					goto rejected_fragment;
-			}
-
-			//handle polyids
-			bool isOpaquePixel = shaderOutput.a == 31;
-			if(isOpaquePixel)
-			{
-				destFragment.polyid.opaque = polyAttr.polyid;
-				destFragment.isTranslucentPoly = polyAttr.translucent?1:0;
-				destFragment.fogged = polyAttr.fogged;
-				destFragmentColor = shaderOutput;
-			}
-			else
-			{
-				//dont overwrite pixels on translucent polys with the same polyids
-				if(destFragment.polyid.translucent == polyAttr.polyid)
-					goto rejected_fragment;
-			
-				//originally we were using a test case of shadows-behind-trees in sm64ds
-				//but, it looks bad in that game. this is actually correct
-				//if this isnt correct, then complex shape cart shadows in mario kart don't work right
-				destFragment.polyid.translucent = polyAttr.polyid;
-
-				//alpha blending and write color
-				alphaBlend(destFragmentColor, shaderOutput);
-
-				destFragment.fogged &= polyAttr.fogged;
-			}
-
-			//depth writing
-			if(isOpaquePixel || polyAttr.translucentDepthWrite)
-				destFragment.depth = depth;
-
+			return;
 		}
-
-		//shadow cases: (need multi-bit stencil buffer to cope with all of these, especially the mariokart compelx shadows)
-		//1. sm64 (standing near signs and blocks)
-		//2. mariokart (no glitches in shadow shape in kart selector)
-		//3. mariokart (no junk beneath platform in kart selector / no shadow beneath grate floor in bowser stage)
-		//(specifically, the shadows in mario kart are complicated concave shapes)
-
-		goto done;
-		depth_fail:
-		if(shader.mode == 3 && polyAttr.polyid == 0)
-			destFragment.stencil++;
-		rejected_fragment:
-		done:
-		;
-
-		if(shader.mode == 3 && polyAttr.polyid != 0 && destFragment.stencil)
-			destFragment.stencil--;
+		
+		// write pixel values to the framebuffer
+		isOpaquePixel = (shaderOutput.a == 0x1F);
+		if (isOpaquePixel)
+		{
+			dstAttributeOpaquePolyID = polyAttr.polygonID;
+			dstAttributeIsTranslucentPoly = polyAttr.isTranslucent;
+			dstAttributeIsFogged = polyAttr.enableRenderFog;
+			dstColor = shaderOutput;
+		}
+		else
+		{
+			//dont overwrite pixels on translucent polys with the same polyids
+			if (dstAttributeTranslucentPolyID == polyAttr.polygonID)
+				return;
+			
+			//originally we were using a test case of shadows-behind-trees in sm64ds
+			//but, it looks bad in that game. this is actually correct
+			//if this isnt correct, then complex shape cart shadows in mario kart don't work right
+			dstAttributeTranslucentPolyID = polyAttr.polygonID;
+			
+			//alpha blending and write color
+			alphaBlend(dstColor, shaderOutput);
+			
+			dstAttributeIsFogged = (dstAttributeIsFogged && polyAttr.enableRenderFog);
+		}
+		
+		//depth writing
+		if (isOpaquePixel || polyAttr.enableAlphaDepthWrite)
+			dstAttributeDepth = newDepth;
 	}
 
 	//draws a single scanline
-	FORCEINLINE void drawscanline(edge_fx_fl *pLeft, edge_fx_fl *pRight, bool lineHack)
+	template <bool ISSHADOWPOLYGON>
+	FORCEINLINE void drawscanline(const PolygonAttributes &polyAttr, FragmentColor *dstColor, const size_t framebufferWidth, const size_t framebufferHeight, edge_fx_fl *pLeft, edge_fx_fl *pRight, bool lineHack)
 	{
 		int XStart = pLeft->X;
 		int width = pRight->X - XStart;
@@ -757,11 +663,12 @@ public:
 		float u = pLeft->u.curr;
 		float v = pLeft->v.curr;
 		float z = pLeft->z.curr;
+		
 		float color[3] = {
 			pLeft->color[0].curr,
 			pLeft->color[1].curr,
 			pLeft->color[2].curr };
-
+		
 		//our dx values are taken from the steps up until the right edge
 		float invWidth = 1.0f / width;
 		float dinvw_dx = (pRight->invw.curr - invw) * invWidth;
@@ -773,24 +680,26 @@ public:
 			(pRight->color[1].curr - color[1]) * invWidth,
 			(pRight->color[2].curr - color[2]) * invWidth };
 
-		int adr = (pLeft->Y*engine->width)+XStart;
+		size_t adr = (pLeft->Y*framebufferWidth)+XStart;
 
 		//CONSIDER: in case some other math is wrong (shouldve been clipped OK), we might go out of bounds here.
 		//better check the Y value.
-		if(RENDERER && (pLeft->Y<0 || pLeft->Y>191)) {
+		if (RENDERER && (pLeft->Y < 0 || pLeft->Y > framebufferHeight - 1))
+		{
 			printf("rasterizer rendering at y=%d! oops!\n",pLeft->Y);
 			return;
 		}
-		if(!RENDERER && (pLeft->Y<0 || pLeft->Y>=engine->height)) {
+		if (!RENDERER && (pLeft->Y < 0 || pLeft->Y >= framebufferHeight))
+		{
 			printf("rasterizer rendering at y=%d! oops!\n",pLeft->Y);
 			return;
 		}
 
 		int x = XStart;
 
-		if(x<0)
+		if (x < 0)
 		{
-			if(RENDERER && !lineHack)
+			if (RENDERER && !lineHack)
 			{
 				printf("rasterizer rendering at x=%d! oops!\n",x);
 				return;
@@ -806,19 +715,19 @@ public:
 			width -= -x;
 			x = 0;
 		}
-		if(x+width > (RENDERER?256:engine->width))
+		if (x+width > framebufferWidth)
 		{
-			if(RENDERER && !lineHack)
+			if (RENDERER && !lineHack && framebufferWidth == GPU_FRAMEBUFFER_NATIVE_WIDTH)
 			{
 				printf("rasterizer rendering at x=%d! oops!\n",x+width-1);
 				return;
 			}
-			width = (RENDERER?256:engine->width)-x;
+			width = framebufferWidth - x;
 		}
-
-		while(width-- > 0)
+		
+		while (width-- > 0)
 		{
-			pixel(adr,color[0],color[1],color[2],u,v,1.0f/invw,z);
+			pixel<ISSHADOWPOLYGON>(polyAttr, adr, dstColor[adr], color[0], color[1], color[2], u, v, 1.0f/invw, z);
 			adr++;
 			x++;
 
@@ -833,8 +742,8 @@ public:
 	}
 
 	//runs several scanlines, until an edge is finished
-	template<bool SLI>
-	void runscanlines(edge_fx_fl *left, edge_fx_fl *right, bool horizontal, bool lineHack)
+	template<bool SLI, bool ISSHADOWPOLYGON>
+	void runscanlines(const PolygonAttributes &polyAttr, FragmentColor *dstColor, const size_t framebufferWidth, const size_t framebufferHeight, edge_fx_fl *left, edge_fx_fl *right, bool horizontal, bool lineHack)
 	{
 		//oh lord, hack city for edge drawing
 
@@ -843,15 +752,16 @@ public:
 		bool first=true;
 
 		//HACK: special handling for horizontal line poly
-		if (lineHack && left->Height == 0 && right->Height == 0 && left->Y<192 && left->Y>=0)
+		if (lineHack && left->Height == 0 && right->Height == 0 && left->Y<framebufferHeight && left->Y>=0)
 		{
 			bool draw = (!SLI || (left->Y & SLI_MASK) == SLI_VALUE);
-			if(draw) drawscanline(left,right,lineHack);
+			if(draw) drawscanline<ISSHADOWPOLYGON>(polyAttr, dstColor, framebufferWidth, framebufferHeight, left,right,lineHack);
 		}
 
-		while(Height--) {
+		while(Height--)
+		{
 			bool draw = (!SLI || (left->Y & SLI_MASK) == SLI_VALUE);
-			if(draw) drawscanline(left,right,lineHack);
+			if(draw) drawscanline<ISSHADOWPOLYGON>(polyAttr, dstColor, framebufferWidth, framebufferHeight, left,right,lineHack);
 			const int xl = left->X;
 			const int xr = right->X;
 			const int y = left->Y;
@@ -869,41 +779,49 @@ public:
 					{
 						int nxl = left->X;
 						int nxr = right->X;
-						if(top) {
+						if(top)
+						{
 							int xs = min(xl,xr);
 							int xe = max(xl,xr);
-							for(int x=xs;x<=xe;x++) {
-								int adr = (y*engine->width)+x;
-								engine->screenColor[adr].r = 63;
-								engine->screenColor[adr].g = 0;
-								engine->screenColor[adr].b = 0;
+							for (int x = xs; x <= xe; x++)
+							{
+								int adr = (y*framebufferWidth)+x;
+								dstColor[adr].r = 63;
+								dstColor[adr].g = 0;
+								dstColor[adr].b = 0;
 							}
-						} else if(bottom) {
+						}
+						else if(bottom)
+						{
 							int xs = min(xl,xr);
 							int xe = max(xl,xr);
-							for(int x=xs;x<=xe;x++) {
-								int adr = (y*engine->width)+x;
-								engine->screenColor[adr].r = 63;
-								engine->screenColor[adr].g = 0;
-								engine->screenColor[adr].b = 0;
+							for (int x = xs; x <= xe; x++)
+							{
+								int adr = (y*framebufferWidth)+x;
+								dstColor[adr].r = 63;
+								dstColor[adr].g = 0;
+								dstColor[adr].b = 0;
 							}
-						} else
+						}
+						else
 						{
 							int xs = min(xl,nxl);
 							int xe = max(xl,nxl);
-							for(int x=xs;x<=xe;x++) {
-								int adr = (y*engine->width)+x;
-								engine->screenColor[adr].r = 63;
-								engine->screenColor[adr].g = 0;
-								engine->screenColor[adr].b = 0;
+							for (int x = xs; x <= xe; x++)
+							{
+								int adr = (y*framebufferWidth)+x;
+								dstColor[adr].r = 63;
+								dstColor[adr].g = 0;
+								dstColor[adr].b = 0;
 							}
 							xs = min(xr,nxr);
 							xe = max(xr,nxr);
-							for(int x=xs;x<=xe;x++) {
-								int adr = (y*engine->width)+x;
-								engine->screenColor[adr].r = 63;
-								engine->screenColor[adr].g = 0;
-								engine->screenColor[adr].b = 0;
+							for (int x = xs; x <= xe; x++)
+							{
+								int adr = (y*framebufferWidth)+x;
+								dstColor[adr].r = 63;
+								dstColor[adr].g = 0;
+								dstColor[adr].b = 0;
 							}
 						}
 
@@ -916,41 +834,43 @@ public:
 
 	
 	//rotates verts counterclockwise
-	template<int type>
-	INLINE void rot_verts() {
-		#define ROTSWAP(X) if(type>X) swap(verts[X-1],verts[X]);
+	template<int TYPE>
+	INLINE void rot_verts()
+	{
+		#define ROTSWAP(X) if(TYPE>X) swap(verts[X-1],verts[X]);
 		ROTSWAP(1); ROTSWAP(2); ROTSWAP(3); ROTSWAP(4);
 		ROTSWAP(5); ROTSWAP(6); ROTSWAP(7); ROTSWAP(8); ROTSWAP(9);
 	}
 
 	//rotate verts until vert0.y is minimum, and then vert0.x is minimum in case of ties
 	//this is a necessary precondition for our shape engine
-	template<int type>
-	void sort_verts(bool backwards) {
+	template<int TYPE>
+	void sort_verts(bool backwards)
+	{
 		//if the verts are backwards, reorder them first
-		if(backwards)
-			for(int i=0;i<type/2;i++)
-				swap(verts[i],verts[type-i-1]);
+		if (backwards)
+			for (size_t i = 0; i < TYPE/2; i++)
+				swap(verts[i],verts[TYPE-i-1]);
 
-		for(;;)
+		for (;;)
 		{
 			//this was the only way we could get this to unroll
-			#define CHECKY(X) if(type>X) if(verts[0]->y > verts[X]->y) goto doswap;
+			#define CHECKY(X) if(TYPE>X) if(verts[0]->y > verts[X]->y) goto doswap;
 			CHECKY(1); CHECKY(2); CHECKY(3); CHECKY(4);
 			CHECKY(5); CHECKY(6); CHECKY(7); CHECKY(8); CHECKY(9);
 			break;
 			
 		doswap:
-			rot_verts<type>();
+			rot_verts<TYPE>();
 		}
 		
-		while(verts[0]->y == verts[1]->y && verts[0]->x > verts[1]->x)
+		while (verts[0]->y == verts[1]->y && verts[0]->x > verts[1]->x)
 		{
-			rot_verts<type>();
+			rot_verts<TYPE>();
 			// hack for VC++ 2010 (bug in compiler optimization?)
 			// freeze on 3D
 			// TODO: study it
-			#if defined(_MSC_VER) && _MSC_VER == 1600
+			#ifdef SLEEP_HACK_2011
 				Sleep(0); // nop
 			#endif
 		}
@@ -961,12 +881,13 @@ public:
 	//verts must be clockwise.
 	//I didnt reference anything for this algorithm but it seems like I've seen it somewhere before.
 	//Maybe it is like crow's algorithm
-	template<bool SLI>
-	void shape_engine(int type, bool backwards, bool lineHack)
+	template<bool SLI, bool ISSHADOWPOLYGON>
+	void shape_engine(const PolygonAttributes &polyAttr, FragmentColor *dstColor, const size_t framebufferWidth, const size_t framebufferHeight, int type, const bool backwards, bool lineHack)
 	{
 		bool failure = false;
 
-		switch(type) {
+		switch(type)
+		{
 			case 3: sort_verts<3>(backwards); break;
 			case 4: sort_verts<4>(backwards); break;
 			case 5: sort_verts<5>(backwards); break;
@@ -986,13 +907,14 @@ public:
 
 		edge_fx_fl left, right;
 		bool step_left = true, step_right = true;
-		for(;;) {
+		for (;;)
+		{
 			//generate new edges if necessary. we must avoid regenerating edges when they are incomplete
 			//so that they can be continued on down the shape
 			assert(rv != type);
 			int _lv = lv==type?0:lv; //make sure that we ask for vert 0 when the variable contains the starting value
-			if(step_left) left = edge_fx_fl(_lv,lv-1,(VERT**)&verts, failure);
-			if(step_right) right = edge_fx_fl(rv,rv+1,(VERT**)&verts, failure);
+			if (step_left) left = edge_fx_fl(_lv,lv-1,(VERT**)&verts, failure);
+			if (step_right) right = edge_fx_fl(rv,rv+1,(VERT**)&verts, failure);
 			step_left = step_right = false;
 
 			//handle a failure in the edge setup due to nutty polys
@@ -1000,191 +922,521 @@ public:
 				return;
 
 			bool horizontal = left.Y == right.Y;
-			runscanlines<SLI>(&left,&right,horizontal, lineHack);
+			runscanlines<SLI, ISSHADOWPOLYGON>(polyAttr, dstColor, framebufferWidth, framebufferHeight, &left, &right, horizontal, lineHack);
 
 			//if we ran out of an edge, step to the next one
-			if(right.Height == 0) {
+			if (right.Height == 0)
+			{
 				step_right = true;
 				rv++;
 			} 
-			if(left.Height == 0) {
+			if (left.Height == 0)
+			{
 				step_left = true;
 				lv--;
 			}
 
 			//this is our completion condition: when our stepped edges meet in the middle
-			if(lv<=rv+1) break;
+			if (lv<=rv+1) break;
 		}
-
 	}
-
-	SoftRasterizerEngine* engine;
-
+	
 	template<bool SLI>
-	FORCEINLINE void mainLoop(SoftRasterizerEngine* const engine)
+	FORCEINLINE void mainLoop()
 	{
-		this->engine = engine;
-		lastTexKey = NULL;
-
-		u32 lastPolyAttr = 0;
-		u32 lastTextureFormat = 0, lastTexturePalette = 0;
+		const size_t polyCount = this->_softRender->_clippedPolyCount;
+		if (polyCount == 0)
+		{
+			return;
+		}
+		
+		FragmentColor *dstColor = this->_softRender->GetFramebuffer();
+		const size_t dstWidth = this->_softRender->GetFramebufferWidth();
+		const size_t dstHeight = this->_softRender->GetFramebufferHeight();
+		
+		const GFX3D_Clipper::TClippedPoly &firstClippedPoly = this->_softRender->clippedPolys[0];
+		const POLY &firstPoly = *firstClippedPoly.poly;
+		PolygonAttributes polyAttr = firstPoly.getAttributes();
+		u32 lastPolyAttr = firstPoly.polyAttr;
+		u32 lastTexParams = firstPoly.texParam;
+		u32 lastTexPalette = firstPoly.texPalette;
+		
+		this->SetupTexture(firstPoly, 0);
 
 		//iterate over polys
-		bool first=true;
-		for(int i=0;i<engine->clippedPolyCounter;i++)
+		for (size_t i = 0; i < polyCount; i++)
 		{
-			if(!RENDERER) _debug_thisPoly = (i==engine->_debug_drawClippedUserPoly);
-			if(!engine->polyVisible[i]) continue;
+			if (!RENDERER) _debug_thisPoly = (i == this->_softRender->_debug_drawClippedUserPoly);
+			if (!this->_softRender->polyVisible[i]) continue;
 			polynum = i;
 
-			GFX3D_Clipper::TClippedPoly &clippedPoly = engine->clippedPolys[i];
-			POLY *poly = clippedPoly.poly;
-			int type = clippedPoly.type;
-
-			if(first || lastPolyAttr != poly->polyAttr)
+			GFX3D_Clipper::TClippedPoly &clippedPoly = this->_softRender->clippedPolys[i];
+			const POLY &thePoly = *clippedPoly.poly;
+			const PolygonType type = clippedPoly.type;
+			
+			if (lastPolyAttr != thePoly.polyAttr)
 			{
-				polyAttr.setup(poly->polyAttr);
-				polyAttr.translucent = poly->isTranslucent();
-				lastPolyAttr = poly->polyAttr;
+				polyAttr = thePoly.getAttributes();
+				lastPolyAttr = thePoly.polyAttr;
 			}
-
-
-			if(first || lastTextureFormat != poly->texParam || lastTexturePalette != poly->texPalette)
+			
+			if (lastTexParams != thePoly.texParam || lastTexPalette != thePoly.texPalette)
 			{
-				sampler.setup(poly->texParam);
-				lastTextureFormat = poly->texParam;
-				lastTexturePalette = poly->texPalette;
+				lastTexParams = thePoly.texParam;
+				lastTexPalette = thePoly.texPalette;
+				this->SetupTexture(thePoly, i);
 			}
-
-			first = false;
-
-			lastTexKey = engine->polyTexKeys[i];
-
-			//hmm... shader gets setup every time because it depends on sampler which may have just changed
-			setupShader(poly->polyAttr);
-
-			for(int j=0;j<type;j++)
+			
+			for (int j = 0; j < type; j++)
 				this->verts[j] = &clippedPoly.clipVerts[j];
-			for(int j=type;j<MAX_CLIPPED_VERTS;j++)
+			for (int j = type; j < MAX_CLIPPED_VERTS; j++)
 				this->verts[j] = NULL;
-
-			polyAttr.backfacing = engine->polyBackfacing[i];
-
-			shape_engine<SLI>(type,!polyAttr.backfacing, (poly->vtxFormat & 4) && CommonSettings.GFX3D_LineHack);
+			
+			if (polyAttr.polygonMode == POLYGON_MODE_SHADOW)
+			{
+				shape_engine<SLI, true>(polyAttr, dstColor, dstWidth, dstHeight, type, !this->_softRender->polyBackfacing[i], (thePoly.vtxFormat & 4) && CommonSettings.GFX3D_LineHack);
+			}
+			else
+			{
+				shape_engine<SLI, false>(polyAttr, dstColor, dstWidth, dstHeight, type, !this->_softRender->polyBackfacing[i], (thePoly.vtxFormat & 4) && CommonSettings.GFX3D_LineHack);
+			}
 		}
 	}
 
 
 }; //rasterizerUnit
 
-static SoftRasterizerEngine mainSoftRasterizer;
-
 #define _MAX_CORES 16
 static Task rasterizerUnitTask[_MAX_CORES];
 static RasterizerUnit<true> rasterizerUnit[_MAX_CORES];
 static RasterizerUnit<false> _HACK_viewer_rasterizerUnit;
-static unsigned int rasterizerCores = 0;
+static size_t rasterizerCores = 0;
 static bool rasterizerUnitTasksInited = false;
 
-static void* execRasterizerUnit(void* arg)
+static void* execRasterizerUnit(void *arg)
 {
 	intptr_t which = (intptr_t)arg;
-	rasterizerUnit[which].mainLoop<true>(&mainSoftRasterizer);
+	rasterizerUnit[which].mainLoop<true>();
 	return 0;
 }
 
-static char SoftRastInit(void)
+static void* SoftRasterizer_RunCalculateVertices(void *arg)
 {
-	char result = Default3D_Init();
-	if (result == 0)
+	SoftRasterizerRenderer *softRender = (SoftRasterizerRenderer *)arg;
+	softRender->performViewportTransforms();
+	softRender->performBackfaceTests();
+	softRender->performCoordAdjustment();
+	
+	return NULL;
+}
+
+static void* SoftRasterizer_RunGetAndLoadAllTextures(void *arg)
+{
+	SoftRasterizerRenderer *softRender = (SoftRasterizerRenderer *)arg;
+	softRender->GetAndLoadAllTextures();
+	
+	return NULL;
+}
+
+static void* SoftRasterizer_RunUpdateTables(void *arg)
+{
+	SoftRasterizerRenderer *softRender = (SoftRasterizerRenderer *)arg;
+	softRender->UpdateToonTable(softRender->currentRenderState->u16ToonTable);
+	softRender->UpdateFogTable(softRender->currentRenderState->fogDensityTable);
+	softRender->UpdateEdgeMarkColorTable(softRender->currentRenderState->edgeMarkColorTable);
+	
+	return NULL;
+}
+
+static void* SoftRasterizer_RunClearFramebuffer(void *arg)
+{
+	SoftRasterizerRenderer *softRender = (SoftRasterizerRenderer *)arg;
+	softRender->ClearFramebuffer(*softRender->currentRenderState);
+	
+	return NULL;
+}
+
+static void* SoftRasterizer_RunRenderEdgeMarkAndFog(void *arg)
+{
+	SoftRasterizerPostProcessParams *params = (SoftRasterizerPostProcessParams *)arg;
+	params->renderer->RenderEdgeMarkingAndFog(*params);
+	
+	return NULL;
+}
+
+void _HACK_Viewer_ExecUnit()
+{
+	_HACK_viewer_rasterizerUnit.mainLoop<false>();
+}
+
+static Render3D* SoftRasterizerRendererCreate()
+{
+#if defined(ENABLE_SSE2)
+	return new SoftRasterizerRenderer_SSE2;
+#else
+	return new SoftRasterizerRenderer;
+#endif
+}
+
+static void SoftRasterizerRendererDestroy()
+{
+	if (CurrentRenderer != BaseRenderer)
 	{
-		return result;
+#if defined(ENABLE_SSE2)
+		SoftRasterizerRenderer_SSE2 *oldRenderer = (SoftRasterizerRenderer_SSE2 *)CurrentRenderer;
+#else
+		SoftRasterizerRenderer *oldRenderer = (SoftRasterizerRenderer *)CurrentRenderer;
+#endif
+		CurrentRenderer = BaseRenderer;
+		delete oldRenderer;
+	}
+}
+
+SoftRasterizerTexture::SoftRasterizerTexture(u32 texAttributes, u32 palAttributes) : Render3DTexture(texAttributes, palAttributes)
+{
+	_cacheSize = GetUnpackSizeUsingFormat(TexFormat_15bpp);
+	_unpackData = (u32 *)malloc_alignedCacheLine(_cacheSize);
+	
+	_customBuffer = NULL;
+	
+	_renderData = _unpackData;
+	_renderWidth = _sizeS;
+	_renderHeight = _sizeT;
+	_renderWidthMask = _renderWidth - 1;
+	_renderHeightMask = _renderHeight - 1;
+	_renderWidthShift = 0;
+	
+	_deposterizeSrcSurface.Surface = (unsigned char *)_unpackData;
+	
+	u32 tempWidth = _renderWidth;
+	while ( (tempWidth & 1) == 0)
+	{
+		tempWidth >>= 1;
+		_renderWidthShift++;
+	}
+}
+
+SoftRasterizerTexture::~SoftRasterizerTexture()
+{
+	free_aligned(this->_unpackData);
+	free_aligned(this->_deposterizeDstSurface.Surface);
+	free_aligned(this->_customBuffer);
+}
+
+FORCEINLINE void SoftRasterizerTexture::_clamp(s32 &val, const int size, const s32 sizemask) const
+{
+	if(val<0) val = 0;
+	if(val>sizemask) val = sizemask;
+}
+
+FORCEINLINE void SoftRasterizerTexture::_hclamp(s32 &val) const
+{
+	_clamp(val, this->_renderWidth, this->_renderWidthMask);
+}
+
+FORCEINLINE void SoftRasterizerTexture::_vclamp(s32 &val) const
+{
+	_clamp(val, this->_renderHeight, this->_renderHeightMask);
+}
+
+FORCEINLINE void SoftRasterizerTexture::_repeat(s32 &val, const int size, const s32 sizemask) const
+{
+	val &= sizemask;
+}
+
+FORCEINLINE void SoftRasterizerTexture::_hrepeat(s32 &val) const
+{
+	_repeat(val, this->_renderWidth, this->_renderWidthMask);
+}
+
+FORCEINLINE void SoftRasterizerTexture::_vrepeat(s32 &val) const
+{
+	_repeat(val, this->_renderHeight, this->_renderHeightMask);
+}
+
+FORCEINLINE void SoftRasterizerTexture::_flip(s32 &val, const int size, const s32 sizemask) const
+{
+	val &= ((size<<1)-1);
+	if(val>=size) val = (size<<1)-val-1;
+}
+
+FORCEINLINE void SoftRasterizerTexture::_hflip(s32 &val) const
+{
+	_flip(val, this->_renderWidth, this->_renderWidthMask);
+}
+
+FORCEINLINE void SoftRasterizerTexture::_vflip(s32 &val) const
+{
+	_flip(val, this->_renderHeight, this->_renderHeightMask);
+}
+
+void SoftRasterizerTexture::Load()
+{
+	if (this->_scalingFactor == 1 && !this->_useDeposterize)
+	{
+		this->Unpack<TexFormat_15bpp>((u32 *)this->_renderData);
+	}
+	else
+	{
+		u32 *textureSrc = this->_unpackData;
+		
+		this->Unpack<TexFormat_32bpp>(textureSrc);
+		
+		if (this->_useDeposterize)
+		{
+			RenderDeposterize(this->_deposterizeSrcSurface, this->_deposterizeDstSurface);
+			textureSrc = (u32 *)this->_deposterizeDstSurface.Surface;
+		}
+		
+		switch (this->_scalingFactor)
+		{
+			case 2:
+				this->_Upscale<2>(textureSrc, this->_customBuffer);
+				break;
+				
+			case 4:
+				this->_Upscale<4>(textureSrc, this->_customBuffer);
+				break;
+				
+			default:
+				break;
+		}
+		
+		ColorspaceConvertBuffer8888To6665<false, false>(this->_renderData, this->_renderData, this->_renderWidth * this->_renderHeight);
 	}
 	
-	if(!rasterizerUnitTasksInited)
+	this->_isLoadNeeded = false;
+}
+
+u32* SoftRasterizerTexture::GetUnpackData()
+{
+	return this->_unpackData;
+}
+
+u32* SoftRasterizerTexture::GetRenderData()
+{
+	return this->_renderData;
+}
+
+s32 SoftRasterizerTexture::GetRenderWidth() const
+{
+	return this->_renderWidth;
+}
+
+s32 SoftRasterizerTexture::GetRenderHeight() const
+{
+	return this->_renderHeight;
+}
+
+s32 SoftRasterizerTexture::GetRenderWidthMask() const
+{
+	return this->_renderWidthMask;
+}
+
+s32 SoftRasterizerTexture::GetRenderHeightMask() const
+{
+	return this->_renderHeightMask;
+}
+
+u32 SoftRasterizerTexture::GetRenderWidthShift() const
+{
+	return this->_renderWidthShift;
+}
+
+FORCEINLINE void SoftRasterizerTexture::GetRenderSamplerCoordinates(const u8 wrapMode, s32 &iu, s32 &iv) const
+{
+	switch (wrapMode)
 	{
-		rasterizerUnitTasksInited = true;
+		//flip none
+		case 0x0: _hclamp(iu);  _vclamp(iv);  break;
+		case 0x1: _hrepeat(iu); _vclamp(iv);  break;
+		case 0x2: _hclamp(iu);  _vrepeat(iv); break;
+		case 0x3: _hrepeat(iu); _vrepeat(iv); break;
+		//flip S
+		case 0x4: _hclamp(iu);  _vclamp(iv);  break;
+		case 0x5: _hflip(iu);   _vclamp(iv);  break;
+		case 0x6: _hclamp(iu);  _vrepeat(iv); break;
+		case 0x7: _hflip(iu);   _vrepeat(iv); break;
+		//flip T
+		case 0x8: _hclamp(iu);  _vclamp(iv);  break;
+		case 0x9: _hrepeat(iu); _vclamp(iv);  break;
+		case 0xA: _hclamp(iu);  _vflip(iv);   break;
+		case 0xB: _hrepeat(iu); _vflip(iv);   break;
+		//flip both
+		case 0xC: _hclamp(iu);  _vclamp(iv);  break;
+		case 0xD: _hflip(iu);   _vclamp(iv);  break;
+		case 0xE: _hclamp(iu);  _vflip(iv);   break;
+		case 0xF: _hflip(iu);   _vflip(iv);   break;
+	}
+}
 
-		_HACK_viewer_rasterizerUnit.SLI_MASK = 1;
-		_HACK_viewer_rasterizerUnit.SLI_VALUE = 0;
-
-		rasterizerCores = CommonSettings.num_cores;
-		if (rasterizerCores > _MAX_CORES) 
-			rasterizerCores = _MAX_CORES;
-		if(CommonSettings.num_cores <= 1)
+void SoftRasterizerTexture::SetUseDeposterize(bool willDeposterize)
+{
+	this->_useDeposterize = willDeposterize;
+	
+	if ( (this->_deposterizeDstSurface.Surface == NULL) && willDeposterize )
+	{
+		this->_deposterizeDstSurface.Surface = (unsigned char *)malloc_alignedCacheLine(this->_cacheSize * 2);
+		this->_deposterizeDstSurface.workingSurface[0] = this->_deposterizeDstSurface.Surface + this->_cacheSize;
+	}
+	else if ( (this->_deposterizeDstSurface.Surface != NULL) && !willDeposterize )
+	{
+		free_aligned(this->_deposterizeDstSurface.Surface);
+		this->_deposterizeDstSurface.Surface = NULL;
+	}
+	
+	if (this->_scalingFactor == 1)
+	{
+		if (this->_useDeposterize)
 		{
-			rasterizerCores = 1;
-			rasterizerUnit[0].SLI_MASK = 0;
-			rasterizerUnit[0].SLI_VALUE = 0;
+			this->_renderData = (u32 *)this->_deposterizeDstSurface.Surface;
 		}
 		else
 		{
-			for (u8 i = 0; i < rasterizerCores; i++)
+			this->_renderData = this->_unpackData;
+		}
+	}
+	else
+	{
+		this->_renderData = this->_customBuffer;
+	}
+}
+
+void SoftRasterizerTexture::SetScalingFactor(size_t scalingFactor)
+{
+	if (  (scalingFactor != 2) && (scalingFactor != 4) )
+	{
+		scalingFactor = 1;
+	}
+	
+	u32 newWidth = this->_sizeS * scalingFactor;
+	u32 newHeight = this->_sizeT * scalingFactor;
+	
+	if (this->_renderWidth != newWidth || this->_renderHeight != newHeight)
+	{
+		u32 *oldBuffer = this->_customBuffer;
+		this->_customBuffer = (u32 *)malloc_alignedCacheLine(newWidth * newHeight * sizeof(u32));
+		free_aligned(oldBuffer);
+	}
+	
+	this->_scalingFactor = scalingFactor;
+	this->_renderWidth = newWidth;
+	this->_renderHeight = newHeight;
+	this->_renderWidthMask = newWidth - 1;
+	this->_renderHeightMask = newHeight - 1;
+	this->_renderWidthShift = 0;
+	
+	u32 tempWidth = newWidth;
+	while ( (tempWidth & 1) == 0)
+	{
+		tempWidth >>= 1;
+		this->_renderWidthShift++;
+	}
+	
+	if (this->_scalingFactor == 1)
+	{
+		if (this->_useDeposterize)
+		{
+			this->_renderData = (u32 *)this->_deposterizeDstSurface.Surface;
+		}
+		else
+		{
+			this->_renderData = this->_unpackData;
+		}
+	}
+	else
+	{
+		this->_renderData = this->_customBuffer;
+	}
+}
+
+GPU3DInterface gpu3DRasterize = {
+	"SoftRasterizer",
+	SoftRasterizerRendererCreate,
+	SoftRasterizerRendererDestroy
+};
+
+SoftRasterizerRenderer::SoftRasterizerRenderer()
+{
+	_deviceInfo.renderID = RENDERID_SOFTRASTERIZER;
+	_deviceInfo.renderName = "SoftRasterizer";
+	_deviceInfo.isTexturingSupported = true;
+	_deviceInfo.isEdgeMarkSupported = true;
+	_deviceInfo.isFogSupported = true;
+	_deviceInfo.isTextureSmoothingSupported = false;
+	_deviceInfo.maxAnisotropy = 1.0f;
+	_deviceInfo.maxSamples = 0;
+	
+	_debug_drawClippedUserPoly = -1;
+	clippedPolys = clipper.clippedPolys = new GFX3D_Clipper::TClippedPoly[POLYLIST_SIZE*2];
+	
+	_stateSetupNeedsFinish = false;
+	_renderGeometryNeedsFinish = false;
+	_framebufferAttributes = NULL;
+	
+	if (!rasterizerUnitTasksInited)
+	{
+		_HACK_viewer_rasterizerUnit._debug_thisPoly = false;
+		_HACK_viewer_rasterizerUnit.SLI_MASK = 1;
+		_HACK_viewer_rasterizerUnit.SLI_VALUE = 0;
+		
+		rasterizerCores = CommonSettings.num_cores;
+		
+		if (rasterizerCores > _MAX_CORES)
+			rasterizerCores = _MAX_CORES;
+		
+		if (rasterizerCores == 0 || rasterizerCores == 1)
+		{
+			rasterizerCores = 1;
+			rasterizerUnit[0]._debug_thisPoly = false;
+			rasterizerUnit[0].SLI_MASK = 0;
+			rasterizerUnit[0].SLI_VALUE = 0;
+			
+			postprocessParam = new SoftRasterizerPostProcessParams[rasterizerCores];
+			postprocessParam[0].renderer = this;
+			postprocessParam[0].startLine = 0;
+			postprocessParam[0].endLine = _framebufferHeight;
+			postprocessParam[0].enableEdgeMarking = true;
+			postprocessParam[0].enableFog = true;
+			postprocessParam[0].fogColor = 0x80FFFFFF;
+			postprocessParam[0].fogAlphaOnly = false;
+		}
+		else
+		{
+			const size_t linesPerThread = _framebufferHeight / rasterizerCores;
+			postprocessParam = new SoftRasterizerPostProcessParams[rasterizerCores];
+			
+			for (size_t i = 0; i < rasterizerCores; i++)
 			{
+				rasterizerUnit[i]._debug_thisPoly = false;
 				rasterizerUnit[i].SLI_MASK = (rasterizerCores - 1);
 				rasterizerUnit[i].SLI_VALUE = i;
 				rasterizerUnitTask[i].start(false);
+				
+				postprocessParam[i].renderer = this;
+				postprocessParam[i].startLine = i * linesPerThread;
+				postprocessParam[i].endLine = (i < rasterizerCores - 1) ? (i + 1) * linesPerThread : _framebufferHeight;
+				postprocessParam[i].enableEdgeMarking = true;
+				postprocessParam[i].enableFog = true;
+				postprocessParam[i].fogColor = 0x80FFFFFF;
+				postprocessParam[i].fogAlphaOnly = false;
 			}
 		}
-
+		
+		rasterizerUnitTasksInited = true;
 	}
-
-	static bool tables_generated = false;
-	if(!tables_generated)
-	{
-		tables_generated = true;
-
-		for(int i=0;i<64;i++)
-		{
-			for(int j=0;j<64;j++)
-			{
-				modulate_table[i][j] = ((i+1) * (j+1) - 1) >> 6;	
-				for(int a=0;a<32;a++)
-					decal_table[a][i][j] = ((i*a) + (j*(31-a))) >> 5;
-			}
-		}
-
-		//these tables are used to increment through vert lists without having to do wrapping logic/math
-		int idx=0;
-		for(int i=3;i<=8;i++)
-		{
-			index_start_table[i-3] = idx;
-			for(int j=0;j<i;j++) {
-				int a = j;
-				int b = j+1;
-				if(b==i) b = 0;
-				index_lookup_table[idx++] = a;
-				index_lookup_table[idx++] = b;
-			}
-		}
-	}
-
-	TexCache_Reset();
-
-	printf("SoftRast Initialized with cores=%d\n",rasterizerCores);
-	return 1;
+	
+	InitTables();
+	Reset();
+	
+	printf("SoftRast Initialized with cores=%d\n", (int)rasterizerCores);
 }
 
-static void SoftRastReset()
+SoftRasterizerRenderer::~SoftRasterizerRenderer()
 {
 	if (rasterizerCores > 1)
 	{
-		for(unsigned int i = 0; i < rasterizerCores; i++)
-		{
-			rasterizerUnitTask[i].finish();
-		}
-	}
-	
-	softRastHasNewData = false;
-	
-	Default3D_Reset();
-}
-
-static void SoftRastClose()
-{
-	if (rasterizerCores > 1)
-	{
-		for(unsigned int i = 0; i < rasterizerCores; i++)
+		for (size_t i = 0; i < rasterizerCores; i++)
 		{
 			rasterizerUnitTask[i].finish();
 			rasterizerUnitTask[i].shutdown();
@@ -1192,170 +1444,296 @@ static void SoftRastClose()
 	}
 	
 	rasterizerUnitTasksInited = false;
-	softRastHasNewData = false;
+	delete[] postprocessParam;
+	postprocessParam = NULL;
 	
-	Default3D_Close();
+	delete _framebufferAttributes;
+	_framebufferAttributes = NULL;
 }
 
-static void SoftRastVramReconfigureSignal()
+Render3DError SoftRasterizerRenderer::InitTables()
 {
-	Default3D_VramReconfigureSignal();
-}
-
-static void SoftRastConvertFramebuffer()
-{
-	memcpy(gfx3d_convertedScreen,_screenColor,256*192*4);
-}
-
-void SoftRasterizerEngine::initFramebuffer(const int width, const int height, const bool clearImage)
-{
-	const int todo = width*height;
-
-	Fragment clearFragment;
-	FragmentColor clearFragmentColor;
-	clearFragment.isTranslucentPoly = 0;
-	clearFragmentColor.r = GFX3D_5TO6(gfx3d.renderState.clearColor&0x1F);
-	clearFragmentColor.g = GFX3D_5TO6((gfx3d.renderState.clearColor>>5)&0x1F);
-	clearFragmentColor.b = GFX3D_5TO6((gfx3d.renderState.clearColor>>10)&0x1F);
-	clearFragmentColor.a = ((gfx3d.renderState.clearColor>>16)&0x1F);
-	clearFragment.polyid.opaque = (gfx3d.renderState.clearColor>>24)&0x3F;
-	//special value for uninitialized translucent polyid. without this, fires in spiderman2 dont display
-	//I am not sure whether it is right, though. previously this was cleared to 0, as a guess,
-	//but in spiderman2 some fires with polyid 0 try to render on top of the background
-	clearFragment.polyid.translucent = kUnsetTranslucentPolyID; 
-	clearFragment.depth = gfx3d.renderState.clearDepth;
-	clearFragment.stencil = 0;
-	clearFragment.isTranslucentPoly = 0;
-	clearFragment.fogged = BIT15(gfx3d.renderState.clearColor);
-	for(int i=0;i<todo;i++)
-		memcpy(&screen[i], &clearFragment, sizeof(Fragment));
-
-	if(clearImage)
+	static bool needTableInit = true;
+	
+	if (needTableInit)
 	{
-		//need to handle this somehow..
-		assert(width==256 && height==192);
-
-		u16* clearImage = (u16*)MMU.texInfo.textureSlotAddr[2];
-		u16* clearDepth = (u16*)MMU.texInfo.textureSlotAddr[3];
-
-		//the lion, the witch, and the wardrobe (thats book 1, suck it you new-school numberers)
-		//uses the scroll registers in the main game engine
-		u16 scroll = T1ReadWord(MMU.ARM9_REG,0x356); //CLRIMAGE_OFFSET
-		u16 xscroll = scroll&0xFF;
-		u16 yscroll = (scroll>>8)&0xFF;
-
-		FragmentColor *dstColor = screenColor;
-		Fragment *dst = screen;
-
-		for(int iy=0;iy<192;iy++) {
-			int y = ((iy + yscroll)&255)<<8;
-			for(int ix=0;ix<256;ix++) {
-				int x = (ix + xscroll)&255;
-				int adr = y + x;
-				
-				//this is tested by harry potter and the order of the phoenix.
-				//TODO (optimization) dont do this if we are mapped to blank memory (such as in sonic chronicles)
-				//(or use a special zero fill in the bulk clearing above)
-				u16 col = clearImage[adr];
-				dstColor->color = RGB15TO6665(col,31*(col>>15));
-				
-				//this is tested quite well in the sonic chronicles main map mode
-				//where depth values are used for trees etc you can walk behind
-				u16 depth = clearDepth[adr];
-				dst->fogged = BIT15(depth);
-				dst->depth = DS_DEPTH15TO24(depth);
-
-				dstColor++;
-				dst++;
+		for (size_t i = 0; i < 64; i++)
+		{
+			for (size_t j = 0; j < 64; j++)
+			{
+				modulate_table[i][j] = ((i+1) * (j+1) - 1) >> 6;
+				for (size_t a = 0; a < 32; a++)
+					decal_table[a][i][j] = ((i*a) + (j*(31-a))) >> 5;
 			}
 		}
+		
+		needTableInit = false;
 	}
-	else 
-		for(int i=0;i<todo;i++)
-			memcpy(&screenColor[i], &clearFragmentColor, sizeof(FragmentColor));
+	
+	return RENDER3DERROR_NOERR;
 }
 
-void SoftRasterizerEngine::updateToonTable()
+template<bool USEHIRESINTERPOLATE>
+size_t SoftRasterizerRenderer::performClipping(const VERTLIST *vertList, const POLYLIST *polyList, const INDEXLIST *indexList)
 {
-	//convert the toon colors
-	for(int i=0;i<32;i++) {
-		#ifdef WORDS_BIGENDIAN
-			const u32 u32temp = RGB15TO32_NOALPHA(gfx3d.renderState.u16ToonTable[i]);
-			toonTable[i].r = (u32temp >> 2) & 0x3F;
-			toonTable[i].g = (u32temp >> 10) & 0x3F;
-			toonTable[i].b = (u32temp >> 18) & 0x3F;
-		#else
-			toonTable[i].color = (RGB15TO32_NOALPHA(gfx3d.renderState.u16ToonTable[i])>>2)&0x3F3F3F3F;
-		#endif
-		//printf("%d %d %d %d\n",toonTable[i].r,toonTable[i].g,toonTable[i].b,toonTable[i].a);
+	//submit all polys to clipper
+	clipper.reset();
+	for (size_t i = 0; i < polyList->count; i++)
+	{
+		const POLY &poly = polyList->list[indexList->list[i]];
+		const VERT *clipVerts[4] = {
+			&vertList->list[poly.vertIndexes[0]],
+			&vertList->list[poly.vertIndexes[1]],
+			&vertList->list[poly.vertIndexes[2]],
+			poly.type==POLYGON_TYPE_QUAD
+			?&vertList->list[poly.vertIndexes[3]]
+			:NULL
+		};
+		
+		clipper.clipPoly<USEHIRESINTERPOLATE>(poly, clipVerts);
 	}
+	
+	return clipper.clippedPolyCounter;
 }
 
-void SoftRasterizerEngine::updateFogTable()
+void SoftRasterizerRenderer::performViewportTransforms()
 {
-	u8* fogDensity = MMU.MMU_MEM[ARMCPU_ARM9][0x40] + 0x360;
-#if 0
-	//TODO - this might be a little slow; 
-	//we might need to hash all the variables and only recompute this when something changes
-	const int increment = (0x400 >> gfx3d.renderState.fogShift);
-	for(u32 i=0;i<32768;i++) {
-		if(i<gfx3d.renderState.fogOffset) {
-			fogTable[i] = fogDensity[0];
-			continue;
+	const float wScalar = (float)this->_framebufferWidth  / (float)GPU_FRAMEBUFFER_NATIVE_WIDTH;
+	const float hScalar = (float)this->_framebufferHeight / (float)GPU_FRAMEBUFFER_NATIVE_HEIGHT;
+	
+	//viewport transforms
+	for (size_t i = 0; i < this->_clippedPolyCount; i++)
+	{
+		GFX3D_Clipper::TClippedPoly &poly = this->clippedPolys[i];
+		for (size_t j = 0; j < poly.type; j++)
+		{
+			VERT &vert = poly.clipVerts[j];
+			
+			// TODO: Possible divide by zero with the w-coordinate.
+			// Is the vertex being read correctly? Is 0 a valid value for w?
+			// If both of these questions answer to yes, then how does the NDS handle a NaN?
+			// For now, simply prevent w from being zero.
+			//
+			// Test case: Dance scenes in Princess Debut can generate undefined vertices
+			// when the -ffast-math option (relaxed IEEE754 compliance) is used.
+			const float vertw = (vert.coord[3] != 0.0f) ? vert.coord[3] : 0.00000001f;
+			
+			//homogeneous divide
+			vert.coord[0] = (vert.coord[0]+vertw) / (2*vertw);
+			vert.coord[1] = (vert.coord[1]+vertw) / (2*vertw);
+			vert.coord[2] = (vert.coord[2]+vertw) / (2*vertw);
+			vert.texcoord[0] /= vertw;
+			vert.texcoord[1] /= vertw;
+			
+			//CONSIDER: do we need to guarantee that these are in bounds? perhaps not.
+			//vert.coord[0] = max(0.0f,min(1.0f,vert.coord[0]));
+			//vert.coord[1] = max(0.0f,min(1.0f,vert.coord[1]));
+			//vert.coord[2] = max(0.0f,min(1.0f,vert.coord[2]));
+			
+			//perspective-correct the colors
+			vert.fcolor[0] /= vertw;
+			vert.fcolor[1] /= vertw;
+			vert.fcolor[2] /= vertw;
+			
+			//viewport transformation
+			VIEWPORT viewport;
+			viewport.decode(poly.poly->viewport);
+			vert.coord[0] *= viewport.width;
+			vert.coord[0] += viewport.x;
+			
+			// The maximum viewport y-value is 191. Values above 191 need to wrap
+			// around and go negative.
+			//
+			// Test case: The Homie Rollerz character select screen sets the y-value
+			// to 253, which then wraps around to -2.
+			vert.coord[1] *= viewport.height;
+			vert.coord[1] += (viewport.y > 191) ? (viewport.y - 0xFF) : viewport.y;
+			vert.coord[1] = 192 - vert.coord[1];
+
+			vert.coord[0] *= wScalar;
+			vert.coord[1] *= hScalar;
 		}
-		for(int j=0;j<32;j++) {
-			u32 value = gfx3d.renderState.fogOffset + increment*(j+1);
-			if(i<=value) {
-				if(j==0) {
-					fogTable[i] = fogDensity[0];
-					goto done;
-				} else {
-					fogTable[i] = ((value-i)*(fogDensity[j-1]) + (increment-(value-i))*(fogDensity[j]))/increment;
-					goto done;
-				}
-			}
+	}
+}
+
+void SoftRasterizerRenderer::performCoordAdjustment()
+{
+	for (size_t i = 0; i < this->_clippedPolyCount; i++)
+	{
+		GFX3D_Clipper::TClippedPoly &clippedPoly = this->clippedPolys[i];
+		const PolygonType type = clippedPoly.type;
+		VERT *verts = &clippedPoly.clipVerts[0];
+		
+		//here is a hack which needs to be removed.
+		//at some point our shape engine needs these to be converted to "fixed point"
+		//which is currently just a float
+		for (size_t j = 0; j < type; j++)
+			for (size_t k = 0; k < 2; k++)
+				verts[j].coord[k] = (float)iround(16.0f * verts[j].coord[k]);
+	}
+}
+
+void SoftRasterizerRenderer::GetAndLoadAllTextures()
+{
+	if (this->_clippedPolyCount == 0)
+	{
+		return;
+	}
+	
+	for (size_t i = 0; i < this->_clippedPolyCount; i++)
+	{
+		const GFX3D_Clipper::TClippedPoly &clippedPoly = this->clippedPolys[i];
+		const POLY &thePoly = *clippedPoly.poly;
+		
+		//make sure all the textures we'll need are cached
+		//(otherwise on a multithreaded system there will be multiple writers--
+		//this SHOULD be read-only, although some day the texcache may collect statistics or something
+		//and then it won't be safe.
+		this->_textureList[i] = this->GetLoadedTextureFromPolygon(thePoly, gfx3d.renderState.enableTexturing);
+	}
+}
+
+void SoftRasterizerRenderer::performBackfaceTests()
+{
+	for (size_t i = 0; i < this->_clippedPolyCount; i++)
+	{
+		const GFX3D_Clipper::TClippedPoly &clippedPoly = this->clippedPolys[i];
+		const POLY &thePoly = *clippedPoly.poly;
+		const PolygonType type = clippedPoly.type;
+		const VERT *verts = &clippedPoly.clipVerts[0];
+		const u8 cullingMode = thePoly.getAttributeEnableFaceCullingFlags();
+		
+		//HACK: backface culling
+		//this should be moved to gfx3d, but first we need to redo the way the lists are built
+		//because it is too convoluted right now.
+		//(must we throw out verts if a poly gets backface culled? if not, then it might be easier)
+		
+		//an older approach
+		//(not good enough for quads and other shapes)
+		//float ab[2], ac[2]; Vector2Copy(ab, verts[1].coord); Vector2Copy(ac, verts[2].coord); Vector2Subtract(ab, verts[0].coord);
+		//Vector2Subtract(ac, verts[0].coord); float cross = Vector2Cross(ab, ac); polyAttr.backfacing = (cross>0);
+		
+		//a better approach
+		// we have to support somewhat non-convex polygons (see NSMB world map 1st screen).
+		// this version should handle those cases better.
+		const size_t n = type - 1;
+		float facing = (verts[0].y + verts[n].y) * (verts[0].x - verts[n].x)
+		+ (verts[1].y + verts[0].y) * (verts[1].x - verts[0].x)
+		+ (verts[2].y + verts[1].y) * (verts[2].x - verts[1].x);
+		for (size_t j = 2; j < n; j++)
+			facing += (verts[j+1].y + verts[j].y) * (verts[j+1].x - verts[j].x);
+		
+		polyBackfacing[i] = (facing < 0);
+		
+		static const bool visibleFunction[2][4] = {
+			//always false, backfacing, !backfacing, always true
+			{ false, false, true, true },
+			{ false, true, false, true }
+		};
+		
+		polyVisible[i] = visibleFunction[polyBackfacing[i]][cullingMode];
+	}
+}
+
+Render3DError SoftRasterizerRenderer::BeginRender(const GFX3D &engine)
+{
+	if (rasterizerCores > 1)
+	{
+		// Force all threads to finish before rendering with new data
+		for (size_t i = 0; i < rasterizerCores; i++)
+		{
+			rasterizerUnitTask[i].finish();
 		}
-		fogTable[i] = (fogDensity[31]);
-		done: ;
 	}
-#else
-	// this should behave exactly the same as the previous loop,
-	// except much faster. (because it's not a 2d loop and isn't so branchy either)
-	// maybe it's fast enough to not need to be cached, now.
-	const int increment = ((1 << 10) >> gfx3d.renderState.fogShift);
-	const int incrementDivShift = 10 - gfx3d.renderState.fogShift;
-	u32 fogOffset = min<u32>(max<u32>(gfx3d.renderState.fogOffset, 0), 32768);
-	u32 iMin = min<u32>(32768, (( 1 + 1) << incrementDivShift) + fogOffset + 1 - increment);
-	u32 iMax = min<u32>(32768, ((32 + 1) << incrementDivShift) + fogOffset + 1 - increment);
-	assert(iMin <= iMax);
-	memset(fogTable, fogDensity[0], iMin);
-	for(u32 i = iMin; i < iMax; i++) {
-		int num = (i - fogOffset + (increment-1));
-		int j = (num >> incrementDivShift) - 1;
-		u32 value = (num & ~(increment-1)) + fogOffset;
-		u32 diff = value - i;
-		assert(j >= 1 && j < 32);
-		fogTable[i] = ((diff*(fogDensity[j-1]) + (increment-diff)*(fogDensity[j])) >> incrementDivShift);
+	
+	// Keep the current render states for later use
+	this->currentRenderState = (GFX3D_State *)&engine.renderState;
+	
+	if (CommonSettings.GFX3D_HighResolutionInterpolateColor)
+	{
+		this->_clippedPolyCount = this->performClipping<true>(engine.vertlist, engine.polylist, &engine.indexlist);
 	}
-	memset(fogTable+iMax, fogDensity[31], 32768-iMax);
-#endif
+	else
+	{
+		this->_clippedPolyCount = this->performClipping<false>(engine.vertlist, engine.polylist, &engine.indexlist);
+	}
+	
+	if (rasterizerCores >= 4)
+	{
+		rasterizerUnitTask[0].execute(&SoftRasterizer_RunCalculateVertices, this);
+		rasterizerUnitTask[1].execute(&SoftRasterizer_RunGetAndLoadAllTextures, this);
+		rasterizerUnitTask[2].execute(&SoftRasterizer_RunUpdateTables, this);
+		rasterizerUnitTask[3].execute(&SoftRasterizer_RunClearFramebuffer, this);
+		this->_stateSetupNeedsFinish = true;
+	}
+	else
+	{
+		this->performViewportTransforms();
+		this->performBackfaceTests();
+		this->performCoordAdjustment();
+		this->GetAndLoadAllTextures();
+		this->UpdateToonTable(engine.renderState.u16ToonTable);
+		
+		if (this->currentRenderState->enableEdgeMarking)
+		{
+			this->UpdateEdgeMarkColorTable(this->currentRenderState->edgeMarkColorTable);
+		}
+		
+		if (this->currentRenderState->enableFog)
+		{
+			this->UpdateFogTable(this->currentRenderState->fogDensityTable);
+		}
+		
+		this->ClearFramebuffer(engine.renderState);
+		
+		this->_stateSetupNeedsFinish = false;
+	}
+	
+	return RENDER3DERROR_NOERR;
 }
 
-void SoftRasterizerEngine::updateFloatColors()
+Render3DError SoftRasterizerRenderer::RenderGeometry(const GFX3D_State &renderState, const POLYLIST *polyList, const INDEXLIST *indexList)
 {
-	//convert colors to float to get more precision in case we need it
-	for(int i=0;i<vertlist->count;i++)
-		vertlist->list[i].color_to_float();
+	// If multithreaded, allow for states to finish setting up
+	if (this->_stateSetupNeedsFinish)
+	{
+		rasterizerUnitTask[0].finish();
+		rasterizerUnitTask[1].finish();
+		rasterizerUnitTask[2].finish();
+		rasterizerUnitTask[3].finish();
+		this->_stateSetupNeedsFinish = false;
+	}
+	
+	// Render the geometry
+	if (rasterizerCores > 1)
+	{
+		for (size_t i = 0; i < rasterizerCores; i++)
+		{
+			rasterizerUnitTask[i].execute(&execRasterizerUnit, (void *)i);
+		}
+		
+		this->_renderGeometryNeedsFinish = true;
+	}
+	else
+	{
+		rasterizerUnit[0].mainLoop<false>();
+		this->_renderGeometryNeedsFinish = false;
+		texCache.Evict(); // Since we're finishing geometry rendering here and now, also check the texture cache now.
+	}
+	
+	//	printf("rendered %d of %d polys after backface culling\n",gfx3d.polylist->count-culled,gfx3d.polylist->count);
+	
+	return RENDER3DERROR_NOERR;
 }
 
-SoftRasterizerEngine::SoftRasterizerEngine()
-	: _debug_drawClippedUserPoly(-1)
+// This method is currently unused right now, in favor of the new multithreaded
+// SoftRasterizerRenderer::RenderEdgeMarkingAndFog() method. But let's keep this
+// one around for reference just in case something goes horribly wrong with the
+// new multithreaded method.
+Render3DError SoftRasterizerRenderer::RenderEdgeMarking(const u16 *colorTable, const bool useAntialias)
 {
-	this->clippedPolys = clipper.clippedPolys = new GFX3D_Clipper::TClippedPoly[POLYLIST_SIZE*2];
-}
-
-void SoftRasterizerEngine::framebufferProcess()
-{
+	// TODO: Old edge marking algorithm which tests only polyID, but checks the 8 surrounding pixels. Can this be removed?
+	
 	// this looks ok although it's still pretty much a hack,
 	// it needs to be redone with low-level accuracy at some point,
 	// but that should probably wait until the shape renderer is more accurate.
@@ -1363,359 +1741,525 @@ void SoftRasterizerEngine::framebufferProcess()
 	// - the edges are completely sharp/opaque on the very brief title screen intro,
 	// - the level-start intro gets a pseudo-antialiasing effect around the silhouette,
 	// - the character edges in-level are clearly transparent, and also show well through shield powerups.
-	if(gfx3d.renderState.enableEdgeMarking)
-	{ 
-		//TODO - need to test and find out whether these get grabbed at flush time, or at render time
-		//we can do this by rendering a 3d frame and then freezing the system, but only changing the edge mark colors
-		FragmentColor edgeMarkColors[8];
-		int edgeMarkDisabled[8];
-
-		for(int i=0;i<8;i++)
+	
+	for (size_t i = 0, y = 0; y < this->_framebufferHeight; y++)
+	{
+		for (size_t x = 0; x < this->_framebufferWidth; x++, i++)
 		{
-			u16 col = T1ReadWord(MMU.MMU_MEM[ARMCPU_ARM9][0x40], 0x330+i*2);
-			edgeMarkColors[i].color = RGB15TO5555(col,gfx3d.state.enableAntialiasing ? 0x0F : 0x1F);
-			edgeMarkColors[i].r = GFX3D_5TO6(edgeMarkColors[i].r);
-			edgeMarkColors[i].g = GFX3D_5TO6(edgeMarkColors[i].g);
-			edgeMarkColors[i].b = GFX3D_5TO6(edgeMarkColors[i].b);
-
-			// this seems to be the only thing that selectively disables edge marking
-			edgeMarkDisabled[i] = (col == 0x7FFF);
-		}
-
-		for(int i=0,y=0;y<192;y++)
-		{
-			for(int x=0;x<256;x++,i++)
-			{
-				Fragment destFragment = screen[i];
-				u8 self = destFragment.polyid.opaque;
-				if(edgeMarkDisabled[self>>3]) continue;
-				if(destFragment.isTranslucentPoly) continue;
-
-				// > is used instead of != to prevent double edges
-				// between overlapping polys of different IDs.
-				// also note that the edge generally goes on the outside, not the inside, (maybe needs to change later)
-				// and that polys with the same edge color can make edges against each other.
-
-				FragmentColor edgeColor = edgeMarkColors[self>>3];
-
-#define PIXOFFSET(dx,dy) ((dx)+(256*(dy)))
-#define ISEDGE(dx,dy) ((x+(dx)!=256) && (x+(dx)!=-1) && (y+(dy)!=192) && (y+(dy)!=-1) && self > screen[i+PIXOFFSET(dx,dy)].polyid.opaque)
-#define DRAWEDGE(dx,dy) alphaBlend(screenColor[i+PIXOFFSET(dx,dy)], edgeColor)
-
-				bool upleft    = ISEDGE(-1,-1);
-				bool up        = ISEDGE( 0,-1);
-				bool upright   = ISEDGE( 1,-1);
-				bool left      = ISEDGE(-1, 0);
-				bool right     = ISEDGE( 1, 0);
-				bool downleft  = ISEDGE(-1, 1);
-				bool down      = ISEDGE( 0, 1);
-				bool downright = ISEDGE( 1, 1);
-
-				if(upleft && upright && downleft && !downright)
-					DRAWEDGE(-1,-1);
-				if(up && !down)
-					DRAWEDGE(0,-1);
-				if(upleft && upright && !downleft && downright)
-					DRAWEDGE(1,-1);
-				if(left && !right)
-					DRAWEDGE(-1,0);
-				if(right && !left)
-					DRAWEDGE(1,0);
-				if(upleft && !upright && downleft && downright)
-					DRAWEDGE(-1,1);
-				if(down && !up)
-					DRAWEDGE(0,1);
-				if(!upleft && upright && downleft && downright)
-					DRAWEDGE(1,1);
-
+			const u8 polyID = this->_framebufferAttributes->opaquePolyID[i];
+			
+			if (this->edgeMarkDisabled[polyID>>3]) continue;
+			if (this->_framebufferAttributes->isTranslucentPoly[i] != 0) continue;
+			
+			// > is used instead of != to prevent double edges
+			// between overlapping polys of different IDs.
+			// also note that the edge generally goes on the outside, not the inside, (maybe needs to change later)
+			// and that polys with the same edge color can make edges against each other.
+			
+			const FragmentColor edgeColor = this->edgeMarkTable[polyID>>3];
+			
+#define PIXOFFSET(dx,dy) ((dx)+(this->_framebufferWidth*(dy)))
+#define ISEDGE(dx,dy) ((x+(dx) < this->_framebufferWidth) && (y+(dy) < this->_framebufferHeight) && polyID > this->_framebufferAttributes->opaquePolyID[i+PIXOFFSET(dx,dy)])
+#define DRAWEDGE(dx,dy) EdgeBlend(this->_framebufferColor[i+PIXOFFSET(dx,dy)], edgeColor)
+			
+			bool upleft    = ISEDGE(-1,-1);
+			bool up        = ISEDGE( 0,-1);
+			bool upright   = ISEDGE( 1,-1);
+			bool left      = ISEDGE(-1, 0);
+			bool right     = ISEDGE( 1, 0);
+			bool downleft  = ISEDGE(-1, 1);
+			bool down      = ISEDGE( 0, 1);
+			bool downright = ISEDGE( 1, 1);
+			
+			if(upleft && upright && downleft && !downright)
+				DRAWEDGE(-1,-1);
+			if(up && !down)
+				DRAWEDGE(0,-1);
+			if(upleft && upright && !downleft && downright)
+				DRAWEDGE(1,-1);
+			if(left && !right)
+				DRAWEDGE(-1,0);
+			if(right && !left)
+				DRAWEDGE(1,0);
+			if(upleft && !upright && downleft && downright)
+				DRAWEDGE(-1,1);
+			if(down && !up)
+				DRAWEDGE(0,1);
+			if(!upleft && upright && downleft && downright)
+				DRAWEDGE(1,1);
+			
 #undef PIXOFFSET
 #undef ISEDGE
 #undef DRAWEDGE
-
-			}
 		}
 	}
-
-	if(gfx3d.renderState.enableFog)
-	{
-		u32 r = GFX3D_5TO6((gfx3d.renderState.fogColor)&0x1F);
-		u32 g = GFX3D_5TO6((gfx3d.renderState.fogColor>>5)&0x1F);
-		u32 b = GFX3D_5TO6((gfx3d.renderState.fogColor>>10)&0x1F);
-		u32 a = (gfx3d.renderState.fogColor>>16)&0x1F;
-		for(int i=0;i<256*192;i++)
-		{
-			Fragment &destFragment = screen[i];
-			if(!destFragment.fogged) continue;
-			FragmentColor &destFragmentColor = screenColor[i];
-			u32 fogIndex = destFragment.depth>>9;
-			assert(fogIndex<32768);
-			u8 fog = fogTable[fogIndex];
-			if(fog==127) fog=128;
-			if(!gfx3d.renderState.enableFogAlphaOnly)
-			{
-				destFragmentColor.r = ((128-fog)*destFragmentColor.r + r*fog)>>7;
-				destFragmentColor.g = ((128-fog)*destFragmentColor.g + g*fog)>>7;
-				destFragmentColor.b = ((128-fog)*destFragmentColor.b + b*fog)>>7;
-			}
-			destFragmentColor.a = ((128-fog)*destFragmentColor.a + a*fog)>>7;
-		}
-	}
-
-	////debug alpha channel framebuffer contents
-	//for(int i=0;i<256*192;i++)
-	//{
-	//	FragmentColor &destFragmentColor = screenColor[i];
-	//	destFragmentColor.r = destFragmentColor.a;
-	//	destFragmentColor.g = destFragmentColor.a;
-	//	destFragmentColor.b = destFragmentColor.a;
-	//}
+	
+	return RENDER3DERROR_NOERR;
 }
 
-void SoftRasterizerEngine::performClipping(bool hirez)
+Render3DError SoftRasterizerRenderer::UpdateEdgeMarkColorTable(const u16 *edgeMarkColorTable)
 {
-	//submit all polys to clipper
-	clipper.reset();
-	for(int i=0;i<polylist->count;i++)
+	//TODO: need to test and find out whether these get grabbed at flush time, or at render time
+	//we can do this by rendering a 3d frame and then freezing the system, but only changing the edge mark colors
+	for (size_t i = 0; i < 8; i++)
 	{
-		POLY* poly = &polylist->list[indexlist->list[i]];
-		VERT* clipVerts[4] = {
-			&vertlist->list[poly->vertIndexes[0]],
-			&vertlist->list[poly->vertIndexes[1]],
-			&vertlist->list[poly->vertIndexes[2]],
-			poly->type==4
-				?&vertlist->list[poly->vertIndexes[3]]
-				:NULL
-		};
-
-		if(hirez)
-			clipper.clipPoly<true>(poly,clipVerts);
-		else
-			clipper.clipPoly<false>(poly,clipVerts);
-	}
-	clippedPolyCounter = clipper.clippedPolyCounter;
-}
-
-template<bool CUSTOM> void SoftRasterizerEngine::performViewportTransforms(int width, int height)
-{
-	const float xfactor = width/256.0f;
-	const float yfactor = height/192.0f;
-	const float xmax = 256.0f*xfactor-(CUSTOM?0.001f:0); //fudge factor to keep from overrunning render buffers
-	const float ymax = 192.0f*yfactor-(CUSTOM?0.001f:0);
-
-
-	//viewport transforms
-	for(int i=0;i<clippedPolyCounter;i++)
-	{
-		GFX3D_Clipper::TClippedPoly &poly = clippedPolys[i];
-		for(int j=0;j<poly.type;j++)
-		{
-			VERT &vert = poly.clipVerts[j];
-
-			//homogeneous divide
-			vert.coord[0] = (vert.coord[0]+vert.coord[3]) / (2*vert.coord[3]);
-			vert.coord[1] = (vert.coord[1]+vert.coord[3]) / (2*vert.coord[3]);
-			vert.coord[2] = (vert.coord[2]+vert.coord[3]) / (2*vert.coord[3]);
-			vert.texcoord[0] /= vert.coord[3];
-			vert.texcoord[1] /= vert.coord[3];
-
-			//CONSIDER: do we need to guarantee that these are in bounds? perhaps not.
-			//vert.coord[0] = max(0.0f,min(1.0f,vert.coord[0]));
-			//vert.coord[1] = max(0.0f,min(1.0f,vert.coord[1]));
-			//vert.coord[2] = max(0.0f,min(1.0f,vert.coord[2]));
-
-			//perspective-correct the colors
-			vert.fcolor[0] /= vert.coord[3];
-			vert.fcolor[1] /= vert.coord[3];
-			vert.fcolor[2] /= vert.coord[3];
-
-			//viewport transformation
-			VIEWPORT viewport;
-			viewport.decode(poly.poly->viewport);
-			vert.coord[0] *= viewport.width * xfactor;
-			vert.coord[0] += viewport.x * xfactor;
-			vert.coord[1] *= viewport.height * yfactor;
-			vert.coord[1] += viewport.y * yfactor;
-			vert.coord[1] = ymax - vert.coord[1];
-
-			//well, i guess we need to do this to keep Princess Debut from rendering huge polys.
-			//there must be something strange going on
-			vert.coord[0] = max(0.0f,min(xmax,vert.coord[0]));
-			vert.coord[1] = max(0.0f,min(ymax,vert.coord[1]));
-		}
-	}
-}
-//these templates needed to be instantiated manually
-template void SoftRasterizerEngine::performViewportTransforms<true>(int width, int height);
-template void SoftRasterizerEngine::performViewportTransforms<false>(int width, int height);
-
-void SoftRasterizerEngine::performCoordAdjustment(const bool skipBackfacing)
-{
-	for(int i=0;i<clippedPolyCounter;i++)
-	{
-		GFX3D_Clipper::TClippedPoly &clippedPoly = clippedPolys[i];
-		int type = clippedPoly.type;
-		VERT* verts = &clippedPoly.clipVerts[0];
-
-		//here is a hack which needs to be removed.
-		//at some point our shape engine needs these to be converted to "fixed point"
-		//which is currently just a float
-		for(int j=0;j<type;j++)
-			for(int k=0;k<2;k++)
-				verts[j].coord[k] = (float)iround(16.0f * verts[j].coord[k]);
-	}
-}
-
-void SoftRasterizerEngine::setupTextures(const bool skipBackfacing)
-{
-	TexCacheItem* lastTexKey = NULL;
-	u32 lastTextureFormat = 0, lastTexturePalette = 0;
-	bool needInitTexture = true;
-	for(int i=0;i<clippedPolyCounter;i++)
-	{
-		GFX3D_Clipper::TClippedPoly &clippedPoly = clippedPolys[i];
-		POLY *poly = clippedPoly.poly;
-
-		PolyAttr polyAttr;
-		polyAttr.setup(poly->polyAttr);
-
-		//make sure all the textures we'll need are cached
-		//(otherwise on a multithreaded system there will be multiple writers-- 
-		//this SHOULD be read-only, although some day the texcache may collect statistics or something
-		//and then it won't be safe.
-		if(needInitTexture || lastTextureFormat != poly->texParam || lastTexturePalette != poly->texPalette)
-		{
-			lastTexKey = TexCache_SetTexture(TexFormat_15bpp,poly->texParam,poly->texPalette);
-			lastTextureFormat = poly->texParam;
-			lastTexturePalette = poly->texPalette;
-			needInitTexture = false;
-		}
-
-		//printf("%08X %d\n",poly->texParam,rasterizerUnit[0].textures.currentNum);
-		polyTexKeys[i] = lastTexKey;
-	}
-}
-
-void SoftRasterizerEngine::performBackfaceTests()
-{
-	for(int i=0;i<clippedPolyCounter;i++)
-	{
-		GFX3D_Clipper::TClippedPoly &clippedPoly = clippedPolys[i];
-		POLY *poly = clippedPoly.poly;
-		int type = clippedPoly.type;
-		VERT* verts = &clippedPoly.clipVerts[0];
-
-		PolyAttr polyAttr;
-		polyAttr.setup(poly->polyAttr);
-
-		//HACK: backface culling
-		//this should be moved to gfx3d, but first we need to redo the way the lists are built
-		//because it is too convoluted right now.
-		//(must we throw out verts if a poly gets backface culled? if not, then it might be easier)
-			
-		//an older approach
-		//(not good enough for quads and other shapes)
-		//float ab[2], ac[2]; Vector2Copy(ab, verts[1].coord); Vector2Copy(ac, verts[2].coord); Vector2Subtract(ab, verts[0].coord); 
-		//Vector2Subtract(ac, verts[0].coord); float cross = Vector2Cross(ab, ac); polyAttr.backfacing = (cross>0); 
-
-		//a better approach
-		// we have to support somewhat non-convex polygons (see NSMB world map 1st screen).
-		// this version should handle those cases better.
-		int n = type - 1;
-		float facing = (verts[0].y + verts[n].y) * (verts[0].x - verts[n].x)
-					 + (verts[1].y + verts[0].y) * (verts[1].x - verts[0].x)
-					 + (verts[2].y + verts[1].y) * (verts[2].x - verts[1].x);
-		for(int j = 2; j < n; j++)
-			facing += (verts[j+1].y + verts[j].y) * (verts[j+1].x - verts[j].x);
+		this->edgeMarkTable[i].color = COLOR555TO6665(edgeMarkColorTable[i] & 0x7FFF, (this->currentRenderState->enableAntialiasing) ? 0x10 : 0x1F);
 		
-		polyBackfacing[i] = polyAttr.backfacing = (facing < 0);
-		polyVisible[i] = polyAttr.isVisible(polyAttr.backfacing);
+		//zero 20-jun-2013 - this doesnt make any sense. at least, it should be related to the 0x8000 bit. if this is undocumented behaviour, lets write about which scenario proves it here, or which scenario is requiring this code.
+		//// this seems to be the only thing that selectively disables edge marking
+		//edgeMarkDisabled[i] = (col == 0x7FFF);
+		this->edgeMarkDisabled[i] = false;
 	}
+	
+	return RENDER3DERROR_NOERR;
 }
 
-void _HACK_Viewer_ExecUnit(SoftRasterizerEngine* engine)
+Render3DError SoftRasterizerRenderer::UpdateFogTable(const u8 *fogDensityTable)
 {
-	_HACK_viewer_rasterizerUnit.mainLoop<false>(engine);
-}
-
-static void SoftRastRender()
-{
-	// Force threads to finish before rendering with new data
-	if (rasterizerCores > 1)
+#if 0
+	//TODO - this might be a little slow;
+	//we might need to hash all the variables and only recompute this when something changes
+	const int increment = (0x400 >> shift);
+	for (u32 i = 0; i < 32768; i++)
 	{
-		for(unsigned int i = 0; i < rasterizerCores; i++)
+		if (i < offset)
 		{
-			rasterizerUnitTask[i].finish();
+			fogTable[i] = densityTable[0];
+			continue;
 		}
+		
+		for (int j = 0; j < 32; j++)
+		{
+			u32 value = offset + increment*(j+1);
+			if (i <= value)
+			{
+				if (j == 0)
+				{
+					fogTable[i] = densityTable[0];
+					goto done;
+				}
+				else
+				{
+					fogTable[i] = ((value-i)*(densityTable[j-1]) + (increment-(value-i))*(densityTable[j]))/increment;
+					goto done;
+				}
+			}
+		}
+		fogTable[i] = (densityTable[31]);
+	done: ;
+	}
+#else
+	// this should behave exactly the same as the previous loop,
+	// except much faster. (because it's not a 2d loop and isn't so branchy either)
+	// maybe it's fast enough to not need to be cached, now.
+	const int increment = ((1 << 10) >> this->currentRenderState->fogShift);
+	const int incrementDivShift = 10 - this->currentRenderState->fogShift;
+	u32 fogOffset = min<u32>(max<u32>(this->currentRenderState->fogOffset, 0), 32768);
+	u32 iMin = min<u32>(32768, (( 1 + 1) << incrementDivShift) + fogOffset + 1 - increment);
+	u32 iMax = min<u32>(32768, ((32 + 1) << incrementDivShift) + fogOffset + 1 - increment);
+	assert(iMin <= iMax);
+	
+	// If the fog factor is 127, then treat it as 128.
+	u8 fogFactor = (fogDensityTable[0] == 127) ? 128 : fogDensityTable[0];
+	memset(this->fogTable, fogFactor, iMin);
+	
+	for(u32 i = iMin; i < iMax; i++)
+	{
+		int num = (i - fogOffset + (increment-1));
+		int j = (num >> incrementDivShift) - 1;
+		u32 value = (num & ~(increment-1)) + fogOffset;
+		u32 diff = value - i;
+		assert(j >= 1 && j < 32);
+		fogFactor = ((diff*(fogDensityTable[j-1]) + (increment-diff)*(fogDensityTable[j])) >> incrementDivShift);
+		this->fogTable[i] = (fogFactor == 127) ? 128 : fogFactor;
 	}
 	
-	mainSoftRasterizer.polylist = gfx3d.polylist;
-	mainSoftRasterizer.vertlist = gfx3d.vertlist;
-	mainSoftRasterizer.indexlist = &gfx3d.indexlist;
-	mainSoftRasterizer.screen = _screen;
-	mainSoftRasterizer.screenColor = _screenColor;
-	mainSoftRasterizer.width = 256;
-	mainSoftRasterizer.height = 192;
-
-	//setup fog variables (but only if fog is enabled)
-	if(gfx3d.renderState.enableFog)
-		mainSoftRasterizer.updateFogTable();
+	fogFactor = (fogDensityTable[31] == 127) ? 128 : fogDensityTable[31];
+	memset(this->fogTable+iMax, fogFactor, 32768-iMax);
+#endif
 	
-	mainSoftRasterizer.initFramebuffer(256,192,gfx3d.renderState.enableClearImage?true:false);
-	mainSoftRasterizer.updateToonTable();
-	mainSoftRasterizer.updateFloatColors();
-	mainSoftRasterizer.performClipping(CommonSettings.GFX3D_HighResolutionInterpolateColor);
-	mainSoftRasterizer.performViewportTransforms<false>(256,192);
-	mainSoftRasterizer.performBackfaceTests();
-	mainSoftRasterizer.performCoordAdjustment(true);
-	mainSoftRasterizer.setupTextures(true);
+	return RENDER3DERROR_NOERR;
+}
 
-	softRastHasNewData = true;
+// This method is currently unused right now, in favor of the new multithreaded
+// SoftRasterizerRenderer::RenderEdgeMarkingAndFog() method. But let's keep this
+// one around for reference just in case something goes horribly wrong with the
+// new multithreaded method.
+Render3DError SoftRasterizerRenderer::RenderFog(const u8 *densityTable, const u32 color, const u32 offset, const u8 shift, const bool alphaOnly)
+{
+	FragmentColor fogColor;
+	fogColor.color = COLOR555TO6665( color & 0x7FFF, (color>>16) & 0x1F );
 	
-	if (rasterizerCores > 1)
+	const size_t framebufferFragmentCount = this->_framebufferWidth * this->_framebufferHeight;
+	
+	if (!alphaOnly)
 	{
-		for(unsigned int i = 0; i < rasterizerCores; i++)
+		for (size_t i = 0; i < framebufferFragmentCount; i++)
 		{
-			rasterizerUnitTask[i].execute(&execRasterizerUnit, (void *)i);
+			const size_t fogIndex = this->_framebufferAttributes->depth[i] >> 9;
+			assert(fogIndex < 32768);
+			const u8 fog = (this->_framebufferAttributes->isFogged[i] != 0) ? this->fogTable[fogIndex] : 0;
+			
+			FragmentColor &destFragmentColor = this->_framebufferColor[i];
+			destFragmentColor.r = ((128-fog)*destFragmentColor.r + fogColor.r*fog)>>7;
+			destFragmentColor.g = ((128-fog)*destFragmentColor.g + fogColor.g*fog)>>7;
+			destFragmentColor.b = ((128-fog)*destFragmentColor.b + fogColor.b*fog)>>7;
+			destFragmentColor.a = ((128-fog)*destFragmentColor.a + fogColor.a*fog)>>7;
 		}
 	}
 	else
 	{
-		rasterizerUnit[0].mainLoop<false>(&mainSoftRasterizer);
-	}
-}
-
-static void SoftRastRenderFinish()
-{
-	if (!softRastHasNewData)
-	{
-		return;
+		for (size_t i = 0; i < framebufferFragmentCount; i++)
+		{
+			const size_t fogIndex = this->_framebufferAttributes->depth[i] >> 9;
+			assert(fogIndex < 32768);
+			const u8 fog = (this->_framebufferAttributes->isFogged[i] != 0) ? this->fogTable[fogIndex] : 0;
+			
+			FragmentColor &destFragmentColor = this->_framebufferColor[i];
+			destFragmentColor.a = ((128-fog)*destFragmentColor.a + fogColor.a*fog)>>7;
+		}
 	}
 	
+	return RENDER3DERROR_NOERR;
+}
+
+Render3DError SoftRasterizerRenderer::RenderEdgeMarkingAndFog(const SoftRasterizerPostProcessParams &param)
+{
+	for (size_t i = param.startLine * this->_framebufferWidth, y = param.startLine; y < param.endLine; y++)
+	{
+		for (size_t x = 0; x < this->_framebufferWidth; x++, i++)
+		{
+			FragmentColor &dstColor = this->_framebufferColor[i];
+			const u32 depth = this->_framebufferAttributes->depth[i];
+			const u8 polyID = this->_framebufferAttributes->opaquePolyID[i];
+			
+			// TODO: New edge marking algorithm which tests both polyID and depth, but only checks 4 surrounding pixels. Can we keep this one?
+			if (param.enableEdgeMarking)
+			{
+				// this looks ok although it's still pretty much a hack,
+				// it needs to be redone with low-level accuracy at some point,
+				// but that should probably wait until the shape renderer is more accurate.
+				// a good test case for edge marking is Sonic Rush:
+				// - the edges are completely sharp/opaque on the very brief title screen intro,
+				// - the level-start intro gets a pseudo-antialiasing effect around the silhouette,
+				// - the character edges in-level are clearly transparent, and also show well through shield powerups.
+				
+				bool up = false;
+				bool left = false;
+				bool right = false;
+				bool down = false;
+				
+#define PIXOFFSET(dx,dy) ((dx)+(this->_framebufferWidth*(dy)))
+#define ISEDGE(dx,dy) ((x+(dx) < this->_framebufferWidth) && (y+(dy) < this->_framebufferHeight) && polyID != this->_framebufferAttributes->opaquePolyID[i+PIXOFFSET(dx,dy)] && depth >= this->_framebufferAttributes->depth[i+PIXOFFSET(dx,dy)])
+#define DRAWEDGE(dx,dy) EdgeBlend(dstColor, this->edgeMarkTable[this->_framebufferAttributes->opaquePolyID[i+PIXOFFSET(dx,dy)] >> 3])
+				
+				if (this->edgeMarkDisabled[polyID>>3] || this->_framebufferAttributes->isTranslucentPoly[i] != 0)
+					goto END_EDGE_MARK;
+				
+				up		= ISEDGE( 0,-1);
+				left	= ISEDGE(-1, 0);
+				right	= ISEDGE( 1, 0);
+				down	= ISEDGE( 0, 1);
+				
+				if (right)			DRAWEDGE( 1, 0);
+				else if (down)		DRAWEDGE( 0, 1);
+				else if (left)		DRAWEDGE(-1, 0);
+				else if (up)		DRAWEDGE( 0,-1);
+				
+				
+#undef PIXOFFSET
+#undef ISEDGE
+#undef DRAWEDGE
+				
+END_EDGE_MARK: ;
+			}
+			
+			if (param.enableFog)
+			{
+				FragmentColor fogColor;
+				fogColor.color = COLOR555TO6665( param.fogColor & 0x7FFF, (param.fogColor>>16) & 0x1F );
+				
+				const size_t fogIndex = depth >> 9;
+				assert(fogIndex < 32768);
+				const u8 fog = (this->_framebufferAttributes->isFogged[i] != 0) ? this->fogTable[fogIndex] : 0;
+				
+				if (!param.fogAlphaOnly)
+				{
+					dstColor.r = ( (128-fog)*dstColor.r + fogColor.r*fog ) >> 7;
+					dstColor.g = ( (128-fog)*dstColor.g + fogColor.g*fog ) >> 7;
+					dstColor.b = ( (128-fog)*dstColor.b + fogColor.b*fog ) >> 7;
+				}
+				
+				dstColor.a = ( (128-fog)*dstColor.a + fogColor.a*fog ) >> 7;
+			}
+		}
+	}
+	
+	return RENDER3DERROR_NOERR;
+}
+
+SoftRasterizerTexture* SoftRasterizerRenderer::GetLoadedTextureFromPolygon(const POLY &thePoly, bool enableTexturing)
+{
+	SoftRasterizerTexture *theTexture = (SoftRasterizerTexture *)texCache.GetTexture(thePoly.texParam, thePoly.texPalette);
+	if (theTexture == NULL)
+	{
+		theTexture = new SoftRasterizerTexture(thePoly.texParam, thePoly.texPalette);
+		texCache.Add(theTexture);
+	}
+	
+	const NDSTextureFormat packFormat = theTexture->GetPackFormat();
+	const bool isTextureEnabled = ( (packFormat != TEXMODE_NONE) && enableTexturing );
+	
+	theTexture->SetSamplingEnabled(isTextureEnabled);
+	
+	if (theTexture->IsLoadNeeded() && isTextureEnabled)
+	{
+		theTexture->SetUseDeposterize(this->_textureDeposterize);
+		theTexture->SetScalingFactor(this->_textureScalingFactor);
+		theTexture->Load();
+	}
+	
+	return theTexture;
+}
+
+Render3DError SoftRasterizerRenderer::UpdateToonTable(const u16 *toonTableBuffer)
+{
+	//convert the toon colors
+	for (size_t i = 0; i < 32; i++)
+	{
+		this->toonColor32LUT[i].color = COLOR555TO666(toonTableBuffer[i] & 0x7FFF);
+	}
+	
+	return RENDER3DERROR_NOERR;
+}
+
+Render3DError SoftRasterizerRenderer::ClearUsingImage(const u16 *__restrict colorBuffer, const u32 *__restrict depthBuffer, const u8 *__restrict fogBuffer, const u8 *__restrict polyIDBuffer)
+{
+	const size_t xRatio = (size_t)((GPU_FRAMEBUFFER_NATIVE_WIDTH << 16) / this->_framebufferWidth) + 1;
+	const size_t yRatio = (size_t)((GPU_FRAMEBUFFER_NATIVE_HEIGHT << 16) / this->_framebufferHeight) + 1;
+	
+	for (size_t y = 0, iw = 0; y < this->_framebufferHeight; y++)
+	{
+		const size_t readLine = (size_t)(((y * yRatio) >> 16) * GPU_FRAMEBUFFER_NATIVE_WIDTH);
+		
+		for (size_t x = 0; x < this->_framebufferWidth; x++, iw++)
+		{
+			const size_t ir = readLine + ((x * xRatio) >> 16);
+			
+			this->_framebufferColor[iw].color = COLOR555TO6665(colorBuffer[ir] & 0x7FFF, (colorBuffer[ir] >> 15) * 0x1F);
+			this->_framebufferAttributes->depth[iw] = depthBuffer[ir];
+			this->_framebufferAttributes->isFogged[iw] = fogBuffer[ir];
+			this->_framebufferAttributes->opaquePolyID[iw] = polyIDBuffer[ir];
+			this->_framebufferAttributes->translucentPolyID[iw] = kUnsetTranslucentPolyID;
+			this->_framebufferAttributes->isTranslucentPoly[iw] = 0;
+			this->_framebufferAttributes->stencil[iw] = 0;
+		}
+	}
+	
+	return RENDER3DERROR_NOERR;
+}
+
+Render3DError SoftRasterizerRenderer::ClearUsingValues(const FragmentColor &clearColor6665, const FragmentAttributes &clearAttributes)
+{
+	for (size_t i = 0; i < (this->_framebufferWidth * this->_framebufferHeight); i++)
+	{
+		this->_framebufferAttributes->SetAtIndex(i, clearAttributes);
+		this->_framebufferColor[i] = clearColor6665;
+	}
+	
+	return RENDER3DERROR_NOERR;
+}
+
+Render3DError SoftRasterizerRenderer::Reset()
+{
 	if (rasterizerCores > 1)
 	{
-		for(unsigned int i = 0; i < rasterizerCores; i++)
+		for (size_t i = 0; i < rasterizerCores; i++)
+		{
+			rasterizerUnitTask[i].finish();
+			rasterizerUnit[i].SetRenderer(this);
+		}
+	}
+	else
+	{
+		rasterizerUnit[0].SetRenderer(this);
+	}
+	
+	this->_stateSetupNeedsFinish = false;
+	this->_renderGeometryNeedsFinish = false;
+	
+	memset(this->clearImageColor16Buffer, 0, sizeof(this->clearImageColor16Buffer));
+	memset(this->clearImageDepthBuffer, 0, sizeof(this->clearImageDepthBuffer));
+	memset(this->clearImagePolyIDBuffer, 0, sizeof(this->clearImagePolyIDBuffer));
+	memset(this->clearImageFogBuffer, 0, sizeof(this->clearImageFogBuffer));
+	
+	texCache.Reset();
+	
+	return RENDER3DERROR_NOERR;
+}
+
+Render3DError SoftRasterizerRenderer::Render(const GFX3D &engine)
+{
+	Render3DError error = RENDER3DERROR_NOERR;
+	
+	error = this->BeginRender(engine);
+	if (error != RENDER3DERROR_NOERR)
+	{
+		return error;
+	}
+	
+	this->RenderGeometry(engine.renderState, engine.polylist, &engine.indexlist);
+	this->EndRender(engine.render3DFrameCount);
+	
+	return error;
+}
+
+Render3DError SoftRasterizerRenderer::EndRender(const u64 frameCount)
+{
+	// If we're not multithreaded, then just do the post-processing steps now.
+	if (!this->_renderGeometryNeedsFinish)
+	{
+		if (this->currentRenderState->enableEdgeMarking || this->currentRenderState->enableFog)
+		{
+			this->postprocessParam[0].enableEdgeMarking = this->currentRenderState->enableEdgeMarking;
+			this->postprocessParam[0].enableFog = this->currentRenderState->enableFog;
+			this->postprocessParam[0].fogColor = this->currentRenderState->fogColor;
+			this->postprocessParam[0].fogAlphaOnly = this->currentRenderState->enableFogAlphaOnly;
+			
+			this->RenderEdgeMarkingAndFog(this->postprocessParam[0]);
+		}
+	}
+	
+	return RENDER3DERROR_NOERR;
+}
+
+Render3DError SoftRasterizerRenderer::RenderFinish()
+{
+	if (!this->_renderNeedsFinish || !this->_renderGeometryNeedsFinish)
+	{
+		return RENDER3DERROR_NOERR;
+	}
+	
+	// Allow for the geometry rendering to finish.
+	this->_renderGeometryNeedsFinish = false;
+	for (size_t i = 0; i < rasterizerCores; i++)
+	{
+		rasterizerUnitTask[i].finish();
+	}
+	
+	// Now that geometry rendering is finished on all threads, check the texture cache.
+	texCache.Evict();
+	
+	// Do multithreaded post-processing.
+	if (this->currentRenderState->enableEdgeMarking || this->currentRenderState->enableFog)
+	{
+		for (size_t i = 0; i < rasterizerCores; i++)
+		{
+			this->postprocessParam[i].enableEdgeMarking = this->currentRenderState->enableEdgeMarking;
+			this->postprocessParam[i].enableFog = this->currentRenderState->enableFog;
+			this->postprocessParam[i].fogColor = this->currentRenderState->fogColor;
+			this->postprocessParam[i].fogAlphaOnly = this->currentRenderState->enableFogAlphaOnly;
+			
+			rasterizerUnitTask[i].execute(&SoftRasterizer_RunRenderEdgeMarkAndFog, &this->postprocessParam[i]);
+		}
+		
+		// Allow for post-processing to finish.
+		for (size_t i = 0; i < rasterizerCores; i++)
 		{
 			rasterizerUnitTask[i].finish();
 		}
 	}
 	
-	TexCache_EvictFrame();
+	this->_renderNeedsFlushMain = true;
+	this->_renderNeedsFlush16 = true;
 	
-	mainSoftRasterizer.framebufferProcess();
-	
-	//	printf("rendered %d of %d polys after backface culling\n",gfx3d.polylist->count-culled,gfx3d.polylist->count);
-	SoftRastConvertFramebuffer();
-	
-	softRastHasNewData = false;
+	return RENDER3DERROR_NOERR;
 }
 
-GPU3DInterface gpu3DRasterize = {
-	"SoftRasterizer",
-	SoftRastInit,
-	SoftRastReset,
-	SoftRastClose,
-	SoftRastRender,
-	SoftRastRenderFinish,
-	SoftRastVramReconfigureSignal
-};
+Render3DError SoftRasterizerRenderer::RenderFlush(bool willFlushBuffer32, bool willFlushBuffer16)
+{
+	FragmentColor *framebufferMain = (willFlushBuffer32 && (this->_outputFormat == NDSColorFormat_BGR888_Rev)) ? GPU->GetEngineMain()->Get3DFramebufferMain() : NULL;
+	u16 *framebuffer16 = (willFlushBuffer16) ? GPU->GetEngineMain()->Get3DFramebuffer16() : NULL;
+	this->FlushFramebuffer(this->_framebufferColor, framebufferMain, framebuffer16);
+	
+	return RENDER3DERROR_NOERR;
+}
 
+Render3DError SoftRasterizerRenderer::SetFramebufferSize(size_t w, size_t h)
+{
+	Render3DError error = Render3D::SetFramebufferSize(w, h);
+	if (error != RENDER3DERROR_NOERR)
+	{
+		return RENDER3DERROR_NOERR;
+	}
+	
+	delete this->_framebufferAttributes;
+	this->_framebufferAttributes = new FragmentAttributesBuffer(w * h);
+	
+	if (rasterizerCores == 0 || rasterizerCores == 1)
+	{
+		postprocessParam[0].startLine = 0;
+		postprocessParam[0].endLine = h;
+	}
+	else
+	{
+		const size_t linesPerThread = h / rasterizerCores;
+		
+		for (size_t i = 0; i < rasterizerCores; i++)
+		{
+			postprocessParam[i].startLine = i * linesPerThread;
+			postprocessParam[i].endLine = (i < rasterizerCores - 1) ? (i + 1) * linesPerThread : h;
+		}
+	}
+		
+	return RENDER3DERROR_NOERR;
+}
+
+#ifdef ENABLE_SSE2
+
+Render3DError SoftRasterizerRenderer_SSE2::ClearUsingValues(const FragmentColor &clearColor6665, const FragmentAttributes &clearAttributes)
+{
+	const __m128i color_vec128					= _mm_set1_epi32(clearColor6665.color);
+	const __m128i attrDepth_vec128				= _mm_set1_epi32(clearAttributes.depth);
+	const __m128i attrOpaquePolyID_vec128		= _mm_set1_epi8(clearAttributes.opaquePolyID);
+	const __m128i attrTranslucentPolyID_vec128	= _mm_set1_epi8(clearAttributes.translucentPolyID);
+	const __m128i attrStencil_vec128			= _mm_set1_epi8(clearAttributes.stencil);
+	const __m128i attrIsFogged_vec128			= _mm_set1_epi8(clearAttributes.isFogged);
+	const __m128i attrIsTranslucentPoly_vec128	= _mm_set1_epi8(clearAttributes.isTranslucentPoly);
+	
+	size_t i = 0;
+	const size_t pixCount = this->_framebufferWidth * this->_framebufferHeight;
+	const size_t ssePixCount = pixCount - (pixCount % 16);
+	
+	for (; i < ssePixCount; i += 16)
+	{
+		_mm_stream_si128((__m128i *)(this->_framebufferColor + i +  0), color_vec128);
+		_mm_stream_si128((__m128i *)(this->_framebufferColor + i +  4), color_vec128);
+		_mm_stream_si128((__m128i *)(this->_framebufferColor + i +  8), color_vec128);
+		_mm_stream_si128((__m128i *)(this->_framebufferColor + i + 12), color_vec128);
+		
+		_mm_stream_si128((__m128i *)(this->_framebufferAttributes->depth + i +  0), attrDepth_vec128);
+		_mm_stream_si128((__m128i *)(this->_framebufferAttributes->depth + i +  4), attrDepth_vec128);
+		_mm_stream_si128((__m128i *)(this->_framebufferAttributes->depth + i +  8), attrDepth_vec128);
+		_mm_stream_si128((__m128i *)(this->_framebufferAttributes->depth + i + 12), attrDepth_vec128);
+		
+		_mm_stream_si128((__m128i *)(this->_framebufferAttributes->opaquePolyID + i), attrOpaquePolyID_vec128);
+		_mm_stream_si128((__m128i *)(this->_framebufferAttributes->translucentPolyID + i), attrTranslucentPolyID_vec128);
+		_mm_stream_si128((__m128i *)(this->_framebufferAttributes->stencil + i), attrStencil_vec128);
+		_mm_stream_si128((__m128i *)(this->_framebufferAttributes->isFogged + i), attrIsFogged_vec128);
+		_mm_stream_si128((__m128i *)(this->_framebufferAttributes->isTranslucentPoly + i), attrIsTranslucentPoly_vec128);
+	}
+	
+#ifdef ENABLE_SSE2
+#pragma LOOPVECTORIZE_DISABLE
+#endif
+	for (; i < pixCount; i++)
+	{
+		this->_framebufferColor[i] = clearColor6665;
+		this->_framebufferAttributes->SetAtIndex(i, clearAttributes);
+	}
+	
+	return RENDER3DERROR_NOERR;
+}
+
+#endif // ENABLE_SSE2

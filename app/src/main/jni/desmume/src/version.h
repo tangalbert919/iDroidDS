@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2009-2011 DeSmuME team
+	Copyright (C) 2009-2013 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -18,7 +18,12 @@
 #include <string>
 #include "types.h"
 
+extern const u8 DESMUME_VERSION_MAJOR;
+extern const u8 DESMUME_VERSION_MINOR;
+extern const u8 DESMUME_VERSION_BUILD;
+
 u32 EMU_DESMUME_VERSION_NUMERIC();
 const char* EMU_DESMUME_VERSION_STRING();
+const char* EMU_DESMUME_SUBVERSION_STRING();
 const char* EMU_DESMUME_NAME_AND_VERSION();
 const char* EMU_DESMUME_COMPILER_DETAIL();

@@ -1,7 +1,7 @@
 /*
 	Copyright 2006 yopyop
 	Copyright 2007 shash
-	Copyright 2007-2012 DeSmuME team
+	Copyright 2007-2015 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -18,11 +18,14 @@
 */
 
 #include "FIFO.h"
+
 #include <string.h>
+
 #include "armcpu.h"
 #include "debug.h"
 #include "mem.h"
 #include "MMU.h"
+#include "registers.h"
 #include "NDSSystem.h"
 #include "gfx3d.h"
 
@@ -185,7 +188,7 @@ static void GXF_FIFO_handleEvents()
 	bool low = gxFIFO.size <= 127;
 	bool lowchange = MMU_new.gxstat.fifo_low ^ low;
 	MMU_new.gxstat.fifo_low = low;
-	if(low) triggerDma<EDMAMode_GXFifo>();
+	if(low) triggerDma(EDMAMode_GXFifo);
 
 	bool empty = gxFIFO.size == 0;
 	bool emptychange = MMU_new.gxstat.fifo_empty ^ empty;
@@ -197,7 +200,7 @@ static void GXF_FIFO_handleEvents()
 	if(emptychange||lowchange) NDS_Reschedule();
 }
 
-static FORCEINLINE bool IsMatrixStackCommand(u8 cmd)
+static bool IsMatrixStackCommand(u8 cmd)
 {
 	return cmd == 0x11 || cmd == 0x12;
 }
@@ -234,15 +237,24 @@ void GFX_FIFOsend(u8 cmd, u32 param)
 	if(IsMatrixStackCommand(cmd))
 		gxFIFO.matrix_stack_op_size++;
 
-	/*if(gxFIFO.size>=HACK_GXIFO_SIZE) {
+	//along the same lines:
+	//american girls julie finds a way will put a bunch of stuff and then a box test into the fifo and then immediately test the busy flag
+	//so we need to set the busy flag here.
+	//does it expect the fifo to be running then? well, it's definitely jammed -- making it unjammed at one point did fix this bug.
+	//it's still not clear whether we're handling the immediate vs fifo commands properly at all :(
+	//anyway, here we go, similar treatment. consider this a hack.
+	if(cmd == 0x70) MMU_new.gxstat.tb = 1; //just set the flag--youre insane if you queue more than one of these anyway
+	if(cmd == 0x71) MMU_new.gxstat.tb = 1;
+
+	if(gxFIFO.size>=HACK_GXIFO_SIZE) {
 		printf("--FIFO FULL-- : %d\n",gxFIFO.size);
-	}*/
+	}
 	
 	//gxstat |= 0x08000000;		// set busy flag
 
 	GXF_FIFO_handleEvents();
 
-	NDS_RescheduleGXFIFO(1);
+	//NDS_RescheduleGXFIFO(1);
 }
 
 // this function used ONLY in gxFIFO
@@ -263,8 +275,8 @@ BOOL GFX_PIPErecv(u8 *cmd, u32 *param)
 	if(IsMatrixStackCommand(*cmd))
 	{
 		gxFIFO.matrix_stack_op_size--;
-		/*if(gxFIFO.matrix_stack_op_size>0x10000000)
-			printf("bad news disaster in matrix_stack_op_size\n");*/
+		if(gxFIFO.matrix_stack_op_size>0x10000000)
+			printf("bad news disaster in matrix_stack_op_size\n");
 	}
 
 	gxFIFO.head++;
@@ -294,11 +306,11 @@ void GFX_FIFOcnt(u32 val)
 	//	val &= 0xFFFF5FFF;		// clear reset (bit15) & stack level (bit13)
 	//}
 
-	T1WriteLong(MMU.MMU_MEM[ARMCPU_ARM9][0x40], 0x600, val);
+	T1WriteLong(MMU.ARM9_REG, 0x600, val);
 }
 
 // ========================================================= DISP FIFO
-DISP_FIFO	disp_fifo;
+DISP_FIFO disp_fifo;
 
 void DISP_FIFOinit()
 {
@@ -322,4 +334,10 @@ u32 DISP_FIFOrecv()
 	if (disp_fifo.head > 0x5FFF)
 		disp_fifo.head = 0;
 	return (val);
+}
+
+void DISP_FIFOreset()
+{
+	disp_fifo.head = 0;
+	disp_fifo.tail = 0;
 }

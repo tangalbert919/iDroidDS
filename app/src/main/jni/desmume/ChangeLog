@@ -1,3 +1,160 @@
+0.9.11 -> 0.9.12 (r5146-r????)
+
+0.9.10 -> 0.9.11 (r4908-r5146)
+
+In this version, we have focused on the Cocoa frontend, but there have been some good core fixes over so long.
+Notably, the save-related issues resulting in the advice "dont use 0.9.10" have been resolved.
+
+General/Core:
+ bug: fix large numbers of games not being able to save anymore
+ bug: fix some missing sound effects due to wrong volumes in some boot scenarios and other things
+ bug: fix freezes due to tiny looping sounds
+ bug: fix many big endian issues
+ bug: fix some apparently rarely-used CPU instructions, no known consequences
+ bug: fix (block) reading of some GPU registers
+ bug: fix action replay code type 0xE
+ bug: fix reading of last 4 bytes of rom
+ bug: large improvements to stability of GDB stub
+ bug: support w-buffer support in OpenGL renderers
+ bug: fix unpredictable crashes in some 3d scenes from w=0
+ enh: better loading of roms (bad patches) with wrong size info in header
+ enh: warn user sometimes when 'stream rom from disk' will create malfunctions
+ enh: add xBRZ filters
+ enh: add "TXT Hack" for software rasterizer to improve text rendering in some games
+ 
+Windows:
+ bug: fix 5x filters
+ enh: support import of action replay save files (.dss)
+ enh: add antialiasing option for OpenGL renderers
+ enh: don't malfunction if saveram is unavailable or read-only
+
+Cocoa:
+ bug: 16-bit to 32-bit color space conversions no longer darken video or images
+ bug: fix intermittent issues with loading user defaults on app startup
+ bug: fix rendering inaccuracies of the video preview in the app display preferences
+ bug: fix various UI font rendering and text alignment issues on OS X Yosemite
+ bug: fix crackly sound from N-sync and Z-sync methods
+ enh: make N-sync method the default sound sync method since it has much lower latency than P-sync method
+ enh: add support for gdbstub (Tools > Show GDB Stub Control) (only available on custom builds using the dev+ build target)
+ enh: optimize input handling to use less CPU
+ enh: add support for App Nap when the app is in an idle state (only supported on OS X Mavericks and later)
+ enh: add Execution Control panel (Emulation > Show Execution Control), now with frame advance and frame jump controls
+ enh: auto frame skip is now smoother
+ enh: further improve execution timing accuracy
+ enh: improve overall video performance
+ enh: render video through a 3-stage filtering pipeline, (Video Source)-->(Pixel Scaler)-->(Video Output)
+ enh: add the following video source filters - Deposterize
+ enh: add the following video output filters - Bicubic B-Spline, Bicubic Mitchell-Netravali, Lanczos2, Lanczos3
+ enh: add ability to run all existing pixel scalers on either the CPU or the GPU
+ enh: add ability to toggle the main and touch display positions (View > Toggle All Displays)
+ enh: add preliminary support for replay playback and recording
+ enh: add support for turbo and autohold
+ enh: add support for the entire suite of slot-2 devices (Emulation > Show SLOT-2 Manager)
+ enh: add support for using the host machine's audio input device for emulating the NDS microphone (Emulation > Show Microphone Settings)
+ enh: change the sine wave tone generator's range from 100Hz-5000Hz to 40Hz-4000Hz
+ enh: reorganize the menu options to more logical locations
+ enh: greatly improve the File Migration Assistant (now renamed Game Data Migration Assistant) and ROM Info panel with a more modern and space efficient look and feel
+ enh: miscellaneous user interface improvements
+
+Linux:
+ bug: fix screen gap bug
+ bug: workaround for std::bad_alloc exceptions compiler bugs
+ enh: add experimental AV recording
+ enh: generally improve main loop throttling and skipping
+ enh: massive improvements to HUD and menu layout
+ enh: add window sizing options and sound interpolation options
+ enh: add Lid button; disallow U+D, L+R; manual option saving
+
+0.9.9 -> 0.9.10 (r4623-r4908)
+
+In this version, we have focused on trying to clean up some complexities in the user experience and emulator internals. Pretty unglamorous stuff, but some games are newly compatible.
+
+General/Core:
+ enh: break savestate back-compatibility
+ bug: improve save size autodetection for some games
+ bug: cpu: fix many basic jit cpu bugs
+ bug: 3d: tweak softrasterizer edge marking
+ bug: 3d: fix stale 4x4 texture palettes
+ bug: fix some GPU sprite blending scenarios
+ bug: fix bios HLE BitUnPack, UnCompHuffman
+ enh: modular slot-1 device system, emulate GC bus more faithfully
+ enh: support NAND slot-1 device
+ enh: auto-detect appropriate slot-1 and slot-2 device
+ enh: many revisions to firmware boot process for more authenticity. iQue and FlashME versions function, .dfc rewritten.
+ enh: support streaming NDS file from disk (like an ISO, to avoid long initial load time)
+ enh: run .dsv directly on disk, to save long flushing times. should speed backup operations.
+ enh: spu synch mode and method on commandline
+ 
+Windows:
+ bug: fixes to advanscene DB import
+ bug: save opengl display method filter option
+ bug: general bugfixes to various screen layout modes
+ enh: add option to stop non-integer scaling during fullscreen or maximize
+ enh: improvements to save import dialog
+ enh: improved memory viewer tool
+ enh: operate better when run, against our advice, from a zipfile
+ enh: add slot-1 Nitro Filesystem viewer tool
+
+Cocoa:
+ bug: fix slot1-R4 path saving
+ bug: fix bug with mic samples < 16khz
+ bug: fix bugs and enhancements in multi display windows
+ bug: fix handling of some joystick analog inputs
+ enh: save display windows configuration and emulation speed on app exit
+
+0.9.8 -> 0.9.9 (r4228-r4623)
+
+Yes, it's been a while since the last release, but we haven't been completely idle. There's a brand new jit cpu core which yields some impressive speedups! 
+
+General/Core:
+ !!!: add optional arm cpu jit (functioning on x86 and x64 hosts only)
+ bug: we're not going to list 70% of the emulation fixes, as is traditional.
+ bug: savestate reliability fixes related to halt states, gxstat, firmware
+ bug: lua: fix readbyterange, gdscreenshot functions
+ bug: commandline slot-1 handling straightened out
+ enh: fixes and additions to resize filter options
+
+Graphics:
+ enh: opengl 3d driver compatibility improvements
+ bug: fix giant regression from 0.9.7 that left garbage from previous frames on the screen in some games
+ bug: 3d: fix some single poly pixels
+ bug: 3d: fix some polygon and texture coloring bugs on big-endian systems
+
+Windows:
+ bug: fix some full screen stretching bugs
+ enh: add xaudio2 output driver
+ enh: add opengl display method (as opposed to directdraw), with controllable bilinear filter
+ enh: upgrade archive handling system, lzma2 supported
+ enh: reorganize main menu quite a bit
+ enh: add rotation hotkeys, and hotkey to control mouse cursor visibility
+ enh: memory viewer improvements and fixes
+ enh: improve interface for rom eject to prevent accidents and improve usefulness (hide in slot-1 config screen)
+ 
+Cocoa:
+ bug: fix missing display when running on OS X v10.8 Mountain Lion
+ bug: fix possible sound crash when using Dual SPU Synch/Asynch
+ bug: fix File menu items being disabled after the file migration sheet is used
+ bug: fix window resizing issues
+ bug: fix text rendering in About box
+ enh: show the icon and name of the loaded ROM
+ enh: add Support Request and Bug Report forms to the Help menu
+ enh: add more detailed info to the About box
+ enh: add OpenGL as a 3D rendering option
+ enh: add support for MSAA when using OpenGL as the 3D rendering engine
+ enh: add V-Sync option
+ enh: add Display Orientation, Display Order, and Display Separation options for Combo Display mode
+ enh: add HQ4xS filter
+ enh: completely revamp the user interface for Input Preferences
+ enh: many emulator commands may now be mapped
+ enh: add ability to map an input to user-defined touch screen coordinates
+ enh: add support for saving and applying input profiles
+ enh: add support for using an audio file for the microphone input
+ enh: add sine wave tone generator for microphone input
+ enh: add support for multiple display windows (File > New Display Window)
+ enh: add support for SLOT-1 devices (Emulation > Show SLOT-1 Manager)
+ enh: overall performance and stability improvements
+ enh: miscellaneous user interface improvements
+
 0.9.7 -> 0.9.8 (r3812-r4228)
 
 Yes, it's been a while since the last release, but we haven't been completely idle. There's a brand new top shelf Cocoa frontend to make life far more pleasant for OSX users, and a host of compatibility fixes.
@@ -15,7 +172,7 @@ General/Core:
  bug: fix opcode MRC and fake bios CRC16
  enh: jitter some related register and irq events to simulate pipeline effects and stimulate some race conditions to other outcomes
  enh: fake (deterministic) some tiny jitter from human's hand holding stylus; some games were accidentally depending on this
- enh: support nocash-stylep rints from arm
+ enh: support nocash-style prints from arm
  enh: add lua apis for accessing vram
  enh: platforms other than windows receive threading optimizations
  enh: provide diagnostics when system powers off (useful for homebrewers returning from main())

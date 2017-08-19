@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2005 Guillaume Duhamel
-	Copyright (C) 2008-2012 DeSmuME team
+	Copyright (C) 2008-2015 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,144 +19,169 @@
 #ifndef TYPES_HPP
 #define TYPES_HPP
 
+/*#include <retro_miscellaneous.h>
+#include <retro_inline.h>
+#include <math/fxp.h>*/
+
 //analyze microsoft compilers
 #ifdef _MSC_VER
-#define _WINDOWS
-//todo - everyone will want to support this eventually, i suppose
-#include "config.h"
+	#define HOST_WINDOWS
+#endif //_MSC_VER
+
+// Determine CPU architecture for platforms that don't use the autoconf script
+#if defined(HOST_WINDOWS) || defined(DESMUME_COCOA)
+	#if defined(__x86_64__) || defined(__LP64) || defined(__IA64__) || defined(_M_X64) || defined(_WIN64)
+		#define HOST_64
+	#else
+		#define HOST_32
+	#endif
 #endif
 
 //enforce a constraint: gdb stub requires developer
 #if defined(GDB_STUB) && !defined(DEVELOPER)
-#define DEVELOPER
+	#define DEVELOPER
 #endif
 
 #ifdef DEVELOPER
-#define IF_DEVELOPER(X) X
+	#define IF_DEVELOPER(X) X
 #else
-#define IF_DEVELOPER(X)
-#endif
-
-#ifdef _WINDOWS
-	//#define HAVE_WX //not useful yet....
-	#define HAVE_LIBAGG
-	#define ENABLE_SSE
-	#define ENABLE_SSE2
-	#ifdef DEVELOPER
-		#define HAVE_LUA
-	#endif
-	#define HAVE_JIT
+	#define IF_DEVELOPER(X)
 #endif
 
 #ifdef __GNUC__
-#ifdef __SSE__
-#define ENABLE_SSE
-#endif
-#ifdef __SSE2__
-#define ENABLE_SSE2
-#endif
-#endif
+	#ifdef __SSE__
+		#define ENABLE_SSE
+	#endif
 
-#ifdef NOSSE
-#undef ENABLE_SSE
-#endif
+	#ifdef __SSE2__
+		#define ENABLE_SSE2
+	#endif
 
-#ifdef NOSSE2
-#undef ENABLE_SSE2
+	#ifdef __SSE3__
+		#define ENABLE_SSE3
+	#endif
+
+	#ifdef __SSSE3__
+		#define ENABLE_SSSE3
+	#endif
+
+	#ifdef __SSE4_1__
+		#define ENABLE_SSE4_1
+	#endif
+
+	#ifdef __SSE4_2__
+		#define ENABLE_SSE4_2
+	#endif
+
+	#ifdef __AVX__
+		#define ENABLE_AVX
+	#endif
+
+	#ifdef __AVX2__
+		#define ENABLE_AVX2
+	#endif
+
+	#ifdef __ALTIVEC__
+		#define ENABLE_ALTIVEC
+	#endif
 #endif
 
 #ifdef _MSC_VER 
-#define strcasecmp(x,y) _stricmp(x,y)
-#define strncasecmp(x, y, l) strnicmp(x, y, l)
-#define snprintf _snprintf
+	#include <compat/msvc.h>
+
 #else
-#define WINAPI
+	#define WINAPI
 #endif
 
-#ifdef __GNUC__
-#include <limits.h>
-#ifndef PATH_MAX
-#define MAX_PATH 1024
-#else
-#define MAX_PATH PATH_MAX
-#endif
-#endif
-
-#if defined(WIN32) || defined(_WIN32)
-#define _alloca16(x)	((void *)((((int)_alloca( (x)+15 )) + 15) & ~15))
-#define _alloca32(x)	((void *)((((int)_alloca( (x)+31 )) + 31) & ~31))
-#else
-#include <alloca.h>
-#define _alloca			alloca
-#define _alloca16(x)	((void *)((((int)alloca( (x)+15 )) + 15) & ~15))
-#define _alloca32(x)	((void *)((((int)_alloca( (x)+31 )) + 31) & ~31))
+#if !defined(MAX_PATH)
+	#if defined(HOST_WINDOWS)
+		#define MAX_PATH 260
+	#elif defined(__GNUC__)
+		#include <limits.h>
+		#if !defined(PATH_MAX)
+			#define MAX_PATH 1024
+		#else
+			#define MAX_PATH PATH_MAX
+		#endif
+	#else
+		#define MAX_PATH 1024
+	#endif
 #endif
 
-#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
-#define DS_ALIGN(X) __declspec(align(X))
+//------------alignment macros-------------
+//dont apply these to types without further testing. it only works portably here on declarations of variables
+//cant we find a pattern other people use more successfully?
+#if _MSC_VER >= 1900
+	#define DS_ALIGN(X) alignas(X)
+#elif defined(_MSC_VER) || defined(__INTEL_COMPILER)
+	#define DS_ALIGN(X) __declspec(align(X))
 #elif defined(__GNUC__)
-#define DS_ALIGN(X) __attribute__ ((aligned (X)))
+	#define DS_ALIGN(X) __attribute__ ((aligned (X)))
 #else
-#define DS_ALIGN(X)
+	#define DS_ALIGN(X)
 #endif
 
-#ifdef __arm__
-#define CACHE_ALIGN DS_ALIGN(64)
+#ifdef HOST_64
+	#define CACHE_ALIGN_SIZE 64
 #else
-#define CACHE_ALIGN DS_ALIGN(32)
+	#define CACHE_ALIGN_SIZE 32
 #endif
 
 //use this for example when you want a byte value to be better-aligned
+#define CACHE_ALIGN DS_ALIGN(CACHE_ALIGN_SIZE)
 #define FAST_ALIGN DS_ALIGN(4)
+//---------------------------------------------
 
-#ifdef __MINGW32__ 
-#define FASTCALL __attribute__((fastcall))
-#define ASMJIT_CALL_CONV kX86FuncConvGccFastCall
-#define HAVE_FASTCALL
+#ifdef __MINGW32__
+	#define FASTCALL __attribute__((fastcall))
+	#define ASMJIT_CALL_CONV kX86FuncConvGccFastCall
 #elif defined (__i386__) && !defined(__clang__)
-#define FASTCALL __attribute__((regparm(3)))
-#define ASMJIT_CALL_CONV kX86FuncConvGccRegParm3
-#define HAVE_FASTCALL
+	#define FASTCALL __attribute__((regparm(3)))
+	#define ASMJIT_CALL_CONV kX86FuncConvGccRegParm3
 #elif defined(_MSC_VER) || defined(__INTEL_COMPILER)
-#define FASTCALL __fastcall
-#define ASMJIT_CALL_CONV kX86FuncConvMsFastCall
-#define HAVE_FASTCALL
+	#define FASTCALL
+	#define ASMJIT_CALL_CONV kX86FuncConvDefault
 #else
-#define FASTCALL
-#define ASMJIT_CALL_CONV kX86FuncConvDefault
-//#define HAVE_FASTCALL
+	#define FASTCALL
+	#define ASMJIT_CALL_CONV kX86FuncConvDefault
 #endif
 
 #ifdef _MSC_VER
-#define _CDECL_ __cdecl
+	#define _CDECL_ __cdecl
 #else
-#define _CDECL_
-#endif
-
-#ifndef INLINE
-#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
-#define INLINE _inline
-#else
-#define INLINE inline
-#endif
+	#define _CDECL_
 #endif
 
 #ifndef FORCEINLINE
-#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
-#define FORCEINLINE __forceinline
-#define MSC_FORCEINLINE __forceinline
-#else
-#define FORCEINLINE inline __attribute__((always_inline)) 
-#define MSC_FORCEINLINE
-#endif
+	#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
+		#define FORCEINLINE __forceinline
+		#define MSC_FORCEINLINE __forceinline
+	#else
+		#define FORCEINLINE inline __attribute__((always_inline))
+		#define MSC_FORCEINLINE
+	#endif
 #endif
 
 #ifndef NOINLINE
-#ifdef __GNUC__
-#define NOINLINE __attribute__((noinline))
-#else
-#define NOINLINE __declspec(noinline)
+	#ifdef __GNUC__
+		#define NOINLINE __attribute__((noinline))
+	#else
+		#define NOINLINE
+	#endif
 #endif
+
+#ifndef LOOPVECTORIZE_DISABLE
+	#if defined(_MSC_VER)
+		#if _MSC_VER >= 1700
+			#define LOOPVECTORIZE_DISABLE loop(no_vector)
+		#else
+			#define LOOPVECTORIZE_DISABLE 
+		#endif
+	#elif defined(__clang__)
+		#define LOOPVECTORIZE_DISABLE clang loop vectorize(disable)
+	#else
+		#define LOOPVECTORIZE_DISABLE
+	#endif
 #endif
 
 #if defined(__LP64__)
@@ -196,6 +221,38 @@ typedef u16 uint16;
 typedef u32 uint32;
 #else
 #define uint32 u32 //uint32 is defined in Leopard somewhere, avoid conflicts
+#endif
+
+#ifdef ENABLE_ALTIVEC
+	#ifndef __APPLE_ALTIVEC__
+		#include <altivec.h>
+	#endif
+typedef vector unsigned char v128u8;
+typedef vector signed char v128s8;
+typedef vector unsigned short v128u16;
+typedef vector signed short v128s16;
+typedef vector unsigned int v128u32;
+typedef vector signed int v128s32;
+#endif
+
+#ifdef ENABLE_SSE2
+#include <emmintrin.h>
+typedef __m128i v128u8;
+typedef __m128i v128s8;
+typedef __m128i v128u16;
+typedef __m128i v128s16;
+typedef __m128i v128u32;
+typedef __m128i v128s32;
+#endif
+
+#ifdef ENABLE_AVX2
+#include <immintrin.h>
+typedef __m256i v256u8;
+typedef __m256i v256s8;
+typedef __m256i v256u16;
+typedef __m256i v256s16;
+typedef __m256i v256u32;
+typedef __m256i v256s32;
 #endif
 
 /*---------- GPU3D fixed-points types -----------*/
@@ -245,26 +302,14 @@ typedef int desmume_BOOL;
 #define FALSE 0
 #endif
 
-#ifdef __BIG_ENDIAN__
-#ifndef WORDS_BIGENDIAN
-#define WORDS_BIGENDIAN
-#endif
-#endif
-
-#ifdef WORDS_BIGENDIAN
-# define LOCAL_BE
-#else
-# define LOCAL_LE
-#endif
-
 /* little endian (ds' endianess) to local endianess convert macros */
-#ifdef LOCAL_BE	/* local arch is big endian */
+#ifdef MSB_FIRST	/* local arch is big endian */
 # define LE_TO_LOCAL_16(x) ((((x)&0xff)<<8)|(((x)>>8)&0xff))
 # define LE_TO_LOCAL_32(x) ((((x)&0xff)<<24)|(((x)&0xff00)<<8)|(((x)>>8)&0xff00)|(((x)>>24)&0xff))
-# define LE_TO_LOCAL_64(x) ((((x)&0xff)<<56)|(((x)&0xff00)<<40)|(((x)&0xff0000)<<24)|(((x)&0xff000000)<<8)|(((x)>>8)&0xff000000)|(((x)>>24)&0xff00)|(((x)>>40)&0xff00)|(((x)>>56)&0xff))
+# define LE_TO_LOCAL_64(x) ((((x)&0xff)<<56)|(((x)&0xff00)<<40)|(((x)&0xff0000)<<24)|(((x)&0xff000000)<<8)|(((x)>>8)&0xff000000)|(((x)>>24)&0xff0000)|(((x)>>40)&0xff00)|(((x)>>56)&0xff))
 # define LOCAL_TO_LE_16(x) ((((x)&0xff)<<8)|(((x)>>8)&0xff))
 # define LOCAL_TO_LE_32(x) ((((x)&0xff)<<24)|(((x)&0xff00)<<8)|(((x)>>8)&0xff00)|(((x)>>24)&0xff))
-# define LOCAL_TO_LE_64(x) ((((x)&0xff)<<56)|(((x)&0xff00)<<40)|(((x)&0xff0000)<<24)|(((x)&0xff000000)<<8)|(((x)>>8)&0xff000000)|(((x)>>24)&0xff00)|(((x)>>40)&0xff00)|(((x)>>56)&0xff))
+# define LOCAL_TO_LE_64(x) ((((x)&0xff)<<56)|(((x)&0xff00)<<40)|(((x)&0xff0000)<<24)|(((x)&0xff000000)<<8)|(((x)>>8)&0xff000000)|(((x)>>24)&0xff0000)|(((x)>>40)&0xff00)|(((x)>>56)&0xff))
 #else		/* local arch is little endian */
 # define LE_TO_LOCAL_16(x) (x)
 # define LE_TO_LOCAL_32(x) (x)
@@ -278,36 +323,12 @@ typedef int desmume_BOOL;
 #define MB(x) ((x)*1024*1024)
 #define KB(x) ((x)*1024)
 
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
-
 #define CPU_STR(c) ((c==ARM9)?"ARM9":"ARM7")
 typedef enum
 {
 	ARM9 = 0,
 	ARM7 = 1
 } cpu_id_t;
-
-///endian-flips count bytes.  count should be even and nonzero.
-inline void FlipByteOrder(u8 *src, u32 count)
-{
-	u8 *start=src;
-	u8 *end=src+count-1;
-
-	if((count&1) || !count)        return;         /* This shouldn't happen. */
-
-	while(count--)
-	{
-		u8 tmp;
-
-		tmp=*end;
-		*end=*start;
-		*start=tmp;
-		end--;
-		start++;
-	}
-}
-
-
 
 inline u64 double_to_u64(double d) {
 	union {
@@ -327,70 +348,8 @@ inline double u64_to_double(u64 u) {
 	return fuxor.b;
 }
 
-inline u32 float_to_u32(float f) {
-	union {
-		u32 a;
-		float b;
-	} fuxor;
-	fuxor.b = f;
-	return fuxor.a;
-}
-
-inline float u32_to_float(u32 u) {
-	union {
-		u32 a;
-		float b;
-	} fuxor;
-	fuxor.a = u;
-	return fuxor.b;
-}
-
-
-///stores a 32bit value into the provided byte array in guaranteed little endian form
-inline void en32lsb(u8 *buf, u32 morp)
-{ 
-	buf[0]=(u8)(morp);
-	buf[1]=(u8)(morp>>8);
-	buf[2]=(u8)(morp>>16);
-	buf[3]=(u8)(morp>>24);
-} 
-
-inline void en16lsb(u8* buf, u16 morp)
-{
-	buf[0]=(u8)morp;
-	buf[1]=(u8)(morp>>8);
-}
-
-///unpacks a 64bit little endian value from the provided byte array into host byte order
-inline u64 de64lsb(u8 *morp)
-{
-	return morp[0]|(morp[1]<<8)|(morp[2]<<16)|(morp[3]<<24)|((u64)morp[4]<<32)|((u64)morp[5]<<40)|((u64)morp[6]<<48)|((u64)morp[7]<<56);
-}
-
-///unpacks a 32bit little endian value from the provided byte array into host byte order
-inline u32 de32lsb(u8 *morp)
-{
-	return morp[0]|(morp[1]<<8)|(morp[2]<<16)|(morp[3]<<24);
-}
-
-///unpacks a 16bit little endian value from the provided byte array into host byte order
-inline u16 de16lsb(u8 *morp)
-{
-	return morp[0]|(morp[1]<<8);
-}
-
-#ifndef ARRAY_SIZE
-//taken from winnt.h
-extern "C++" // templates cannot be declared to have 'C' linkage
-template <typename T, size_t N>
-char (*BLAHBLAHBLAH( UNALIGNED T (&)[N] ))[N];
-
-#define ARRAY_SIZE(A) (sizeof(*BLAHBLAHBLAH(A)))
-#endif
-
-
 //fairly standard for loop macros
-#define MACRODO1(TRICK,TODO) { const int X = TRICK; TODO; }
+#define MACRODO1(TRICK,TODO) { const size_t X = TRICK; TODO; }
 #define MACRODO2(X,TODO)   { MACRODO1((X),TODO)   MACRODO1(((X)+1),TODO) }
 #define MACRODO4(X,TODO)   { MACRODO2((X),TODO)   MACRODO2(((X)+2),TODO) }
 #define MACRODO8(X,TODO)   { MACRODO4((X),TODO)   MACRODO4(((X)+4),TODO) }
@@ -462,37 +421,18 @@ template<typename T> inline void reconstruct(T* t) {
 	new(t) T();
 }
 
-//-------------fixed point speedup macros
+/* fixed point speedup macros */
 
-#ifdef _WIN32
-#include <intrin.h>
-#endif
 
-FORCEINLINE s64 fx32_mul(const s32 a, const s32 b)
+FORCEINLINE s32 sfx32_shiftdown(const s64 a)
 {
-#ifdef _WIN32
-	return __emul(a,b);
-#else
-	return ((s64)a)*((s64)b);
-#endif
-}
-
-FORCEINLINE s32 fx32_shiftdown(const s64 a)
-{
-#ifdef _WIN32
-	return (s32)__ll_rshift(a,12);
-#else
-	return (s32)(a>>12);
-#endif
-}
-
-FORCEINLINE s64 fx32_shiftup(const s32 a)
-{
-#ifdef _WIN32
-	return __ll_lshift(a,12);
-#else
-	return ((s64)a)<<12;
-#endif
+	//TODO: replace me with direct calls to sfx32_shiftdown
+	//return fx32_shiftdown(a);
+	#ifdef _WIN32
+		return (s32)__ll_rshift(a,12);
+	#else
+		return (s32)(a>>12);
+	#endif
 }
 
 #endif

@@ -1,7 +1,7 @@
 /*
 	Copyright (C) 2006 yopyop
 	Copyright (C) 2006-2007 shash
-	Copyright (C) 2008-2013 DeSmuME team
+	Copyright (C) 2008-2016 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -20,10 +20,11 @@
 #ifndef OGLRENDER_3_2_H
 #define OGLRENDER_3_2_H
 
-#if defined(_WIN32) && !defined(WXPORT)
+#if defined(_WIN32)
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
 	#include <GL/gl.h>
+	#include <GL/glext.h>
 	#include <GL/glcorearb.h>
 
 	#define OGLEXT(procPtr, func)		procPtr func = NULL;
@@ -37,10 +38,18 @@
 	#define OGLEXT(procPtr, func)
 	#define INITOGLEXT(procPtr, func)
 	#define EXTERNOGLEXT(procPtr, func)
+#elif defined(ANDROID)
+	#include <GLES3/gl3.h>
+	#include <GLES3/gl3ext.h>
+
+	#define OGLEXT(procPtr, func)		procPtr func = NULL;
+	#define INITOGLEXT(procPtr, func)	func = (procPtr)glXGetProcAddress((const GLubyte *) #func);
+	#define EXTERNOGLEXT(procPtr, func)	extern procPtr func;
 #else
 	#include <GL/gl.h>
-	#include <GL/glcorearb.h>
+	#include <GL/glext.h>
 	#include <GL/glx.h>
+	#include "utils/glcorearb.h"
 
 	#define OGLEXT(procPtr, func)		procPtr func = NULL;
 	#define INITOGLEXT(procPtr, func)	func = (procPtr)glXGetProcAddress((const GLubyte *) #func);
@@ -61,23 +70,47 @@ class OpenGLRenderer_3_2 : public OpenGLRenderer_2_1
 {
 protected:
 	virtual Render3DError InitExtensions();
+	virtual Render3DError InitZeroAlphaPixelMaskProgramBindings();
+	virtual Render3DError InitZeroAlphaPixelMaskProgramShaderLocations();
+	virtual Render3DError InitEdgeMarkProgramBindings();
+	virtual Render3DError InitEdgeMarkProgramShaderLocations();
+	virtual Render3DError InitFogProgramBindings();
+	virtual Render3DError InitFogProgramShaderLocations();
+	virtual Render3DError InitFramebufferOutputProgramBindings();
+	virtual Render3DError InitFramebufferOutputShaderLocations();
 	virtual Render3DError CreateFBOs();
 	virtual void DestroyFBOs();
-	virtual Render3DError CreateMultisampledFBO();
+	virtual Render3DError CreateMultisampledFBO(GLsizei numSamples);
 	virtual void DestroyMultisampledFBO();
 	virtual Render3DError CreateVAOs();
 	virtual void DestroyVAOs();
 	
-	virtual Render3DError LoadShaderPrograms(std::string *outVertexShaderProgram, std::string *outFragmentShaderProgram);
-	virtual Render3DError SetupShaderIO();
+	virtual Render3DError InitGeometryProgramBindings();
+	virtual Render3DError InitGeometryProgramShaderLocations();
+	virtual Render3DError InitGeometryZeroDstAlphaProgramBindings();
+	virtual Render3DError InitGeometryZeroDstAlphaProgramShaderLocations();
+	virtual void DestroyGeometryProgram();
 	
 	virtual void GetExtensionSet(std::set<std::string> *oglExtensionSet);
-	virtual Render3DError EnableVertexAttributes(const VERTLIST *vertList, const GLushort *indexBuffer, const unsigned int vertIndexCount);
+	virtual Render3DError EnableVertexAttributes();
 	virtual Render3DError DisableVertexAttributes();
-	virtual Render3DError SelectRenderingFramebuffer();
+	virtual Render3DError ZeroDstAlphaPass(const POLYLIST *polyList, const INDEXLIST *indexList, bool enableAlphaBlending, size_t indexOffset, bool lastPolyTreatedAsTranslucent);
 	virtual Render3DError DownsampleFBO();
+	virtual Render3DError ReadBackPixels();
+	virtual Render3DError BeginRender(const GFX3D &engine);
+	virtual Render3DError RenderEdgeMarking(const u16 *colorTable, const bool useAntialias);
+	virtual Render3DError RenderFog(const u8 *densityTable, const u32 color, const u32 offset, const u8 shift, const bool alphaOnly);
 	
-	virtual Render3DError ClearUsingImage() const;
+	virtual Render3DError CreateToonTable();
+	virtual Render3DError DestroyToonTable();
+	virtual Render3DError UpdateToonTable(const u16 *toonTableBuffer);
+	virtual Render3DError ClearUsingImage(const u16 *__restrict colorBuffer, const u32 *__restrict depthBuffer, const u8 *__restrict fogBuffer, const u8 *__restrict polyIDBuffer);
+	virtual Render3DError ClearUsingValues(const FragmentColor &clearColor6665, const FragmentAttributes &clearAttributes);
+	
+	virtual void SetPolygonIndex(const size_t index);
+	virtual Render3DError SetupPolygon(const POLY &thePoly, bool treatAsTranslucent, bool willChangeStencilBuffer);
+	virtual Render3DError SetupTexture(const POLY &thePoly, size_t polyRenderIndex);
+	virtual Render3DError SetFramebufferSize(size_t w, size_t h);
 	
 public:
 	~OpenGLRenderer_3_2();
