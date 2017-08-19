@@ -12,7 +12,8 @@ This fork uses DeSmuME git-9a5e52a (0.9.12 dev), which is much faster than the o
 This version of nds4droid will work on any Android phone with:
 
 * Android 4.0 or above.
-* CPU capable of
+* CPU capable of OpenGL ES 2.0 (most phones have this).
+* 512 MB of RAM or more.
 
 Do not make any attempts to install this on any iOS device. If you want a DS emulator on iOS, I suggest [iNDS](https://github.com/williamlcobb/inds).
 
