@@ -87,7 +87,6 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
                             							desmume/src/firmware.cpp \
                             							desmume/src/gfx3d.cpp \
                             							desmume/src/GPU.cpp \
-                            							desmume/src/lua-engine.cpp \
                             							desmume/src/matrix.cpp \
                             							desmume/src/mc.cpp \
                             							desmume/src/mic.cpp \
@@ -120,7 +119,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							
 LOCAL_ARM_NEON 			:= true
 LOCAL_ARM_MODE 			:= arm
-LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -DHAVE_NEON=1 -mfloat-abi=softfp -mfpu=neon -marm -march=armv7-a -mtune=cortex-a9
+LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -DHAVE_NEON=1 -mfloat-abi=softfp -mfpu=neon -marm -march=armv7-a -mtune=cortex-a9 -fpermissive
 LOCAL_STATIC_LIBRARIES 	:= mathneon sevenzip
 LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -ljnigraphics -lOpenSLES -landroid
 

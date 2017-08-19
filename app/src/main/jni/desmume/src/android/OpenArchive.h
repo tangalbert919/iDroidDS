@@ -20,6 +20,8 @@
 #ifndef OPENARCHIVE_HEADER
 #define OPENARCHIVE_HEADER
 
+#include "7zip.h"
+
 //#include "FEX_Interface.h"
 
 // ObtainFile()

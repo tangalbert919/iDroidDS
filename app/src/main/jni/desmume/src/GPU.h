@@ -199,7 +199,7 @@ typedef union
 	struct
 	{
 		u16 CurrentScanline:9;				//  0- 8: The scanline currently being rendered; 0...262
-		u16 :7;								//  9-15: Unused bits
+		//u16 :7;								//  9-15: Unused bits
 	};
 } IOREG_VCOUNT;								// 0x4000006: Current display scanline (Engine A only)
 
@@ -261,7 +261,7 @@ typedef union
 	struct
 	{
 		u16 Offset:9;						//  0- 8: Offset value; 0...511
-		u16 :7;								//  9-15: Unused bits
+		//u16 :7;								//  9-15: Unused bits
 	};
 } IOREG_BGnHOFS;							// 0x400x010, 0x400x014, 0x400x018, 0x400x01C: BGn horizontal offset (Engine A+B)
 
@@ -305,7 +305,7 @@ typedef union
 #ifndef MSB_FIRST
 		u32 Fraction:8;
 		s32 Integer:20;
-		s32 :4;
+		s32 Something:4;
 #else
 		s32 :4;
 		s32 Integer:20;
@@ -461,7 +461,7 @@ typedef union
 		u16 BG3_Target1:1;					//     3: Select layer BG3 for 1st target; 0=Disable, 1=Enable
 		u16 OBJ_Target1:1;					//     4: Select layer OBJ for 1st target; 0=Disable, 1=Enable
 		u16 Backdrop_Target1:1;				//     5: Select backdrop for 1st target; 0=Disable, 1=Enable
-		ColorEffect ColorEffect:2;					//  6- 7: Color effect mode;
+		u16 ColorEffect:2;			//  6- 7: Color effect mode;
 											//        0=Disable
 											//        1=Alpha blend 1st and 2nd target, interacts with BLDALPHA (0x400x052)
 											//        2=Increase brightness, interacts with BLDY (0x400x054)
@@ -649,7 +649,7 @@ typedef union
 		u32 :3;								//  5- 7: Unused bits
 		
 		u32 :6;								//  8-13: Unused bits
-		GPUMasterBrightMode Mode:2;							// 14-15: Brightness mode; 0=Disable, 1=Increase, 2=Decrease, 3=Reserved
+		u32 Mode:2;							// 14-15: Brightness mode; 0=Disable, 1=Increase, 2=Decrease, 3=Reserved
 		
 		u32 :16;							// 16-31: Unused bits
 #else
@@ -1181,7 +1181,7 @@ typedef struct
 	u8 blendEVA;
 	u8 blendEVB;
 	u8 blendEVY;
-	
+
 	GPUMasterBrightMode masterBrightnessMode;
 	u8 masterBrightnessIntensity;
 	bool masterBrightnessIsFullIntensity;

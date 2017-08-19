@@ -1419,7 +1419,7 @@ void GPUEngineBase::ParseReg_MASTER_BRIGHT()
 	GPUEngineRenderState &renderState = this->_currentRenderState;
 	
 	renderState.masterBrightnessIntensity = (MASTER_BRIGHT.Intensity >= 16) ? 16 : MASTER_BRIGHT.Intensity;
-	renderState.masterBrightnessMode = (GPUMasterBrightMode)MASTER_BRIGHT.Mode;
+	renderState.masterBrightnessMode = MASTER_BRIGHT.Mode;
 	renderState.masterBrightnessIsFullIntensity = ( (MASTER_BRIGHT.Intensity >= 16) && ((MASTER_BRIGHT.Mode == GPUMasterBrightMode_Up) || (MASTER_BRIGHT.Mode == GPUMasterBrightMode_Down)) );
 	renderState.masterBrightnessIsMaxOrMin = ( (MASTER_BRIGHT.Intensity >= 16) || (MASTER_BRIGHT.Intensity == 0) );
 }
@@ -3648,7 +3648,7 @@ void GPUEngineBase::_LineExtRot(GPUEngineCompositorInfo &compInfo, bool &outUseC
 {
 	if (COMPOSITORMODE == GPUCompositorMode_Debug)
 	{
-		static const IOREG_BGnParameter debugParams = {256, 0, 0, -77, 0, (s32)compInfo.line.blockOffsetNative};
+		static const IOREG_BGnParameter debugParams = {256, 0, 0, -77, 0, compInfo.line.blockOffsetNative};
 		this->_RenderLine_BGExtended<COMPOSITORMODE, OUTPUTFORMAT, MOSAIC, WILLPERFORMWINDOWTEST, ISCUSTOMRENDERINGNEEDED>(compInfo, debugParams, outUseCustomVRAM);
 	}
 	else

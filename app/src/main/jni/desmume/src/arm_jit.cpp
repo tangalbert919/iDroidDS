@@ -20,9 +20,9 @@
 #include "types.h"
 
 #ifdef HAVE_JIT
-#if !defined(HOST_32) && !defined(HOST_64)
-#error "ERROR: JIT compiler - unsupported target platform"
-#endif
+//#if !defined(HOST_32) && !defined(HOST_64)
+//#error "ERROR: JIT compiler - unsupported target platform"
+//#endif
 
 #ifdef HOST_WINDOWS
 // **** Windows port

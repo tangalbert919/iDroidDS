@@ -753,3 +753,4 @@ LRESULT CALLBACK ArchiveFileChooser(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
 	return false;
 }
+#endif

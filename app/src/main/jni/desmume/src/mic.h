@@ -19,6 +19,7 @@
 #define MIC_H
 
 #include "types.h"
+#include "emufile.h"
 
 class EMUFILE;
 

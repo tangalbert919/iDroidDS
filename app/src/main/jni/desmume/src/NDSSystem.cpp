@@ -23,7 +23,6 @@
 #include <math.h>
 #include <zlib.h>
 
-#include "cpu-features.h"
 #include <libretro-common/include/retro_miscellaneous.h>
 
 #include "utils/decrypt/decrypt.h"

@@ -8,6 +8,12 @@
 			  android:key="CpuMode"
 			  android:summary="@string/ExecutionEngineDesc"
 			  android:title="@string/ExecutionEngine" />
+		  <com.opendoorstudios.ds4droid.SliderPreference
+			  android:key="JitSize"
+			  android:title="@string/JitSize"
+			  android:dialogTitle="@string/JitSize"
+			  android:summary="@string/JitSizeDesc"
+			  android:persistent="true" />
 		  <CheckBoxPreference android:title="@string/EnableAutosave" android:key="EnableAutosave" android:summary="@string/EnableAutosaveDesc" />
       	  <ListPreference android:entries="@array/AutosaveFrequencyNames" android:entryValues="@array/zerothroughfour" android:key="AutosaveFrequency" android:title="@string/AutosaveFrequency" android:summary="@string/AutosaveFrequencyDesc" />
       	  <CheckBoxPreference android:title="@string/DisableROMBrowser" android:key="DisableROMBrowser" android:summary="@string/DisableROMBrowserDesc" />

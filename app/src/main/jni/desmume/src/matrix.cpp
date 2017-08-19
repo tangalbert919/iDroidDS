@@ -104,7 +104,6 @@ void MatrixScale (float *matrix, const float *ptr)
 #elif !defined(ENABLE_SSE)
 //-------------------------
 //switched SSE functions: implementations for no SSE
-#ifndef ENABLE_SSE
 void MatrixMultVec4x4 (const float *matrix, float *vecPtr)
 {
 	_NOSSE_MatrixMultVec4x4(matrix, vecPtr);

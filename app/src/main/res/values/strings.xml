@@ -151,9 +151,8 @@
 	<string name="SoundSyncModeDesc">Synchronization of the game\'s sound. Dual sync/async is usually okay and is faster, but Sync is sometimes needed for movies or voice.</string>
 	
 	<!-- Release 29 -->
-    <!-- Removed in Release 48
 	<string name="JitSize">JIT block size</string>
-	<string name="JitSizeDesc">For the threaded interpreter/tinycc JIT execution engines, how big each JIT block should be. 1 is most accurate, while 100 is fastest</string>-->
+	<string name="JitSizeDesc">For the DeSmuME JIT engine, how big each JIT block should be. 1 is most accurate, while 100 is fastest.</string>
 	<string name="about1">nds4droid is a free, open source Nintendo DS emulator.</string>
 	<string name="about2">nds4droid is the result of countless hours of work by dozens of contributators. The emulation core used by nds4droid is DeSmuME.</string>
 	<string name="about3">Jeffrey Quesnelle is the primary developer of nds4droid. nds4droid is a product of Sterling Heights, Michigan, United States of America.</string>
