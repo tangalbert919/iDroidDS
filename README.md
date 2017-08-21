@@ -14,6 +14,7 @@ This version of nds4droid will work on any Android phone with:
 * Android 4.0 or above.
 * CPU capable of OpenGL ES 2.0 (most phones have this).
 * 512 MB of RAM or more.
+* A x86 CPU (as this version of DeSmuME uses features only found on that type of CPU).
 
 Do not make any attempts to install this on any iOS device. If you want a DS emulator on iOS, I suggest [iNDS](https://github.com/williamlcobb/inds).
 
@@ -24,12 +25,7 @@ If you found an issue, please [make an issue ticket here](https://github.com/tan
 * Contains copyrighted material,
 * or has something to do with adding support for unsupported devices.
 
-### To-do list
-
-* Add ARMv8 (64-bit ARM) and x86_64 support.
-* Update libraries to the latest version (if applicable).
-* Add Dropbox Sync.
-* Complete OpenGL ES 3.0 Renderer.
+This branch can only run on x86 CPUs. As such, no releases will be made.
 
 **DISCLAIMER:** nds4droid is licensed under the GNU General Public License, which means the software is provided as-is. The Nintendo DS, and the Nintendo DS logo are trademarks of Nintendo, Inc. Games that support the Nintendo DS are properties of Nintendo, Inc., and their respective companies and affiliates.
 
