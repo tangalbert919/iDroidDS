@@ -22,7 +22,7 @@
 
 #include "types.h"
 
-#define NB_STATES 11
+#define NB_STATES 10
 
 extern int lastSaveState;
 

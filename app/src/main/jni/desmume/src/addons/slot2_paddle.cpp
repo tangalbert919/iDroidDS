@@ -1,4 +1,5 @@
-/*	Copyright (C) 2011 DeSmuME team
+/*
+	Copyright (C) 2011-2015 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -36,109 +37,107 @@ The emulation in all the handling of erroneous cases is not perfect, and some ot
 maybe legally configure the paddle differently, which could be rejected here; in which case this code will need finetuning
 */
 
-#include "../addons.h"
 #include <string.h>
-#include "NDSSystem.h"
 
-static BOOL init(void) { return (TRUE); }
-static void reset(void)
-{
-}
+#include "../slot2.h"
+#include "../NDSSystem.h"
 
-static void calibrate()
+class Slot2_Paddle : public ISlot2Interface
 {
-	nds.paddle = 0;
-}
-
-static void close(void) {}
-static void config(void) {}
-static void write08(u32 procnum, u32 adr, u8 val)
-{
-	if(adr<0x0A000000) return;
-	calibrate();
-}
-static void write16(u32 procnum, u32 adr, u16 val)
-{
-	if(adr<0x0A000000) { calibrate(); return; }
-}
-static void write32(u32 procnum, u32 adr, u32 val)
-{
-	if(adr<0x0A000000) { calibrate(); return; }
-}
-extern int currFrameCounter;
-
-static bool Validate(u32 procnum, bool rom) {
-	if(rom)
-		return ValidateSlot2Access(procnum,0,0,0,-1);
-	else
-		return ValidateSlot2Access(procnum,18,0,0,1);
-}
-static u8 read08(u32 procnum, u32 adr)
-{
-	//printf("paddle: read 08 at 0x%08X\n", adr);
-	if(!Validate(procnum,adr<0x0A000000))
-		return 0xFF;
-
-	if(adr<0x0A000000)
+private:
+	void calibrate() { nds.paddle = 0; }
+	bool Validate(u32 procnum, bool rom)
 	{
-		if(adr&1) return 0xFF;
-		else return 0xEF;
+		if(rom)
+			return ValidateSlot2Access(procnum, 0, 0, 0, -1);
+		else
+			return ValidateSlot2Access(procnum, 18, 0, 0, 1);
 	}
 
-	if(adr==0x0A000000)
+public:
+	virtual Slot2Info const* info()
 	{
-		return nds.paddle&0xFF;
+		static Slot2InfoSimple info("Paddle Controller", "Taito Paddle Controller", 0x07);
+		return &info;
 	}
-	if(adr==0x0A000001)
+
+	virtual void writeByte(u8 PROCNUM, u32 addr, u8 val)
 	{
-		return (nds.paddle>>8)&0x0F;
+		if (addr < 0x0A000000) 
+			calibrate();
 	}
-	return 0x00;
-}
-static u16 read16(u32 procnum, u32 adr)
+	virtual void writeWord(u8 PROCNUM, u32 addr, u16 val)
+	{
+		if (addr < 0x0A000000)
+			calibrate();
+	}
+	virtual void writeLong(u8 PROCNUM, u32 addr, u32 val)
+	{
+		if (addr < 0x0A000000)
+			calibrate();
+	}
+
+	virtual u8	readByte(u8 PROCNUM, u32 addr)
+	{
+		//printf("paddle: read 08 at 0x%08X\n", addr);
+		if (!Validate(PROCNUM, (addr < 0x0A000000)))
+			return 0xFF;
+
+		if (addr < 0x0A000000)
+			return (addr & 1)?0xFF:0xEF;
+
+		if (addr == 0x0A000000)
+			return (nds.paddle & 0xFF);
+
+		if (addr == 0x0A000001)
+			return ((nds.paddle >> 8) & 0x0F);
+
+		return 0x00;
+	}
+	virtual u16	readWord(u8 PROCNUM, u32 addr)
+	{
+		//printf("paddle: read 16 at 0x%08X\n", addr);
+		if (!Validate(PROCNUM, (addr < 0x0A000000)))
+			return 0xFFFF;
+
+		if (addr < 0x0A000000)
+			return 0xEFFF;
+
+		if (addr == 0x0A000000)
+		{
+			u8 val = (nds.paddle & 0xFF);
+			return (val | (val << 8));
+		}
+		
+		return 0x0000;
+	}
+	virtual u32	readLong(u8 PROCNUM, u32 addr)
+	{
+		//printf("paddle: read 32 at 0x%08X\n", addr);
+		if (!Validate(PROCNUM, (addr < 0x0A000000)))
+			return 0xFFFFFFFF;
+
+		if (addr < 0x0A000000)
+			return 0xEFFFEFFF;
+		
+		if (addr == 0x0A000000)
+		{
+			u8 val = (nds.paddle & 0xFF);
+			return (val | (val << 8) | (val << 16) | (val << 24));
+		}
+
+		return 0x00000000;
+	}
+};
+
+u16 Paddle_GetValue()
 {
-	//printf("paddle : read 16 at 0x%08X\n", adr);
-	if(!Validate(procnum,adr<0x0A000000))
-		return 0xFFFF;
-
-	if(adr<0x0A000000)
-		return 0xEFFF;
-	if(adr==0x0A000000)
-	{
-		u8 val = nds.paddle&0xFF;
-		return val|(val<<8);
-	}
-	
-	return 0x0000;
+	return nds.paddle;
 }
-static u32 read32(u32 procnum, u32 adr)
+
+void Paddle_SetValue(u16 theValue)
 {
-	//printf("paddle: read 32 at 0x%08X\n", adr);
-	if(!Validate(procnum,adr<0x0A000000))
-		return 0xFFFFFFFF;
-
-	if(adr<0x0A000000)
-		return 0xEFFFEFFF;
-	if(adr==0x0A000000)
-	{
-		u8 val = nds.paddle&0xFF;
-		return val|(val<<8)|(val<<16)|(val<<24);
-	}
-
-	return 0x00000000;
+	nds.paddle = theValue;
 }
-static void info(char *info) { strcpy(info, "Paddle"); }
 
-ADDONINTERFACE addonPaddle = {
-	"Paddle",
-	init,
-	reset,
-	close,
-	config,
-	write08,
-	write16,
-	write32,
-	read08,
-	read16,
-	read32,
-	info};
+ISlot2Interface* construct_Slot2_Paddle() { return new Slot2_Paddle(); }

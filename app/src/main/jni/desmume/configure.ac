@@ -1,7 +1,7 @@
 dnl --- Package name is first argument to AC_INIT
 dnl --- Release version is second argument to AC_INIT
 
-AC_INIT(desmume, [0.9.8])
+AC_INIT(desmume, [svn])
 
 dnl -- find host architecture for some os specific libraries
 AC_CANONICAL_HOST
@@ -13,7 +13,7 @@ case $host in
 esac
 AC_SUBST(desmume_arch)
 
-AM_INIT_AUTOMAKE([1.10])
+AM_INIT_AUTOMAKE([1.10 subdir-objects tar-pax])
 
 dnl -- make sure we have a c++ compiler
 AC_PROG_CXX
@@ -24,25 +24,19 @@ AC_PROG_RANLIB
 dnl -- check for endianess
 AC_C_BIGENDIAN
 
-# took this from geany, hope it works
-REVISION="r0"
+dnl -- since svn 1.7 theres only a single .svn folder in the root dir of the checkout
+dnl -- depending on what was checked out that might be .svn or ../.svn
+REVISION=0
 SVN=`which svn 2>/dev/null`
-if test -d ".svn" -a "x${SVN}" != "x" -a -x "${SVN}" ; then
-  REVISION=r`$SVN info|grep 'Last Changed Rev'|cut -d' ' -f4`
+if ( test -d .svn || test -d ../.svn ; ) && test "x${SVN}" != "x" -a -x "${SVN}" ; then
+  REVISION=`$SVN info|grep 'Last Changed Rev'|cut -d' ' -f4`
+  echo "$REVISION"
 fi
-AC_DEFINE_UNQUOTED([SVN_REV], "$REVISION", [subversion revision number])
+AC_DEFINE_UNQUOTED([SVN_REV], [$REVISION], [subversion revision number])
+AC_DEFINE_UNQUOTED([SVN_REV_STR], ["$REVISION"], [subversion revision number string])
 
-
-dnl --- Other prerequisites ---
-dnl - Check for pkg-config macros
-m4_ifdef([PKG_PROG_PKG_CONFIG], [PKG_PROG_PKG_CONFIG])
 dnl - Check for intltool/gettext macros
-m4_ifdef([IT_PROG_INTLTOOL],[IT_PROG_INTLTOOL])
-
-AC_CHECK_TOOL(HAVE_PKG, pkg-config, [])
-if test "xHAVE_PKG" = "x" ; then
-  AC_MSG_ERROR([pkg-config is required to build desmume])
-fi
+IT_PROG_INTLTOOL
 
 dnl - Check for zlib
 AC_CHECK_LIB(z, gzopen, [], [AC_MSG_ERROR([zlib was not found, we can't go further. Please install it or specify the location where it's installed.])])
@@ -73,7 +67,7 @@ fi
 
 dnl - Check for the OpenGL includes
 AC_CHECK_HEADERS([GL/gl.h],
-		 [AC_CHECK_HEADERS([GL/glu.h], [have_gl_h=yes LIBS="$LIBS -lGLU"], [have_gl_h=no])],
+		 [AC_CHECK_HEADERS([GL/glu.h], [have_gl_h=yes LIBS="$LIBS -lGL -lGLU"], [have_gl_h=no])],
 		 [have_gl_h=no])
 if test "have_gl_h" = "no" ; then
 	AC_MSG_WARN([Building without GL support because of missing headers.])
@@ -84,7 +78,13 @@ dnl - if --enable-osmesa is used, check for it
 AC_ARG_ENABLE([osmesa],
                [AC_HELP_STRING([--enable-osmesa], [use off-screen mesa])],
                [osmesa=$enableval],
-               [osmesa=yes])
+               [osmesa=no])
+
+dnl - GLX is the default renderer
+AC_ARG_ENABLE([glx],
+               [AC_HELP_STRING([--enable-glx], [use hw accelerated rendering])],
+               [glx=$enableval],
+               [glx=yes])
 
 if test "x$osmesa" = "xyes" ; then
 	AC_CHECK_LIB(dl, main)
@@ -95,18 +95,25 @@ if test "x$osmesa" = "xyes" ; then
 		OSMESA_LIBS="-lOSMesa"
 		AC_SUBST(OSMESA_LIBS)
 	])
+else
+  if test "x$glx" = "xyes" ; then
+	AC_CHECK_LIB(dl, main)
+	AC_CHECK_LIB([GL], main)
+	AC_CHECK_HEADERS([GL/glx.h], [
+	  useglx=yes
+	  AC_DEFINE(HAVE_GL_GLX)
+	  GLX_LIBS="-lX11"
+	  AC_SUBST(GLX_LIBS)
+	])
+  fi
 fi
-AM_CONDITIONAL([HAVE_LIBOSMESA], [test "${useosmesa}" = "yes"])
+AM_CONDITIONAL([HAVE_LIBOSMESA],  [test "${useosmesa}" = "yes"])
+AM_CONDITIONAL([HAVE_GL_GLX],	  [test "${useglx}" = "yes"])
 
 dnl - make the usage of libagg for HUD rendering configurable
 AC_ARG_ENABLE([hud],
               [AC_HELP_STRING([--enable-hud], [Enable HUD rendering, requires libagg])],
               [libagg=yes])
-
-dnl - hack to help zero build gtk frontend macos x package
-AC_ARG_ENABLE(macosxhack,
-	      [AC_HELP_STRING(--enable-macosxhack, hack to build MacOSX package)],
-	      [GTK_MACOSX_HACK=yes])
 
 HAVE_OPENAL=no
 dnl - openal support
@@ -132,11 +139,6 @@ PKG_CHECK_MODULES(GLIB,
                   glib-2.0 >= $GLIB_VER,
                   FOUND_GLIB=yes,
                   FOUND_GLIB=no)
-if test "x$FOUND_GLIB" = "xno"; then
-   if test ! "x$GTK_MACOSX_HACK" = "xyes"; then
-     AC_MSG_ERROR([Glib is required to build desmume])
-   fi
-fi
 
 PKG_CHECK_MODULES(GTK,
                   gtk+-2.0 >= $GTK_VER,
@@ -156,7 +158,7 @@ AC_SUBST(GTHREAD_LIBS)
 AC_ARG_ENABLE([glade],
                [AC_HELP_STRING([--enable-glade], [enable glade frontend])],
                [glade=$enableval],
-               [glade=yes])
+               [glade=no])
 
 if test "x$glade" = "xyes" ; then
     PKG_CHECK_MODULES(LIBGLADE,
@@ -209,7 +211,7 @@ if test "x$libagg" = "xyes" ; then
        AC_SUBST(LIBAGG_LIBS)
        AC_DEFINE([HAVE_LIBAGG])
    else
-       AC_MSG_WARN([HUD rendering enabled, but libagg not found])
+       AC_MSG_ERROR([HUD rendering enabled, but libagg not found])
    fi
 fi
 
@@ -229,37 +231,15 @@ if test "x$HAVE_ALSA" = "xno"; then
    fi
 fi
 
-dnl - Check for wxWidgets
-
-dnl - if --enable-wxwidgets is used, check for it
-AC_ARG_ENABLE([wxwidgets],
-               [AC_HELP_STRING([--enable-wxwidgets], [Enable cross platform wx widgets frontend])],
-               [wxwidgets=$enableval],
-               [wxwidgets=no])
-if test "x$wxwidgets" = "xyes" ; then
-	m4_include(wxwin.m4)
-	AM_PATH_WXCONFIG([2.4.0], wxwin=yes)
-	if test "x$wxwin" = "xyes"; then
-		AC_SUBST(WX_CPPFLAGS)
-		AC_SUBST(WX_LIBS)
-   		AC_DEFINE([WANT_WX])
-	fi
-fi
-
-AM_CONDITIONAL([HAVE_WX], [test "x$wxwidgets" = "xyes"])
-
 dnl - Determine which UIs to build and if po/ should be included
-PO_DIR=""
+PO_DIR="po"
+PO_MAKEFILE="po/Makefile.in"
 UI_DIR="cli $UI_DIR"
 if test "x$HAVE_GTK" = "xyes"; then
   UI_DIR="gtk $UI_DIR"
 fi
-if test "x$wxwin" = "xyes"; then
-  UI_DIR="wx $UI_DIR"
-fi
 
 if test "x$HAVE_LIBGLADE" = "xyes"; then
-  AC_PROVIDE_IFELSE([IT_PROG_INTLTOOL],[
     UI_DIR="gtk-glade $UI_DIR"
 
     dnl -- localization for gtk-glade UI
@@ -268,12 +248,16 @@ if test "x$HAVE_LIBGLADE" = "xyes"; then
     AC_SUBST(GETTEXT_PACKAGE)
     ALL_LINGUAS="fr nb pt_BR sv zh_CN zh_TW"
     AM_GLIB_GNU_GETTEXT
-    PO_DIR="po"
-    PO_MAKEFILE="po/Makefile.in"
-  ],[
-    echo "WARNING: intltool and/or gettext are not available therefore the gtk-glade interface won't be installed."
-  ])
 fi
+
+dnl - jit support
+case $host_cpu in
+  x86|x86_64|i386|i486|i586|i686)
+    HAVE_JIT=yes
+    AC_DEFINE(HAVE_JIT)
+    ;;
+esac
+AM_CONDITIONAL([HAVE_JIT], [test "x$HAVE_JIT" = "xyes"])
 
 dnl - wifi support
 AC_ARG_ENABLE(wifi,
@@ -292,21 +276,31 @@ case $host in
     UI_DIR="windows"
     ;;
   *darwin*)
-    if test "x$GTK_MACOSX_HACK" = "xyes" ; then
-      LIBS="$LIBS -framework Gtk -framework GLib"
-      CPPFLAGS="$CPPFLAGS -I/Library/Frameworks/Cairo.framework/Headers -I/Library/Frameworks/Gtk.framework/Headers -I/Library/Frameworks/GLib.framework/Headers"
-      GLIB_LIBS=""
-      AC_SUBST(GLIB_LIBS)
-    fi
     dnl - openal is required on mac os x and we are not able to figure out if it's installed or not
     AC_DEFINE(HAVE_OPENAL)
     LIBS="$LIBS -framework OpenGL -framework OpenAL"
     CPPFLAGS="$CPPFLAGS -I/System/Library/Frameworks/OpenAL.framework/Headers"
-    AC_SUBST(CPPFLAGS)
+	AC_SUBST(CPPFLAGS)
     dnl - extra hackery needed for X includes
     AC_PATH_XTRA
     ;;
 esac
+
+# Detect the host platform and architecture and feed them to the compiler as
+# defines
+AS_CASE([$host],
+		[*linux*], [AC_DEFINE(HOST_LINUX)],
+		[*bsd*]  , [AC_DEFINE(HOST_BSD)],
+		[*mingw*], [AC_DEFINE(HOST_WINDOWS)],
+		[*darwin*],[AC_DEFINE(HOST_DARWIN)],
+		[AC_DEFINE(HOST_UNK)]
+)
+
+AS_CASE([$host_cpu],
+		[x86_64], [AC_DEFINE(HOST_64)],
+		[amd64],  [AC_DEFINE(HOST_64)],
+		[AC_DEFINE(HOST_32)]
+)
 
 AC_SUBST(UI_DIR)
 AC_SUBST(PO_DIR)
@@ -382,7 +376,6 @@ AC_CONFIG_FILES([Makefile
                  src/gtk/doc/Makefile
                  src/gtk-glade/Makefile
                  src/gtk-glade/doc/Makefile
-                 src/wx/Makefile
 		 src/gdbstub/Makefile
 		 autopackage/default.apspec
 ])

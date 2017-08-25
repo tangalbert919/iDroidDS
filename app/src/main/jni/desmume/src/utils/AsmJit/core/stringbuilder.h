@@ -4,6 +4,8 @@
 // [License]
 // Zlib - See COPYING file in this package.
 
+#include <stdarg.h>
+
 // [Guard]
 #ifndef _ASMJIT_CORE_STRINGBUILDER_H
 #define _ASMJIT_CORE_STRINGBUILDER_H
@@ -11,8 +13,6 @@
 // [Dependencies - AsmJit]
 #include "../core/assert.h"
 #include "../core/defs.h"
-
-#include <stdarg.h>
 
 namespace AsmJit {
 

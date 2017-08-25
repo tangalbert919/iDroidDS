@@ -1,62 +1,35 @@
-/*  Copyright (C) 2010-2011 DeSmuME team
+/*
+	Copyright (C) 2010-2015 DeSmuME team
 
-    This file is part of DeSmuME
+	This file is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 2 of the License, or
+	(at your option) any later version.
 
-    DeSmuME is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+	This file is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    DeSmuME is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with DeSmuME; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+	You should have received a copy of the GNU General Public License
+	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "../slot1.h"
 
-static void slot1_info(char *info) { strcpy(info, "Slot1 no-card emulation (card ejected!)"); }
-static void slot1_config(void) {}
-
-static BOOL slot1_init() { return (TRUE); }
-
-static void slot1_reset() {}
-
-static void slot1_close() {}
-
-
-static void slot1_write08(u8 PROCNUM, u32 adr, u8 val) {}
-static void slot1_write16(u8 PROCNUM, u32 adr, u16 val) {}
-static void slot1_write32(u8 PROCNUM, u32 adr, u32 val) {}
-
-static u8 slot1_read08(u8 PROCNUM, u32 adr)
+class Slot1_None : public ISlot1Interface
 {
-	return 0xFF;
-}
-static u16 slot1_read16(u8 PROCNUM, u32 adr)
-{
-	return 0xFFFF;
-}
-static u32 slot1_read32(u8 PROCNUM, u32 adr)
-{
-	return 0xFFFFFFFF;
-}
+public:
+	virtual Slot1Info const* info()
+	{
+		static Slot1InfoSimple info("None","Slot1 no-card emulation", 0xFF);
+		return &info;
+	}
 
+	//pretty much every access to the card should just be ignored and reading HIGH-Z off the GC bus.
+	//so, nothing really to do here
+	//(notably, it results in a 0xFFFFFFFF card ID)
 
-SLOT1INTERFACE slot1None = {
-	"None",
-	slot1_init,
-	slot1_reset,
-	slot1_close,
-	slot1_config,
-	slot1_write08,
-	slot1_write16,
-	slot1_write32,
-	slot1_read08,
-	slot1_read16,
-	slot1_read32,
-	slot1_info};
+};
+
+ISlot1Interface* construct_Slot1_None() { return new Slot1_None(); }

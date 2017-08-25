@@ -1,7 +1,7 @@
 /*
 	Copyright (C) 2006 yopyop
 	Copyright (C) 2006 Mic
-	Copyright (C) 2010-2011 DeSmuME team
+	Copyright (C) 2010-2015 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 
 #include "../types.h"
 #include "../debug.h"
+#include "../emufile.h"
 #include "../fs.h"
 
 #include "emufat.h"
@@ -171,21 +172,21 @@ bool VFAT::build(const char* path, int extra_MB)
 
 	if(dataSectors>=(0x80000000>>9))
 	{
-		printf("error allocating memory for fat (%llu KBytes)\n",(dataSectors*512)/1024);
+		printf("error allocating memory for fat (%d KBytes)\n",(dataSectors*512)/1024);
 		printf("total fat sizes > 2GB are never going to work\n");
 	}
 	
 	delete file;
-
-	file = new EMUFILE_MEMORY(dataSectors*512);
-
-	if(file == NULL)
+	try 
 	{
-		printf("error allocating memory for fat (%llu KBytes)\n",(dataSectors*512)/1024);
+		file = new EMUFILE_MEMORY(dataSectors*512);
+	}
+	catch(std::bad_alloc)
+	{
+		printf("error allocating memory for fat (%d KBytes)\n",(dataSectors*512)/1024);
 		printf("(out of memory)\n");
 		return false;
 	}
-
 
 	//debug..
 	//file = new EMUFILE_FILE("c:\\temp.ima","rb+");
