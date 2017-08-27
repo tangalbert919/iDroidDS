@@ -88,6 +88,7 @@ EGLSurface surface;
 EGLContext context;
 const char* IniName = NULL;
 char androidTempPath[1024];
+char pathToModule[1024];
 extern bool enableMicrophone;
 
 #ifdef USE_PROFILER
@@ -759,7 +760,7 @@ void JNI(init, jobject _inst)
 	mainLoopData.lastticks = GetTickCount();
 }
 
-void JNI(changeCpuMode, int type)
+void JNI(changeCpuMode, bool type)
 {
 	armcpu_setjitmode(type);
 }
@@ -797,7 +798,7 @@ void JNI(setWorkingDir, jstring path, jstring temp)
 {
 	jboolean isCopy; 
 	const char* szPath = env->GetStringUTFChars(path, &isCopy);
-	strncpy(path.pathToModule, szPath, MAX_PATH);
+	strncpy(pathToModule, szPath, MAX_PATH);
 	env->ReleaseStringUTFChars(path, szPath);
 	
 	szPath = env->GetStringUTFChars(temp, &isCopy);

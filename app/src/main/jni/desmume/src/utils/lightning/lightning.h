@@ -125,11 +125,11 @@ typedef jit_int32_t		jit_gpr_t;
 typedef jit_int32_t		jit_fpr_t;
 
 #if defined(__i386__) || defined(__x86_64__)
-#  include <lightning/jit_x86.h>
+#  include "lightning/jit_x86.h"
 //#elif defined(__mips__)
 //#  include <lightning/jit_mips.h>
 #elif defined(__arm__)
-#  include <lightning/jit_arm.h>
+#  include "lightning/jit_arm.h"
 //#elif defined(__ppc__) || defined(__powerpc__)
 //#  include <lightning/jit_ppc.h>
 //#elif defined(__sparc__)
@@ -139,7 +139,7 @@ typedef jit_int32_t		jit_fpr_t;
 //#elif defined(__hppa__)
 //#  include <lightning/jit_hppa.h>
 #elif defined(__aarch64__)
-#  include <lightning/jit_aarch64.h>
+#  include "lightning/jit_aarch64.h"
 //#elif defined(__s390__) || defined(__s390x__)
 //#  include <lightning/jit_s390.h>
 //#elif defined(__alpha__)

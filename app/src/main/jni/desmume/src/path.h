@@ -457,4 +457,3 @@ public:
 };
 
 extern PathInfo path;
-
