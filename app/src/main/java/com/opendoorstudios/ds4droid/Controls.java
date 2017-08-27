@@ -38,14 +38,13 @@ import android.view.MotionEvent;
 
 class Controls {
 	
-	float xscale = 0, yscale = 0;
-	final Paint controlsPaint = new Paint();
-	NDSView view;
-	boolean landscape;
-	int currentAlpha = -1;
-	Rect screen;
-	int screenWidth = 0, screenHeight = 0;
-	int xBlack = 0, yBlack = 0;
+	private float xscale = 0, yscale = 0;
+	private final Paint controlsPaint = new Paint();
+	private NDSView view;
+	private boolean landscape;
+	private int currentAlpha = -1;
+	private int screenWidth = 0, screenHeight = 0;
+	private int xBlack = 0, yBlack = 0;
 	
 	Controls(NDSView view) {
 		this.view = view;
@@ -55,13 +54,13 @@ class Controls {
 		this.view = view;
 	}
 	
-	Button touchButton;
+	private Button touchButton;
 	//Button fastForwardButton;
-	Button optionsButton;
+	private Button optionsButton;
 	
-	final SparseArray<int[]> keyMappings = new SparseArray<>();
+	private final SparseArray<int[]> keyMappings = new SparseArray<>();
 	
-	public static final int[] KEYS_WITH_MAPPINGS = new int[] { Button.BUTTON_UP, Button.BUTTON_DOWN, Button.BUTTON_LEFT, Button.BUTTON_RIGHT,
+	private static final int[] KEYS_WITH_MAPPINGS = new int[] { Button.BUTTON_UP, Button.BUTTON_DOWN, Button.BUTTON_LEFT, Button.BUTTON_RIGHT,
 			Button.BUTTON_A, Button.BUTTON_B, Button.BUTTON_X, Button.BUTTON_Y, Button.BUTTON_START, Button.BUTTON_SELECT,
 			Button.BUTTON_TOUCH, Button.BUTTON_L, Button.BUTTON_R, Button.BUTTON_OPTIONS };
 	
@@ -92,8 +91,8 @@ class Controls {
 	}
 	
 	void loadControls(Context context, int screenWidth, int screenHeight, int xBlack, int yBlack, int screenOption, boolean is565, boolean landscape) {
-		
-		screen = new Rect(0, 0, this.screenWidth = screenWidth, this.screenHeight = screenHeight);
+
+		Rect screen = new Rect(0, 0, this.screenWidth = screenWidth, this.screenHeight = screenHeight);
 		
 		this.xBlack = xBlack;
 		this.yBlack = yBlack;
@@ -176,7 +175,7 @@ class Controls {
 		
 	}
 	
-	static Rect getRatioRect(Rect base, float left, float top, float right, float bottom) {
+	private static Rect getRatioRect(Rect base, float left, float top, float right, float bottom) {
 		final int width = base.width();
 		final int height = base.height();
 		return new Rect(
@@ -189,21 +188,21 @@ class Controls {
 	
 	
 	//These coordinates are in our "native" coordinate space, which was arbitrarily chosen to be 768x1152 (exactly three times the DS native resolution)
-	public static final Rect defaultPortSpace = new Rect(0, 0, 768, 1152);
-	public static final Rect defaultLandSpace = new Rect(0, 0, 1152, 768);
+	static final Rect defaultPortSpace = new Rect(0, 0, 768, 1152);
+	static final Rect defaultLandSpace = new Rect(0, 0, 1152, 768);
 	
 	
 	//These are the final on/off values that will get sent to the emulator.
 	//They go from BUTTON_RIGHT to BUTTON_SELECT
-	final int[] buttonStates = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	private final int[] buttonStates = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	
 	//This map goes from pointer id (from the android os) to the different buttons we have
-	final SparseArray<Button> activeTouches = new SparseArray<>();
+	private final SparseArray<Button> activeTouches = new SparseArray<>();
 	
-	final ArrayList<Button> buttonsToDraw = new ArrayList<>();
-	final ArrayList<Button> buttonsToProcess = new ArrayList<>();
+	private final ArrayList<Button> buttonsToDraw = new ArrayList<>();
+	private final ArrayList<Button> buttonsToProcess = new ArrayList<>();
 	
-	boolean touchScreenProcess(MotionEvent event) {
+	private boolean touchScreenProcess(MotionEvent event) {
 		switch(event.getAction()) {
 		case MotionEvent.ACTION_DOWN:
 		case MotionEvent.ACTION_MOVE:
@@ -374,7 +373,7 @@ class Controls {
 		return true;
 	}
 	
-	void sendStates() {
+	private void sendStates() {
 		DeSmuME.setButtons(buttonStates[Button.BUTTON_L], buttonStates[Button.BUTTON_R], buttonStates[Button.BUTTON_UP], buttonStates[Button.BUTTON_DOWN], buttonStates[Button.BUTTON_LEFT], buttonStates[Button.BUTTON_RIGHT], 
 				buttonStates[Button.BUTTON_A], buttonStates[Button.BUTTON_B], buttonStates[Button.BUTTON_X], buttonStates[Button.BUTTON_Y], 
 				buttonStates[Button.BUTTON_START], buttonStates[Button.BUTTON_SELECT], DeSmuME.lidOpen ? 1 : 0);

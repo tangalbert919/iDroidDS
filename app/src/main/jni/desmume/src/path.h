@@ -17,6 +17,7 @@
 
 #include <string>
 #include "types.h"
+#include "arm_jit.h"
 
 #if defined(HOST_WINDOWS)
 	#define WIN32_LEAN_AND_MEAN
@@ -28,7 +29,7 @@
 		#include "windows/winutil.h"
 		#include "windows/resource.h"
 	#endif
-#elif !defined(DESMUME_COCOA)
+#elif !defined(DESMUME_COCOA) && !defined(ANDROID)
 	#include <glib.h>
 #endif /* HOST_WINDOWS */
 
@@ -155,6 +156,8 @@ public:
 		std::string pathStr = Path::GetFileDirectoryPath(path);
 
 		strncpy(pathToModule, pathStr.c_str(), MAX_PATH);
+#elif defined(ANDROID)
+        return;
 #else
 		char *cwd = g_build_filename(g_get_user_config_dir(), "desmume", NULL);
 		g_mkdir_with_parents(cwd, 0755);
@@ -280,7 +283,7 @@ public:
 	
 			if(!Path::IsPathRooted(thePath))
 			{
-				thePath = (std::string)pathToModule + thePath;
+				thePath = pathToModule + thePath;
 			}
 
 			strncpy(buffer, thePath.c_str(), MAX_PATH);

@@ -1,0 +1,8 @@
+//
+// Created by Albert Tang on 8/26/2017.
+//
+
+#ifndef NDS4DROID_OGLES3RENDER_H
+#define NDS4DROID_OGLES3RENDER_H
+
+#endif //NDS4DROID_OGLES3RENDER_H

@@ -23,11 +23,11 @@ import android.graphics.Bitmap;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-class DeSmuME {
+public class DeSmuME {
 
-	public static Context context;
+	public Context context;
 	
-	static boolean loaded = false;
+	private static boolean loaded = false;
 	
 	static final int CPUTYPE_V7 = 0;
 	static final int CPUTYPE_NEON = 1;
@@ -55,7 +55,7 @@ class DeSmuME {
 				break;
 			case CPUTYPE_ARM64:
 				// There is a problem with Lightning JIT on 64-bit devices that causes the app to hang.
-				// The NEON shared library can't be found for whatever reason.
+				// As of version 48, this problem will be addressed and fixed.
 				System.loadLibrary("desmumearm64");
 				Log.i(MainActivity.TAG, "Using ARMv8-A (ARM64) library");
 				break;
@@ -110,7 +110,7 @@ class DeSmuME {
 	static boolean lidOpen = true;
 	static String loadedRom = null;
 	
-	public static int getSettingInt(String name, int def)
+	public int getSettingInt(String name, int def)
 	{
 		SharedPreferences pm = PreferenceManager.getDefaultSharedPreferences(context);
 		if(!pm.contains(name))

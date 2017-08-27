@@ -36,11 +36,11 @@ public class KeyMapPreference extends DialogPreference implements OnKeyListener 
 		currentValuePreface = context.getResources().getString(R.string.KeymapValuePreface);
 	}
 	
-	int currentValue;
-	TextView currentValueDesc;
-	final String currentValuePreface;
+	private int currentValue;
+	private TextView currentValueDesc;
+	private final String currentValuePreface;
 	
-	static String getKeyDesc(int value) {
+	private static String getKeyDesc(int value) {
 		if(value == 0)
 			return "(none)";
 		else {
@@ -49,7 +49,7 @@ public class KeyMapPreference extends DialogPreference implements OnKeyListener 
 		}
 	}
 	
-	void sync() {
+	private void sync() {
 		currentValueDesc.setText(currentValuePreface + " " + getKeyDesc(currentValue));
 	}
 	

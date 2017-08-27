@@ -79,6 +79,8 @@ public:
 	static void log(unsigned int channel, const char * file, unsigned int line, std::ostream& os);
 	static void log(unsigned int channel, const char * file, unsigned int line, unsigned int flag);
 	static void log(unsigned int channel, const char * file, unsigned int line, void (*callback)(const Logger& logger, const char * message));
+
+	static void setCallbackAll(void (*cback)(const Logger& logger, const char * message));
 };
 
 #if defined(DEBUG) || defined(GPUDEBUG) || defined(DIVDEBUG) || defined(SQRTDEBUG) || defined(DMADEBUG) || defined(DEVELOPER)

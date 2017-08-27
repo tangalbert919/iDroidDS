@@ -65,6 +65,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 	NDSView view;
 	static final String TAG = "nds4droid";
 	Dialog loadingDialog = null;
+	private DeSmuME ds = new DeSmuME();
 	
 	Handler msgHandler = new Handler() {
 		
@@ -429,27 +430,27 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 			
 			if(key != null) {
 				if(key.equals(Settings.SCREEN_FILTER)) {
-					int newFilter = DeSmuME.getSettingInt(Settings.SCREEN_FILTER, 0);
+					int newFilter = ds.getSettingInt(Settings.SCREEN_FILTER, 0);
 					DeSmuME.setFilter(newFilter);
 					view.forceResize();
 				}
 				else if(key.equals(Settings.RENDERER)) {
-					int new3D = DeSmuME.getSettingInt(Settings.RENDERER, 2);
+					int new3D = ds.getSettingInt(Settings.RENDERER, 2);
 					if(coreThread != null)
 						coreThread.change3D(new3D);
 				}
 				else if(key.equals(Settings.ENABLE_SOUND)) {
-					int newSound = DeSmuME.getSettingInt(Settings.ENABLE_SOUND, 0);
+					int newSound = ds.getSettingInt(Settings.ENABLE_SOUND, 0);
 					if(coreThread != null)
 						coreThread.changeSound(newSound);
 				}
 				else if(key.equals(Settings.CPU_MODE) || key.equals(Settings.JIT_SIZE)) {
-					int newCpuMode = DeSmuME.getSettingInt(Settings.CPU_MODE, 1);
+					int newCpuMode = ds.getSettingInt(Settings.CPU_MODE, 1);
 					if(coreThread != null)
 						coreThread.changeCPUMode(newCpuMode);
 				}
 				else if(key.equals(Settings.SOUND_SYNC_MODE)) {
-					int newSoundSyncMode = DeSmuME.getSettingInt(Settings.SOUND_SYNC_MODE, 0);
+					int newSoundSyncMode = ds.getSettingInt(Settings.SOUND_SYNC_MODE, 0);
 					if(coreThread != null)
 						coreThread.changeSoundSyncMode(newSoundSyncMode);
 				}
@@ -480,7 +481,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 			final int freqSel = Integer.valueOf(prefs.getString(Settings.AUTOSVAE_FREQUENCY, "1"));
 			long autosaveDelay;
 			switch(freqSel) {
-			case 0: autosaveDelay = 1 * 60 * 1000; break; //1 minute
+			case 0: autosaveDelay = 60 * 1000; break; //1 minute
 			case 2: autosaveDelay = 15 * 60 * 1000; break; //15 minutes
 			case 3: autosaveDelay = 30 * 60 * 1000; break; //30 minutes
 			case 4: autosaveDelay = 60 * 60 * 1000; break; //1 hour
@@ -664,7 +665,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 				resized = true;
 				
 				screenOption = Integer.valueOf(prefs.getString(Settings.SPECIFIC_SCREEN_ONLY, "0"));
-				final boolean hasScreenFilter = DeSmuME.getSettingInt(Settings.SCREEN_FILTER, 0) != 0;
+				final boolean hasScreenFilter = ds.getSettingInt(Settings.SCREEN_FILTER, 0) != 0;
 				final boolean is565 = newPixelFormat == PixelFormat.RGB_565 && !hasScreenFilter;
 				final boolean stretch = !prefs.getBoolean(Settings.MAINTAIN_ASPECT_RATIO, false);
 				landscape = newWidth > newHeight;

@@ -324,6 +324,11 @@ void Logger::log(unsigned int channel, const char * file, unsigned int line, voi
 	channels[channel]->setCallback(callback);
 }
 
+void Logger::setCallbackAll(void (*cback)(const Logger& logger, const char * message)) {
+	for(std::vector<Logger*>::iterator it = Logger::channels.begin() ; it != Logger::channels.end() ; ++it)
+		(*it)->setCallback(cback);
+}
+
 void IdeasLog(armcpu_t* cpu)
 {
 	u32 adr = cpu->R[0];

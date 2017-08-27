@@ -8604,7 +8604,7 @@ static void cpuReset()
 
 static void cpuSync()
 {
-	armcpu_sync();
+	arm_jit_sync();
 }
 
 TEMPLATE static void cpuClear(u32 Addr, u32 Size)

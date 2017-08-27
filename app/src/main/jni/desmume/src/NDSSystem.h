@@ -357,7 +357,7 @@ struct GameInfo
 	bool isDSiEnhanced();
 	bool isHomebrew();
 	bool hasRomBanner();
-	
+	void resize(int size);
 };
 
 typedef struct TSCalInfo
@@ -480,7 +480,7 @@ extern struct TCommonSettings {
 		, GFX3D_Zelda_Shadow_Depth_Hack(0)
 		, GFX3D_Renderer_Multisample(false)
 		, GFX3D_TXTHack(false)
-		, jit_max_block_size(100)
+		, jit_max_block_size(50)
 		, loadToMemory(false)
 		, UseExtBIOS(false)
 		, SWIFromBIOS(false)

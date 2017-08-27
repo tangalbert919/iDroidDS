@@ -19,6 +19,7 @@
 #include "armcpu.h"
 #include "instructions.h"
 #include "Disassembler.h"
+#include "JitCommon.h"
 #include <assert.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

@@ -341,6 +341,8 @@ template<int PROCNUM> u32 armcpu_exec();
 template<int PROCNUM, bool jit> u32 armcpu_exec();
 #endif
 
+void armcpu_setjitmode(int jitmode);
+void armcpu_sync();
 void setIF(int PROCNUM, u32 flag);
 char* decodeIntruction(bool thumb_mode, u32 instr);
 

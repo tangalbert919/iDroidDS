@@ -43,8 +43,8 @@ import android.widget.TextView;
 
 public class FileDialog extends ListActivity {
 	
-	public static class SelectionMode {
-		public static final int MODE_CREATE = 0;
+	private static class SelectionMode {
+		static final int MODE_CREATE = 0;
 
 		public static final int MODE_OPEN = 1;
 	}
@@ -81,8 +81,6 @@ public class FileDialog extends ListActivity {
 	private String parentPath;
 	private String currentPath = ROOT;
 
-	private int selectionMode = SelectionMode.MODE_CREATE;
-
 	private String[] formatFilter = null;
 
 	private boolean canSelectDir = false;
@@ -100,7 +98,7 @@ public class FileDialog extends ListActivity {
 		myPath = (TextView) findViewById(R.id.path);
 
 
-		selectionMode = getIntent().getIntExtra(SELECTION_MODE, SelectionMode.MODE_CREATE);
+		int selectionMode = getIntent().getIntExtra(SELECTION_MODE, SelectionMode.MODE_CREATE);
 
 		formatFilter = getIntent().getStringArrayExtra(FORMAT_FILTER);
 

@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2009-2015 DeSmuME Team
+	Copyright (C) 2008-2009 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -15,31 +15,23 @@
 	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MIC_H
-#define MIC_H
+#ifndef _FILEMAP_H_
+#define _FILEMAP_H_
 
-#include "types.h"
-#include "emufile.h"
+class FileMap
+{
+public:
+	FileMap(const char *file);
+	~FileMap();
 
-class EMUFILE;
+	bool Open(int size, bool del_on_close);
+	void Close();
 
-#ifdef WIN32
-static char MicSampleName[256];
-bool LoadSample(const char *name);
+	void* GetPtr();
+	int GetSize();
+
+	class Impl;
+	Impl *impl;
+};
+
 #endif
-
-extern int MicDisplay;
-
-#ifdef FAKE_MIC
-void Mic_DoNoise(BOOL);
-#endif
-
-BOOL Mic_Init(void);
-void Mic_Reset(void);
-void Mic_DeInit(void);
-u8 Mic_ReadSample(void);
-
-void mic_savestate(EMUFILE* os);
-bool mic_loadstate(EMUFILE* is, int size);
-
-#endif // MIC_H

@@ -172,7 +172,7 @@ bool VFAT::build(const char* path, int extra_MB)
 
 	if(dataSectors>=(0x80000000>>9))
 	{
-		printf("error allocating memory for fat (%d KBytes)\n",(dataSectors*512)/1024);
+		printf("error allocating memory for fat (%llu KBytes)\n",(dataSectors*512)/1024);
 		printf("total fat sizes > 2GB are never going to work\n");
 	}
 	
@@ -183,7 +183,7 @@ bool VFAT::build(const char* path, int extra_MB)
 	}
 	catch(std::bad_alloc)
 	{
-		printf("error allocating memory for fat (%d KBytes)\n",(dataSectors*512)/1024);
+		printf("error allocating memory for fat (%llu KBytes)\n",(dataSectors*512)/1024);
 		printf("(out of memory)\n");
 		return false;
 	}

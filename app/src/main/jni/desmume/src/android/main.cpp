@@ -1,5 +1,6 @@
 /*
 	Copyright (C) 2012 Jeffrey Quesnelle
+    Copyright (C) 2017 The nds4droid Team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -24,6 +25,8 @@
 #include <GLES/gl.h>
 #include <android/sensor.h>
 #include <android/bitmap.h>
+#include <GPU.h>
+#include <armcpu.h>
 
 
 #include "main.h"
@@ -34,8 +37,8 @@
 #include "../NDSSystem.h"
 #include "../path.h"
 #include "../GPU_OSD.h"
-#include "../addons.h"
 #include "../slot1.h"
+#include "../slot2.h"
 #include "../saves.h"
 #include "throttle.h"
 #include "video.h"
@@ -85,7 +88,6 @@ EGLSurface surface;
 EGLContext context;
 const char* IniName = NULL;
 char androidTempPath[1024];
-bool useMmapForRomLoading;
 extern bool enableMicrophone;
 
 #ifdef USE_PROFILER
@@ -594,11 +596,13 @@ void loadSettings(JNIEnv* env)
 	CommonSettings.autodetectBackupMethod = GetPrivateProfileInt(env,"General", "autoDetectMethod", 0, IniName);
 	enableMicrophone = GetPrivateProfileBool(env, "General", "EnableMicrophone", true, IniName);
 
+	// This is the video settings
 	video.rotation =  GetPrivateProfileInt(env,"Video","WindowRotate", 0, IniName);
 	video.rotation_userset =  GetPrivateProfileInt(env,"Video","WindowRotateSet", video.rotation, IniName);
 	video.layout_old = video.layout = GetPrivateProfileInt(env,"Video", "LCDsLayout", 0, IniName);
 	video.swap = GetPrivateProfileInt(env,"Video", "LCDsSwap", 0, IniName);
 
+	// This is for the HUD
 	CommonSettings.hud.FpsDisplay = GetPrivateProfileBool(env,"Display","DisplayFps", false, IniName);
 	CommonSettings.hud.FrameCounterDisplay = GetPrivateProfileBool(env,"Display","FrameCounter", false, IniName);
 	CommonSettings.hud.ShowInputDisplay = GetPrivateProfileBool(env,"Display","DisplayInput", false, IniName);
@@ -611,26 +615,31 @@ void loadSettings(JNIEnv* env)
 	CommonSettings.showGpu.sub = GetPrivateProfileInt(env,"Display", "SubGpu", 1, IniName) != 0;
 	frameskiprate = GetPrivateProfileInt(env,"Display", "FrameSkip", 1, IniName);
 
+	// This is the microphone
 	CommonSettings.micMode = (TCommonSettings::MicMode)GetPrivateProfileInt(env,"MicSettings", "MicMode", (int)TCommonSettings::InternalNoise, IniName);
 
+	// This is for sound
 	CommonSettings.spu_advanced = GetPrivateProfileBool(env,"Sound", "SpuAdvanced", false, IniName);
 	CommonSettings.spuInterpolationMode = (SPUInterpolationMode)GetPrivateProfileInt(env, "Sound","SPUInterpolation", 1, IniName);
 	snd_synchmode = GetPrivateProfileInt(env, "Sound","SynchMode",0,IniName);
 	snd_synchmethod = GetPrivateProfileInt(env, "Sound","SynchMethod",0,IniName);
 
+	// This is about JIT
 	CommonSettings.advanced_timing = GetPrivateProfileBool(env,"Emulation", "AdvancedTiming", false, IniName);
-	CommonSettings.CpuMode = GetPrivateProfileInt(env, "Emulation","CpuMode", 2, IniName);
+	CommonSettings.use_jit = GetPrivateProfileBool(env, "Emulation","CpuMode", false, IniName);
 	CommonSettings.jit_max_block_size = GetPrivateProfileInt(env, "Emulation", "JitSize", 10, IniName);
-	
+
+	// This is the Graphics settings
 	CommonSettings.GFX3D_Zelda_Shadow_Depth_Hack = GetPrivateProfileInt(env,"3D", "ZeldaShadowDepthHack", 0, IniName);
 	CommonSettings.GFX3D_HighResolutionInterpolateColor = GetPrivateProfileBool(env, "3D", "HighResolutionInterpolateColor", 0, IniName);
 	CommonSettings.GFX3D_EdgeMark = GetPrivateProfileBool(env, "3D", "EnableEdgeMark", 0, IniName);
 	CommonSettings.GFX3D_Fog = GetPrivateProfileBool(env, "3D", "EnableFog", 1, IniName);
 	CommonSettings.GFX3D_Texture = GetPrivateProfileBool(env, "3D", "EnableTexture", 1, IniName);
 	CommonSettings.GFX3D_LineHack = GetPrivateProfileBool(env, "3D", "EnableLineHack", 0, IniName);
-	useMmapForRomLoading = GetPrivateProfileBool(env, "General", "UseMmap", true, IniName);
+	CommonSettings.GFX3D_TXTHack = GetPrivateProfileBool(env, "3D", "EnableTXTHack", false, IniName);
 	fw_config.language = GetPrivateProfileInt(env, "Firmware","Language", 1, IniName);
 
+	// This is the wifi
 	CommonSettings.wifi.mode = GetPrivateProfileInt(env,"Wifi", "Mode", 0, IniName);
 	CommonSettings.wifi.infraBridgeAdapter = GetPrivateProfileInt(env,"Wifi", "BridgeAdapter", 0, IniName);
 }
@@ -674,50 +683,47 @@ void JNI(init, jobject _inst)
 	
 	INFO("Init NDS");
 	
-	int slot1_device_type = NDS_SLOT1_RETAIL;
+	int slot1_device_type = NDS_SLOT1_RETAIL_AUTO;
 	switch (slot1_device_type)
 	{
 		case NDS_SLOT1_NONE:
-		case NDS_SLOT1_RETAIL:
+		case NDS_SLOT1_RETAIL_MCROM:
 		case NDS_SLOT1_R4:
 		case NDS_SLOT1_RETAIL_NAND:
 			break;
 		default:
-			slot1_device_type = NDS_SLOT1_RETAIL;
+			slot1_device_type = NDS_SLOT1_RETAIL_AUTO;
 			break;
-	}
-	
-	switch (addon_type)
-	{
-	case NDS_ADDON_NONE:
-		break;
-	case NDS_ADDON_CFLASH:
-		break;
-	case NDS_ADDON_RUMBLEPAK:
-		break;
-	case NDS_ADDON_GBAGAME:
-		if (!strlen(GBAgameName))
-		{
-			addon_type = NDS_ADDON_NONE;
-			break;
-		}
-		// TODO: check for file exist
-		break;
-	case NDS_ADDON_GUITARGRIP:
-		break;
-	case NDS_ADDON_EXPMEMORY:
-		break;
-	case NDS_ADDON_PIANO:
-		break;
-	case NDS_ADDON_PADDLE:
-		break;
-	default:
-		addon_type = NDS_ADDON_NONE;
-		break;
 	}
 
-	slot1Change((NDS_SLOT1_TYPE)slot1_device_type);
-	addonsChangePak(addon_type);
+	int slot2_device_type = NDS_SLOT2_AUTO;
+	switch (slot2_device_type)
+	{
+		case NDS_SLOT2_NONE:
+			break;
+		case NDS_SLOT2_CFLASH:
+			break;
+		case NDS_SLOT2_RUMBLEPAK:
+			break;
+		case NDS_SLOT2_GBACART:
+			break;
+		case NDS_SLOT2_GUITARGRIP:
+			break;
+		case NDS_SLOT2_EXPMEMORY:
+			break;
+		case NDS_SLOT2_EASYPIANO:
+			break;
+		case NDS_SLOT2_PADDLE:
+			break;
+		case NDS_SLOT2_PASSME:
+			break;
+		default:
+			slot2_device_type = NDS_SLOT2_AUTO;
+			break;
+	}
+
+	slot1_Change((NDS_SLOT1_TYPE)slot1_device_type);
+	slot2_Change((NDS_SLOT2_TYPE)slot2_device_type);
 
 	
 	NDS_Init();
@@ -731,12 +737,12 @@ void JNI(init, jobject _inst)
 	SPU_ChangeSoundCore(sndcoretype, sndbuffersize);
 	SPU_SetSynchMode(snd_synchmode,snd_synchmethod);
 	
-	static const char* nickname = "emozilla";
+	static const char* nickname = "nds4droid";
 	fw_config.nickname_len = strlen(nickname);
 	for(int i = 0 ; i < fw_config.nickname_len ; ++i)
 		fw_config.nickname[i] = nickname[i];
 		
-	static const char* message = "desmume makes you happy!";
+	static const char* message = "Made with love <3";
 	fw_config.message_len = strlen(message);
 	for(int i = 0 ; i < fw_config.message_len ; ++i)
 		fw_config.message[i] = message[i];
@@ -791,7 +797,7 @@ void JNI(setWorkingDir, jstring path, jstring temp)
 {
 	jboolean isCopy; 
 	const char* szPath = env->GetStringUTFChars(path, &isCopy);
-	strncpy(PathInfo::pathToModule, szPath, MAX_PATH);
+	strncpy(path.pathToModule, szPath, MAX_PATH);
 	env->ReleaseStringUTFChars(path, szPath);
 	
 	szPath = env->GetStringUTFChars(temp, &isCopy);
@@ -857,8 +863,8 @@ void JNI(addCheat, jstring description, jstring code)
 	if(cheats == NULL)
 		return;
 	jboolean isCopy;
-	const char* descBuff = env->GetStringUTFChars(description, &isCopy);
-	const char* codeBuff = env->GetStringUTFChars(code, &isCopy);
+	char* descBuff = (char *) env->GetStringUTFChars(description, &isCopy);
+	char* codeBuff = (char *) env->GetStringUTFChars(code, &isCopy);
 	cheats->add_AR(codeBuff, descBuff, TRUE);
 	env->ReleaseStringUTFChars(description, descBuff);
 	env->ReleaseStringUTFChars(code, codeBuff);
@@ -871,7 +877,7 @@ void JNI(updateCheat, jstring description, jstring code, jint pos)
 	jboolean isCopy;
 	const char* descBuff = env->GetStringUTFChars(description, &isCopy);
 	const char* codeBuff = env->GetStringUTFChars(code, &isCopy);
-	cheats->update_AR(codeBuff, descBuff, TRUE, pos);
+	cheats->update_AR((char *) codeBuff, (char *) descBuff, TRUE, pos);
 	env->ReleaseStringUTFChars(description, descBuff);
 	env->ReleaseStringUTFChars(code, codeBuff);
 }

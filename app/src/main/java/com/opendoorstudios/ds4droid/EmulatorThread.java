@@ -27,46 +27,46 @@ import android.preference.PreferenceManager;
 
 class EmulatorThread extends Thread {
 	
-	public EmulatorThread(MainActivity activity) {
+	EmulatorThread(MainActivity activity) {
 		super("EmulatorThread");
 		this.activity = activity;
 	}
 	
-	public void setCurrentActivity(MainActivity activity) {
+	void setCurrentActivity(MainActivity activity) {
 		this.activity = activity;
 	}
 	
-	boolean soundPaused = true;
+	private boolean soundPaused = true;
 	boolean frameFinished = false;
 	long lastDraw = 0;
-	final AtomicBoolean finished = new AtomicBoolean(false);
+	private final AtomicBoolean finished = new AtomicBoolean(false);
 	final AtomicBoolean paused = new AtomicBoolean(false);
-	String pendingRomLoad = null;
-	Integer pending3DChange = null;
-	Integer pendingSoundChange = null;
-	Integer pendingCPUChange = null;
-	Integer pendingSoundSyncModeChange = null;
+	private String pendingRomLoad = null;
+	private Integer pending3DChange = null;
+	private Integer pendingSoundChange = null;
+	private Integer pendingCPUChange = null;
+	private Integer pendingSoundSyncModeChange = null;
 	
-	public void loadRom(String path) {
+	void loadRom(String path) {
 		pendingRomLoad = path;
 		synchronized(dormant) {
 			dormant.notifyAll();
 		}
 	}
 	
-	public void change3D(int set) {
+	void change3D(int set) {
 		pending3DChange = set;
 	}
 	
-	public void changeSound(int set) {
+	void changeSound(int set) {
 		pendingSoundChange = set;
 	}
 	
-	public void changeCPUMode(int set) {
+	void changeCPUMode(int set) {
 		pendingCPUChange = set;
 	}
 	
-	public void changeSoundSyncMode(int set) {
+	void changeSoundSyncMode(int set) {
 		pendingSoundSyncModeChange = set;
 	}
 	
@@ -89,17 +89,18 @@ class EmulatorThread extends Thread {
 		}
 	}
 	
-	final Object dormant = new Object();
+	private final Object dormant = new Object();
 	
-	public Lock inFrameLock = new ReentrantLock();
+	Lock inFrameLock = new ReentrantLock();
 	int fps = 1;
-	MainActivity activity = null;
+	private MainActivity activity = null;
 	long frameCounter = 0;
+	private DeSmuME ds = new DeSmuME();
 	
 	@Override
 	public void run() {
 		if(!DeSmuME.inited) {
-			DeSmuME.context = activity;
+			ds.context = activity;
 			DeSmuME.load();
 			
 			final String defaultWorkingDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/nds4droid";

@@ -12,12 +12,17 @@ LOCAL_C_INCLUDES		:= 	$(LOCAL_PATH)/desmume/src \
 							$(LOCAL_PATH)/desmume/src/android \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP/include_windows \
-							$(LOCAL_PATH)/desmume/src/utils/lightning/include
 						   
 LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/addons/slot1_r4.cpp \
-							desmume/src/addons/slot1_retail.cpp \
+							desmume/src/addons/slot1_retail_auto.cpp \
+							desmume/src/addons/slot1_retail_mcrom.cpp \
+							desmume/src/addons/slot1_retail_mcrom_debug.cpp \
 							desmume/src/addons/slot1_retail_nand.cpp \
+							desmume/src/addons/slot1comp_mc.cpp \
+							desmume/src/addons/slot1comp_protocol.cpp \
+							desmume/src/addons/slot1comp_rom.cpp \
+							desmume/src/addons/slot2_auto.cpp \
 							desmume/src/addons/slot2_expMemory.cpp \
 							desmume/src/addons/slot2_gbagame.cpp \
 							desmume/src/addons/slot2_guitarGrip.cpp \
@@ -44,11 +49,13 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/utils/tinyxml/tinyxmlparser.cpp \
 							desmume/src/utils/tinyxml/tinyxmlerror.cpp \
 							desmume/src/utils/tinyxml/tinystr.cpp \
+							desmume/src/utils/advanscene.cpp \
 							desmume/src/utils/ConvertUTF.c \
 							desmume/src/utils/datetime.cpp \
 							desmume/src/utils/dlditool.cpp \
 							desmume/src/utils/emufat.cpp \
 							desmume/src/utils/FileMap.cpp \
+							desmume/src/utils/fsnitro.cpp \
 							desmume/src/utils/guid.cpp \
 							desmume/src/utils/md5.cpp \
 							desmume/src/utils/MemBuffer.cpp \
@@ -63,7 +70,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/filter/hq4x.cpp \
 							desmume/src/filter/lq2x.cpp \
 							desmume/src/filter/scanline.cpp \
-							desmume/src/addons.cpp \
+							desmume/src/filter/xbrz.cpp \
 							desmume/src/arm_instructions.cpp \
 							desmume/src/ArmAnalyze.cpp \
 							desmume/src/armcpu.cpp \
@@ -78,6 +85,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/Disassembler.cpp \
 							desmume/src/driver.cpp \
 							desmume/src/emufile.cpp \
+							desmume/src/encrypt.cpp \
 							desmume/src/FIFO.cpp \
 							desmume/src/firmware.cpp \
 							desmume/src/fs-linux.cpp \
@@ -99,6 +107,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/rtc.cpp \
 							desmume/src/saves.cpp \
 							desmume/src/slot1.cpp \
+							desmume/src/slot2.cpp \
 							desmume/src/SPU.cpp \
 							desmume/src/texcache.cpp \
 							desmume/src/thumb_instructions.cpp \

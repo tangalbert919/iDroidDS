@@ -25,6 +25,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.preference.PreferenceManager;
+import android.util.SparseArray;
+import android.util.SparseIntArray;
 
 class Button {
 	
@@ -40,31 +42,31 @@ class Button {
 		this.bitmap = null;
 	}
 	
-	Button(Rect position, int id, Bitmap bitmap) {
+	private Button(Rect position, int id, Bitmap bitmap) {
 		this.position = position;
 		this.id = id;
 		this.bitmap = bitmap;
 	}
 	
-	static final Button L_PORT_DEFAULT = new Button(new Rect(0, 590, 160, 680), Button.BUTTON_L);
-	static final Button R_PORT_DEFAULT = new Button(new Rect(610, 590, 768, 680), Button.BUTTON_R);
-	static final Button TOUCH_PORT_DEFAULT = new Button(new Rect(320, 590, 441, 659), Button.BUTTON_TOUCH);
-	static final Button DPAD_PORT_DEFAULT = new Button(new Rect(0, 760, 334, 1074), Button.BUTTON_DPAD);
-	static final Button ABXY_PORT_DEFAULT = new Button(new Rect(397, 755, 759, 1072), Button.BUTTON_ABXY);
-	static final Button START_PORT_DEFAULT = new Button(new Rect(270, 1082, 366, 1147), Button.BUTTON_START);
-	static final Button SELECT_PORT_DEFAULT = new Button(new Rect(400, 1082, 485, 1145), Button.BUTTON_SELECT);
+	private static final Button L_PORT_DEFAULT = new Button(new Rect(0, 590, 160, 680), Button.BUTTON_L);
+	private static final Button R_PORT_DEFAULT = new Button(new Rect(610, 590, 768, 680), Button.BUTTON_R);
+	private static final Button TOUCH_PORT_DEFAULT = new Button(new Rect(320, 590, 441, 659), Button.BUTTON_TOUCH);
+	private static final Button DPAD_PORT_DEFAULT = new Button(new Rect(0, 760, 334, 1074), Button.BUTTON_DPAD);
+	private static final Button ABXY_PORT_DEFAULT = new Button(new Rect(397, 755, 759, 1072), Button.BUTTON_ABXY);
+	private static final Button START_PORT_DEFAULT = new Button(new Rect(270, 1082, 366, 1147), Button.BUTTON_START);
+	private static final Button SELECT_PORT_DEFAULT = new Button(new Rect(400, 1082, 485, 1145), Button.BUTTON_SELECT);
 	//static final Button FASTFORWARD_PORT_DEFAULT = new Button(new Rect(595, 1190, 713, 1281), Button.BUTTON_FASTFORWARD);
-	static final Button OPTIONS_DEFAULT = new Button(new Rect(620, 1068, 768, 1152), Button.BUTTON_OPTIONS);
+	private static final Button OPTIONS_DEFAULT = new Button(new Rect(620, 1068, 768, 1152), Button.BUTTON_OPTIONS);
 	
-	static final Button L_LAND_DEFAULT = new Button(new Rect(0, 0, 160, 90), Button.BUTTON_L);
-	static final Button R_LAND_DEFAULT = new Button(new Rect(994, 0, 1152, 90), Button.BUTTON_R);
-	static final Button DPAD_LAND_DEFAULT = new Button(new Rect(0, 454, 334, 768), Button.BUTTON_DPAD);
-	static final Button ABXY_LAND_DEFAULT = new Button(new Rect(770, 451, 1132, 768), Button.BUTTON_ABXY);
-	static final Button START_LAND_DEFAULT = new Button(new Rect(380, 703, 476, 768), Button.BUTTON_START);
-	static final Button TOUCH_LAND_DEFAULT = new Button(new Rect(506, 703, 627, 768), Button.BUTTON_TOUCH);
-	static final Button SELECT_LAND_DEFAULT = new Button(new Rect(667, 703, 752, 768), Button.BUTTON_SELECT);
+	private static final Button L_LAND_DEFAULT = new Button(new Rect(0, 0, 160, 90), Button.BUTTON_L);
+	private static final Button R_LAND_DEFAULT = new Button(new Rect(994, 0, 1152, 90), Button.BUTTON_R);
+	private static final Button DPAD_LAND_DEFAULT = new Button(new Rect(0, 454, 334, 768), Button.BUTTON_DPAD);
+	private static final Button ABXY_LAND_DEFAULT = new Button(new Rect(770, 451, 1132, 768), Button.BUTTON_ABXY);
+	private static final Button START_LAND_DEFAULT = new Button(new Rect(380, 703, 476, 768), Button.BUTTON_START);
+	private static final Button TOUCH_LAND_DEFAULT = new Button(new Rect(506, 703, 627, 768), Button.BUTTON_TOUCH);
+	private static final Button SELECT_LAND_DEFAULT = new Button(new Rect(667, 703, 752, 768), Button.BUTTON_SELECT);
 	//static final Button FASTFORWARD_LAND_DEFAULT = new Button(new Rect(487, 0, 645, 90), Button.BUTTON_FASTFORWARD);
-	static final Button OPTIONS_LAND_DEFAULT = new Button(new Rect(502, 0, 650, 84), Button.BUTTON_OPTIONS);
+	private static final Button OPTIONS_LAND_DEFAULT = new Button(new Rect(502, 0, 650, 84), Button.BUTTON_OPTIONS);
 	
 	
 	static final HashMap<Integer, Button> portraitToDefault;

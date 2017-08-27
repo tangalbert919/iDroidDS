@@ -15,6 +15,7 @@
 	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <stddef.h>
+#include <utils/lightning/lightning.h>
 
 #include "ArmLJit.h"
 #include "ArmAnalyze.h"
@@ -26,7 +27,6 @@
 #include "MMU_timing.h"
 #include "JitCommon.h"
 #include "utils/MemBuffer.h"
-#include "utils/lightning/lightning.h"
 
 #ifdef _MSC_VER
 #include <intrin.h>

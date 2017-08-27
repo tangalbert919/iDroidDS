@@ -19,7 +19,7 @@
 #include "types.h"
 
 #ifdef HAVE_JIT
-#if !defined(HOST_32) && !defined(HOST_64)
+#if !defined(__x86_64__) && !defined(__LP64) && !defined(__IA64__) && !defined(_M_X64) && !defined(_WIN64) && !defined(_M_IX86) && !defined(__INTEL__) && !defined(__i386__)
 #error "ERROR: JIT compiler - unsupported target platform"
 #endif
 

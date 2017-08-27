@@ -304,7 +304,18 @@ const RomBanner& GameInfo::getRomBanner()
 {
 	return banner;
 }
+void GameInfo::resize(int size) {
 
+	//calculate the necessary mask for the requested size
+	mask = size-1;
+	mask |= (mask >>1);
+	mask |= (mask >>2);
+	mask |= (mask >>4);
+	mask |= (mask >>8);
+	mask |= (mask >>16);
+
+	romsize = size;
+}
 void GameInfo::populate()
 {
 	const char regions_index[] = "JPFSEODIRKHXVWUC";

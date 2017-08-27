@@ -577,6 +577,7 @@ extern struct TCommonSettings {
 	bool GFX3D_LineHack;
 	int  GFX3D_Zelda_Shadow_Depth_Hack;
 	bool GFX3D_Renderer_Multisample;
+
 	bool UseExtBIOS;
 	char ARM9BIOS[256];
 	char ARM7BIOS[256];

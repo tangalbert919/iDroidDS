@@ -32,6 +32,12 @@
 #include <intrin.h>
 #endif
 
+#ifdef __arm__
+#include "utils/lightning/lightning/jit_arm.h"
+#elif defined(__aarch64__)
+#include "utils/lightning/lightning/jit_aarch64.h"
+#endif
+
 #ifdef HAVE_JIT
 
 #define GETCPUPTR (&ARMPROC)

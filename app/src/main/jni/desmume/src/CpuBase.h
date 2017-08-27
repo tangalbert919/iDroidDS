@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2009-2015 DeSmuME Team
+	Copyright (C) 2008-2010 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -15,31 +15,33 @@
 	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MIC_H
-#define MIC_H
+#ifndef CPU_BASE
+#define CPU_BASE
 
-#include "types.h"
-#include "emufile.h"
+#include "common.h"
 
-class EMUFILE;
+#define CPUBASE_FLUSHALL ((u32)-1)
 
-#ifdef WIN32
-static char MicSampleName[256];
-bool LoadSample(const char *name);
+struct CpuBase
+{
+	void (*Reserve)();
+
+	void (*Shutdown)();
+
+	void (*Reset)();
+
+	void (*Sync)();
+
+	void (*Clear[2])(u32 Addr, u32 Size);
+
+	u32 (*Execute[2])();
+
+	u32 (*GetCacheReserve)();
+	void (*SetCacheReserve)(u32 reserveInMegs);
+
+	const char* (*Description)();
+};
+
+extern CpuBase *arm_cpubase;
+
 #endif
-
-extern int MicDisplay;
-
-#ifdef FAKE_MIC
-void Mic_DoNoise(BOOL);
-#endif
-
-BOOL Mic_Init(void);
-void Mic_Reset(void);
-void Mic_DeInit(void);
-u8 Mic_ReadSample(void);
-
-void mic_savestate(EMUFILE* os);
-bool mic_loadstate(EMUFILE* is, int size);
-
-#endif // MIC_H

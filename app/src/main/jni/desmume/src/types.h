@@ -100,6 +100,15 @@
 	#endif
 #endif
 
+#if defined(WIN32) || defined(_WIN32)
+#define _alloca16(x)	((void *)((((int)_alloca( (x)+15 )) + 15) & ~15))
+#define _alloca32(x)	((void *)((((int)_alloca( (x)+31 )) + 31) & ~31))
+#else
+#include <alloca.h>
+#define _alloca			alloca
+#define _alloca16(x)	((void *)((((int)alloca( (x)+15 )) + 15) & ~15))
+#define _alloca32(x)	((void *)((((int)_alloca( (x)+31 )) + 31) & ~31))
+#endif
 //------------alignment macros-------------
 //dont apply these to types without further testing. it only works portably here on declarations of variables
 //cant we find a pattern other people use more successfully?
@@ -110,7 +119,12 @@
 #else
 #define DS_ALIGN(X)
 #endif
+#if defined(__arm__)
+#define CACHE_ALIGN DS_ALIGN(64)
+#else
 #define CACHE_ALIGN DS_ALIGN(32)
+#endif
+
 //use this for example when you want a byte value to be better-aligned
 #define FAST_ALIGN DS_ALIGN(4)
 //---------------------------------------------
