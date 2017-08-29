@@ -143,8 +143,8 @@
 	<string name="Options">Options</string>
 	
 	<!-- Release 22 -->
-	<string name="ExecutionEngine">Execution engine</string>
-	<string name="ExecutionEngineDesc">The engine used to emulate the ARM processors of the DS.</string>
+	<string name="ExecutionEngine">JIT Mode</string>
+	<string name="ExecutionEngineDesc">For faster performance, you can use JIT. 64-bit devices cannot use this, as it will force nds4droid to crash.</string>
 	
 	<!-- Release 28 -->
 	<string name="SoundSyncMode">Sound sync mode</string>

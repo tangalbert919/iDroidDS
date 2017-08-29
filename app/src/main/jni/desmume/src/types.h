@@ -119,7 +119,7 @@
 #else
 #define DS_ALIGN(X)
 #endif
-#if defined(__arm__)
+#if defined(__arm__) || defined(__aarch64__)
 #define CACHE_ALIGN DS_ALIGN(64)
 #else
 #define CACHE_ALIGN DS_ALIGN(32)

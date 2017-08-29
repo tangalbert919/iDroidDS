@@ -54,6 +54,7 @@
 #include "slot2.h"
 #include "SPU.h"
 #include "wifi.h"
+#include "JitCommon.h"
 
 #ifdef GDB_STUB
 #include "gdbstub.h"
@@ -201,7 +202,14 @@ void NDS_DeInit(void)
 	cheatSearch = NULL;
 
 #ifdef HAVE_JIT
+#if !defined(__arm__) && !defined(__aarch64__)
 	arm_jit_close();
+#else
+	if (arm_cpubase)
+		arm_cpubase->Shutdown;
+
+	JitLutDeInit();
+#endif
 #endif
 
 #ifdef LOG_ARM7
@@ -2480,7 +2488,11 @@ void NDS_Reset()
 	JumbleMemory();
 
 	#ifdef HAVE_JIT
+    #if defined(__arm__) || defined(__aarch64__)
+    armcpu_setjitmode(CommonSettings.use_jit);
+    #else
 		arm_jit_reset(CommonSettings.use_jit);
+    #endif
 	#endif
 
 

@@ -73,9 +73,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/filter/scanline.cpp \
 							desmume/src/filter/xbrz.cpp \
 							desmume/src/arm_instructions.cpp \
-							desmume/src/ArmAnalyze.cpp \
 							desmume/src/armcpu.cpp \
-							desmume/src/ArmThreadedInterpreter.cpp \
 							desmume/src/arm_jit.cpp \
 							desmume/src/bios.cpp \
 							desmume/src/cheatSystem.cpp \
@@ -93,7 +91,6 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/gfx3d.cpp \
 							desmume/src/GPU.cpp \
 							desmume/src/GPU_osd_stub.cpp \
-							desmume/src/JitCommon.cpp \
 							desmume/src/matrix.cpp \
 							desmume/src/mc.cpp \
 							desmume/src/MMU.cpp \

@@ -4316,6 +4316,9 @@ static int pcmp_entry(PROFILER_ENTRY *info1, PROFILER_ENTRY *info2)
 #endif
 #endif
 
+CpuBase arm_oldjit =
+		{
+		};
 void arm_jit_close()
 {
 #if (PROFILER_JIT_LEVEL > 0)

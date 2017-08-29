@@ -26,17 +26,17 @@
 #include "MMU_timing.h"
 #include "JitCommon.h"
 #include "utils/MemBuffer.h"
-#include "utils/lightning/lightning.h"
-
+//#include <utils/lightning/lightning.h>
+#include <utils/lightning-old/lightning.h>
 #ifdef _MSC_VER
 #include <intrin.h>
 #endif
 
-#ifdef __arm__
-#include "utils/lightning/lightning/jit_arm.h"
-#elif defined(__aarch64__)
-#include "utils/lightning/lightning/jit_aarch64.h"
-#endif
+//#ifdef __arm__
+//#include "utils/lightning/lightning/jit_arm.h"
+//#elif defined(__aarch64__)
+//#include "utils/lightning/lightning/jit_aarch64.h"
+//#endif
 
 #ifdef HAVE_JIT
 
@@ -58,7 +58,7 @@ typedef u32 (* MemOp4)(u32, u32*, u32);
 #define LWORD(i)   (s32)(((s32)((i)<<16))>>16)
 
 #define DEBUG_BKPT	_O(0xcc);
-
+u32 armBlockSizeJIT = 0;
 namespace ArmLJit
 {
 //------------------------------------------------------------
@@ -1654,7 +1654,7 @@ namespace ArmLJit
 			op.regdata = regMap.GetCpuPtrReg();
 			args.push_back(op);
 
-			regMap.CallABI((void*)&armcpu_changeCPSR, args, flushs);
+			regMap.CallABI((void*)&armcpu_t::changeCPSR, args, flushs);
 		}
 
 		tmp = regMap.AllocTempReg();
@@ -6390,7 +6390,7 @@ namespace ArmLJit
 				op.regdata = regMap.GetCpuPtrReg();
 				args.push_back(op);
 
-				regMap.CallABI((void*)&armcpu_changeCPSR, args, flushs);
+				regMap.CallABI((void*)&armcpu_t::changeCPSR, args, flushs);
 			}
 
 			u32 r15 = regMap.MapReg(RegisterMap::R15, RegisterMap::MAP_DIRTY | RegisterMap::MAP_NOTINIT);
@@ -6471,7 +6471,7 @@ namespace ArmLJit
 				op.regdata = regMap.GetCpuPtrReg();
 				args.push_back(op);
 
-				regMap.CallABI((void*)&armcpu_changeCPSR, args, flushs);
+				regMap.CallABI((void*)&armcpu_t::changeCPSR, args, flushs);
 			}
 
 			jit_insn* pt_end1 = PrepareSLZone();
@@ -6656,7 +6656,7 @@ namespace ArmLJit
 				op.regdata = regMap.GetCpuPtrReg();
 				args.push_back(op);
 
-				regMap.CallABI((void*)&armcpu_changeCPSR, args, flushs);
+				regMap.CallABI((void*)&armcpu_t::changeCPSR, args, flushs);
 			}
 		}
 	}
@@ -6717,7 +6717,7 @@ namespace ArmLJit
 				op.immdata.imm8 = d.CP;
 				args.push_back(op);
 
-				regMap.CallABI((void*)&armcp15_moveARM2CP, args, flushs);
+				regMap.CallABI((void*)&armcp15_t::moveARM2CP, args, flushs);
 			}
 		}
 		else
@@ -6778,7 +6778,7 @@ namespace ArmLJit
 				op.immdata.imm8 = d.CP;
 				args.push_back(op);
 
-				regMap.CallABI((void*)&armcp15_moveCP2ARM, args, flushs);
+				regMap.CallABI((void*)&armcp15_t::moveCP2ARM, args, flushs);
 			}
 		}
 		else
@@ -7408,7 +7408,7 @@ static void cpuReset()
 
 static void cpuSync()
 {
-	armcpu_sync();
+	arm_jit_sync();
 }
 
 TEMPLATE static void cpuClear(u32 Addr, u32 Size)

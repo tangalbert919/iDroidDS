@@ -739,8 +739,15 @@ u32 armcpu_exec()
 	if (jit)
 	{
 		ARMPROC.instruct_adr &= ARMPROC.CPSR.bits.T?0xFFFFFFFE:0xFFFFFFFC;
+#if !defined(__arm__) && !defined(__aarch64__)
 		ArmOpCompiled f = (ArmOpCompiled)JIT_COMPILED_FUNC(ARMPROC.instruct_adr, PROCNUM);
-		return f ? f() : arm_jit_compile<PROCNUM>();
+        return f ? f() : arm_jit_compile<PROCNUM>();
+#else
+        // This seems to give off some sort of error between u32 and ArmOpCompiled.
+        ArmOpCompiled f = (ArmOpCompiled)JITLUT_HANDLE(ARMPROC.instruct_adr, PROCNUM);
+        return f ? f() : armcpu_compile<PROCNUM>();
+#endif
+
 	}
 
 	return armcpu_exec<PROCNUM>();
@@ -803,25 +810,27 @@ void armcpu_setjitmode(bool jitmode)
 	switch (jitmode)
 	{
 		case false:
-			arm_cpubase = &arm_threadedinterpreter;
-			break;
 #if defined(__arm__) || defined(__aarch64__)
-		case true:
-			arm_cpubase = &arm_ljit;
-			break;
-//#if defined(__arm__) || defined(__aarch64__)
-		//case 2:
-			//arm_cpubase = &arm_ljit;
-			//break;
+			arm_cpubase = &arm_threadedinterpreter;
 #else
-		case true:
-			//arm_cpubase = &arm_oldjit;
-			break;
+            arm_cpubase = NULL;
 #endif
+			break;
+		case true:
+#if defined(__arm__) || defined(__aarch64__)
+			arm_cpubase = &arm_ljit;
+#else
+            arm_cpubase = &arm_oldjit;
+#endif
+			break;
 
 		default:
 			INFO("armcpu_setjitmode, unknow jitmode : %d\n", jitmode);
+#if defined(__arm__) || defined(__aarch64__)
 			arm_cpubase = &arm_threadedinterpreter;
+#else
+            arm_cpubase = NULL;
+#endif
 			break;
 	}
 

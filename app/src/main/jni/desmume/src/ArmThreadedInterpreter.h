@@ -45,13 +45,13 @@ struct Block
 
 template<int PROCNUM> Block* armcpu_compileblock(BlockInfo &blockinfo);
 
-template<int PROCNUM> Block* armcpu_compile();
+template<int PROCNUM> ArmOpCompiled armcpu_compile();
 
 template<int PROCNUM> static u32 cpuExecute()
 {
 	Block *block = (Block*)JITLUT_HANDLE(ARMPROC.instruct_adr, PROCNUM);
 	if (!block)
-		block = armcpu_compile<PROCNUM>();
+		block = (Block *) armcpu_compile<PROCNUM>();
 
 #ifdef DUMPLOG
 	extern unsigned long long RawGetTickCount();

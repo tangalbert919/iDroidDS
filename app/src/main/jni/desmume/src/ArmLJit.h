@@ -22,4 +22,6 @@
 
 extern CpuBase arm_ljit;
 
+extern u32 armBlockSizeJIT;
+
 #endif
