@@ -30,6 +30,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/addons/slot2_mpcf.cpp \
 							desmume/src/addons/slot2_none.cpp \
 							desmume/src/addons/slot2_paddle.cpp \
+							desmume/src/addons/slot2_passme.cpp \
 							desmume/src/addons/slot2_piano.cpp \
 							desmume/src/addons/slot2_rumblepak.cpp \
 							desmume/src/utils/decrypt/crc.cpp \

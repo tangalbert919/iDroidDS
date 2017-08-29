@@ -745,7 +745,7 @@ u32 armcpu_exec()
 #else
         // This seems to give off some sort of error between u32 and ArmOpCompiled.
         ArmOpCompiled f = (ArmOpCompiled)JITLUT_HANDLE(ARMPROC.instruct_adr, PROCNUM);
-        return f ? f() : armcpu_compile<PROCNUM>();
+        return f ? f() : cpuExecute<PROCNUM>();
 #endif
 
 	}
