@@ -25,7 +25,7 @@ import android.util.Log;
 
 public class DeSmuME {
 
-	public Context context;
+	public static Context context;
 	
 	private static boolean loaded = false;
 	
@@ -110,7 +110,7 @@ public class DeSmuME {
 	static boolean lidOpen = true;
 	static String loadedRom = null;
 	
-	int getSettingInt(String name, int def)
+	static int getSettingInt(String name, int def)
 	{
 		SharedPreferences pm = PreferenceManager.getDefaultSharedPreferences(context);
 		if(!pm.contains(name))
@@ -134,7 +134,7 @@ public class DeSmuME {
 		}
 		return def;
 	}
-	boolean getSettingBool(String name, boolean def)
+	static boolean getSettingBool(String name, boolean def)
 	{
 		SharedPreferences pm = PreferenceManager.getDefaultSharedPreferences(context);
 		if(!pm.contains(name))
