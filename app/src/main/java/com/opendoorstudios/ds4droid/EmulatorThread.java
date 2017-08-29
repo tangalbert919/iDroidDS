@@ -79,9 +79,9 @@ class EmulatorThread extends Thread {
 	
 	public void setPause(boolean set) {
 		paused.set(set);
-		if(DeSmuME.inited) {
-			DeSmuME.setSoundPaused(set ? 1 : 0);
-			DeSmuME.setMicPaused(set ? 1 : 0);
+		if(ds.inited) {
+			ds.setSoundPaused(set ? 1 : 0);
+			ds.setMicPaused(set ? 1 : 0);
 			soundPaused = set;
 		}
 		synchronized(dormant) {
@@ -99,16 +99,16 @@ class EmulatorThread extends Thread {
 	
 	@Override
 	public void run() {
-		if(!DeSmuME.inited) {
+		if(!ds.inited) {
 			ds.context = activity;
-			DeSmuME.load();
+			ds.load();
 			
 			final String defaultWorkingDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/nds4droid";
 			final String path = PreferenceManager.getDefaultSharedPreferences(activity).getString(Settings.DESMUME_PATH, defaultWorkingDir);
 			final File workingDir = new File(path);
 			final File tempDir = new File(path + "/Temp");
 			tempDir.mkdir();
-			DeSmuME.setWorkingDir(workingDir.getAbsolutePath(), tempDir.getAbsolutePath() + "/");
+			ds.setWorkingDir(workingDir.getAbsolutePath(), tempDir.getAbsolutePath() + "/");
 			workingDir.mkdir();
 			new File(path + "/States").mkdir();
 			new File(path + "/Battery").mkdir();
@@ -124,43 +124,43 @@ class EmulatorThread extends Thread {
 				}
 			}
 			
-			DeSmuME.init();
-			DeSmuME.inited = true;
+			ds.init();
+			ds.inited = true;
 		}
 		
 		while(!finished.get()) {
 			if(pendingRomLoad != null) {
 				activity.msgHandler.sendEmptyMessage(MainActivity.LOADING_START);
-				if(DeSmuME.romLoaded)
-					DeSmuME.closeRom();
-				if(!DeSmuME.loadRom(pendingRomLoad)) {
+				if(ds.romLoaded)
+					ds.closeRom();
+				if(!ds.loadRom(pendingRomLoad)) {
 					activity.msgHandler.sendEmptyMessage(MainActivity.LOADING_END);
 					activity.msgHandler.sendEmptyMessage(MainActivity.ROM_ERROR);
-					DeSmuME.romLoaded = false;
-					DeSmuME.loadedRom = null;
+					ds.romLoaded = false;
+					ds.loadedRom = null;
 				}
 				else {
 					activity.msgHandler.sendEmptyMessage(MainActivity.LOADING_END);
-					DeSmuME.romLoaded = true;
-					DeSmuME.loadedRom = pendingRomLoad;
+					ds.romLoaded = true;
+					ds.loadedRom = pendingRomLoad;
 					setPause(false);
 				}
 				pendingRomLoad = null;
 			}
 			if(pending3DChange != null) {
-				DeSmuME.change3D(pending3DChange);
+				ds.change3D(pending3DChange);
 				pending3DChange = null;
 			}
 			if(pendingSoundChange != null) {
-				DeSmuME.changeSound(pendingSoundChange);
+				ds.changeSound(pendingSoundChange);
 				pendingSoundChange = null;
 			}
 			if(pendingCPUChange) {
-				DeSmuME.changeCpuMode(pendingCPUChange);
+				ds.changeCpuMode(pendingCPUChange);
 				pendingCPUChange = false;
 			}
 			if(pendingSoundSyncModeChange != null) {
-				DeSmuME.changeSoundSynchMode(pendingSoundSyncModeChange);
+				ds.changeSoundSynchMode(pendingSoundSyncModeChange);
 				pendingSoundSyncModeChange = null;
 			}
 			

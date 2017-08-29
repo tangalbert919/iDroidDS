@@ -206,7 +206,7 @@ public class Settings extends PreferenceActivity {
 				editor.putBoolean(ENABLE_SOUND, true);
 				editor.putBoolean(ENABLE_MICROPHONE, false);
 				editor.putBoolean(SHOW_SOUND_MESSAGE, false);
-				
+				editor.putBoolean(CPU_MODE, false);
 				editor.apply();
 				
 			}
@@ -256,7 +256,7 @@ public class Settings extends PreferenceActivity {
 		if(!prefs.contains(LAST_ROM_DIR))
 			editor.putString(LAST_ROM_DIR, Environment.getExternalStorageDirectory().getPath() );
 		if(!prefs.contains(CPU_MODE))
-			editor.putString(CPU_MODE, "0");
+			editor.putBoolean(CPU_MODE, false);
 		if(!prefs.contains(SOUND_SYNC_MODE))
 			editor.putString(SOUND_SYNC_MODE, "0");
 		if(!prefs.contains(ENABLE_FOG))

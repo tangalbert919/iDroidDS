@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -67,6 +68,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 	Dialog loadingDialog = null;
 	private DeSmuME ds = new DeSmuME();
 	
+	@SuppressLint("HandlerLeak")
 	Handler msgHandler = new Handler() {
 		
 		@Override

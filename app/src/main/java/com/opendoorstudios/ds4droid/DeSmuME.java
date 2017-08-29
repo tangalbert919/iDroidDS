@@ -110,7 +110,7 @@ public class DeSmuME {
 	static boolean lidOpen = true;
 	static String loadedRom = null;
 	
-	public int getSettingInt(String name, int def)
+	int getSettingInt(String name, int def)
 	{
 		SharedPreferences pm = PreferenceManager.getDefaultSharedPreferences(context);
 		if(!pm.contains(name))
@@ -134,7 +134,7 @@ public class DeSmuME {
 		}
 		return def;
 	}
-	public boolean getSettingBool(String name, boolean def)
+	boolean getSettingBool(String name, boolean def)
 	{
 		SharedPreferences pm = PreferenceManager.getDefaultSharedPreferences(context);
 		if(!pm.contains(name))
