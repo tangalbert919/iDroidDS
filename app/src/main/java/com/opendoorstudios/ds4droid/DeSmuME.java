@@ -100,7 +100,7 @@ public class DeSmuME {
 	static native void setMicPaused(int set);
 	static native void closeRom();
 	static native void exit();
-	static native void changeCpuMode(int mode);
+	static native void changeCpuMode(boolean mode);
 	static native void changeSoundSynchMode(int mode);
 	
 	static boolean touchScreenMode = false;
@@ -134,5 +134,28 @@ public class DeSmuME {
 		}
 		return def;
 	}
-
+	public boolean getSettingBool(String name, boolean def)
+	{
+		SharedPreferences pm = PreferenceManager.getDefaultSharedPreferences(context);
+		if(!pm.contains(name))
+			return def;
+		try {
+			return pm.getBoolean(name, def);
+		}
+		catch(ClassCastException e) {
+		}
+		try {
+			String ret = pm.getString(name, String.valueOf(def));
+			return Boolean.valueOf(ret);
+		}
+		catch(ClassCastException e) {
+		}
+		try {
+			Boolean ret = pm.getBoolean(name, def);
+			return ret;
+		}
+		catch(ClassCastException e) {
+		}
+		return def;
+	}
 }

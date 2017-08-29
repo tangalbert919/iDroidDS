@@ -5,6 +5,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE 		:= 	libmathneon
+LOCAL_C_INCLUDES    :=  $(LOCAL_PATH)
 LOCAL_SRC_FILES		:=  math_acosf.c \
 						math_ceilf.c \
 						math_expf.c \

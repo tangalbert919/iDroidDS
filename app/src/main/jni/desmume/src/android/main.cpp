@@ -28,7 +28,6 @@
 #include <GPU.h>
 #include <armcpu.h>
 
-
 #include "main.h"
 #include "../OGLES2Render.h"
 #include "../rasterize.h"
@@ -45,8 +44,10 @@
 #include "OpenArchive.h"
 #include "sndopensl.h"
 #include "cheatSystem.h"
-#ifdef HAVE_NEON
-#include "neontest.h"
+//#include "neontest.h"
+
+#if defined(__arm__) && defined(HAVE_NEON)
+#include <android/math-neon/math_neon.h>
 #endif
 
 #define JNI(X,...) Java_com_opendoorstudios_ds4droid_DeSmuME_##X(JNIEnv* env, jclass* clazz, __VA_ARGS__)
@@ -660,7 +661,7 @@ void JNI(init, jobject _inst)
 {
 #if defined(__arm__) && defined(HAVE_NEON)
 	//neontest();
-	enable_runfast();
+	//enable_runfast();
 #endif
 	INFO("");
 

@@ -136,6 +136,6 @@ LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -ljnigraphics -lOpenSLES -landroid
 #LOCAL_CFLAGS += -DMEASURE_FIRST_FRAMES
 
 include $(BUILD_SHARED_LIBRARY)
-#This is only needed for armeabi-v7a.
+#This is only needed for armeabi-v7a
 include $(MY_LOCAL_PATH)/desmume/src/android/math-neon/Android.mk
 

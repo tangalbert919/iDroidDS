@@ -445,7 +445,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 						coreThread.changeSound(newSound);
 				}
 				else if(key.equals(Settings.CPU_MODE) || key.equals(Settings.JIT_SIZE)) {
-					int newCpuMode = ds.getSettingInt(Settings.CPU_MODE, 1);
+					boolean newCpuMode = ds.getSettingBool(Settings.CPU_MODE, false);
 					if(coreThread != null)
 						coreThread.changeCPUMode(newCpuMode);
 				}
