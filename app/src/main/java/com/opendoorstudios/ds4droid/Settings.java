@@ -206,7 +206,6 @@ public class Settings extends PreferenceActivity {
 				editor.putBoolean(ENABLE_SOUND, true);
 				editor.putBoolean(ENABLE_MICROPHONE, false);
 				editor.putBoolean(SHOW_SOUND_MESSAGE, false);
-				editor.putBoolean(CPU_MODE, false);
 				editor.apply();
 				
 			}
@@ -222,15 +221,16 @@ public class Settings extends PreferenceActivity {
 			}
 			if(prefs.contains(CPU_MODE)) {
 				//the new default cpu engine in 35 is "lightning jit"
+				//Release 48 now makes the interpreter the default cpu engine because of arm64 problems.
 				if(currentInstall <= 34)
-					editor.putString(CPU_MODE, "0");
+					editor.putBoolean(CPU_MODE, false);
 			}
 		}
 		
 		if(!prefs.contains(SHOW_TOUCH_MESSAGE))
 			editor.putBoolean(SHOW_TOUCH_MESSAGE, true);
 		if(!prefs.contains(SHOW_FPS))
-			editor.putBoolean(SHOW_FPS, false);
+			editor.putBoolean(SHOW_FPS, true);
 		if(!prefs.contains(FRAME_SKIP))
 			editor.putString(FRAME_SKIP, "3");
 		if(!prefs.contains(SCREEN_FILTER))

@@ -44,7 +44,7 @@ class EmulatorThread extends Thread {
 	private String pendingRomLoad = null;
 	private Integer pending3DChange = null;
 	private Integer pendingSoundChange = null;
-	private boolean pendingCPUChange = false;
+	private Integer pendingCPUChange = null;
 	private Integer pendingSoundSyncModeChange = null;
 	
 	void loadRom(String path) {
@@ -62,7 +62,7 @@ class EmulatorThread extends Thread {
 		pendingSoundChange = set;
 	}
 	
-	void changeCPUMode(boolean set) {
+	void changeCPUMode(int set) {
 		pendingCPUChange = set;
 	}
 	
@@ -154,9 +154,9 @@ class EmulatorThread extends Thread {
 				DeSmuME.changeSound(pendingSoundChange);
 				pendingSoundChange = null;
 			}
-			if(pendingCPUChange) {
+			if(pendingCPUChange != null) {
 				DeSmuME.changeCpuMode(pendingCPUChange);
-				pendingCPUChange = false;
+				pendingCPUChange = null;
 			}
 			if(pendingSoundSyncModeChange != null) {
 				DeSmuME.changeSoundSynchMode(pendingSoundSyncModeChange);
@@ -181,13 +181,13 @@ class EmulatorThread extends Thread {
 			} 
 			else {
 				//hacky, but keeps thread alive so we don't lose contexts
-				try {
+				/*try {
 					synchronized(dormant) {
 						dormant.wait();
 					}
 				} 
 				catch (InterruptedException e) {
-				} 
+				} */
 			}
 		}
 	}

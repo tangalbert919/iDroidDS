@@ -605,7 +605,7 @@ void loadSettings(JNIEnv* env)
 	video.swap = GetPrivateProfileInt(env,"Video", "LCDsSwap", 0, IniName);
 
 	// This is for the HUD
-	CommonSettings.hud.FpsDisplay = GetPrivateProfileBool(env,"Display","DisplayFps", false, IniName);
+	CommonSettings.hud.FpsDisplay = GetPrivateProfileBool(env,"Display","DisplayFps", true, IniName);
 	CommonSettings.hud.FrameCounterDisplay = GetPrivateProfileBool(env,"Display","FrameCounter", false, IniName);
 	CommonSettings.hud.ShowInputDisplay = GetPrivateProfileBool(env,"Display","DisplayInput", false, IniName);
 	CommonSettings.hud.ShowGraphicalInputDisplay = GetPrivateProfileBool(env,"Display","DisplayGraphicalInput", false, IniName);
@@ -761,7 +761,7 @@ void JNI(init, jobject _inst)
 	mainLoopData.lastticks = GetTickCount();
 }
 
-void JNI(changeCpuMode, bool type)
+void JNI(changeCpuMode, int type)
 {
 	armcpu_setjitmode(type);
 }

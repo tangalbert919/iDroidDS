@@ -795,7 +795,7 @@ const armcpu_ctrl_iface arm_default_ctrl_iface = {
 	remove_post_exec_fn,
 	NULL
 };
-void armcpu_setjitmode(bool jitmode)
+void armcpu_setjitmode(int jitmode)
 {
 	CommonSettings.jit_max_block_size = CommonSettings.jit_max_block_size > 0 ? CommonSettings.jit_max_block_size : 1;
 #ifdef HAVE_JIT
@@ -809,14 +809,14 @@ void armcpu_setjitmode(bool jitmode)
 
 	switch (jitmode)
 	{
-		case false:
+		case 0:
 #if defined(__arm__) || defined(__aarch64__)
 			arm_cpubase = &arm_threadedinterpreter;
 #else
             arm_cpubase = NULL;
 #endif
 			break;
-		case true:
+		case 1:
 #if defined(__arm__) || defined(__aarch64__)
 			arm_cpubase = &arm_ljit;
 #else

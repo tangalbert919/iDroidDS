@@ -100,7 +100,7 @@ public class DeSmuME {
 	static native void setMicPaused(int set);
 	static native void closeRom();
 	static native void exit();
-	static native void changeCpuMode(boolean mode);
+	static native void changeCpuMode(int mode);
 	static native void changeSoundSynchMode(int mode);
 	
 	static boolean touchScreenMode = false;
