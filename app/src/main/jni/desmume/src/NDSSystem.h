@@ -523,7 +523,7 @@ extern struct TCommonSettings {
 #ifdef HAVE_JIT
 		//zero 06-sep-2012 - shouldnt be defaulting this to true for now, since the jit is buggy. 
 		//id rather have people discover a bonus speedhack than discover new bugs in a new version
-		use_jit = false;
+		use_jit = 0;
 #else
 		use_jit = false;
 #endif
@@ -571,7 +571,7 @@ extern struct TCommonSettings {
 	
 	FAST_ALIGN bool advanced_timing;
 
-	bool use_jit;
+	int use_jit;
 	u32	jit_max_block_size;
 	
 	struct _Wifi {

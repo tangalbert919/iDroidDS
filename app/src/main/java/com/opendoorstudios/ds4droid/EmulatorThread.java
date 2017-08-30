@@ -181,13 +181,13 @@ class EmulatorThread extends Thread {
 			} 
 			else {
 				//hacky, but keeps thread alive so we don't lose contexts
-				/*try {
+				try {
 					synchronized(dormant) {
 						dormant.wait();
 					}
 				} 
 				catch (InterruptedException e) {
-				} */
+				}
 			}
 		}
 	}

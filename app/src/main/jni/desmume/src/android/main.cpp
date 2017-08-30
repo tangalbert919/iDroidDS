@@ -628,7 +628,7 @@ void loadSettings(JNIEnv* env)
 
 	// This is about JIT
 	CommonSettings.advanced_timing = GetPrivateProfileBool(env,"Emulation", "AdvancedTiming", false, IniName);
-	CommonSettings.use_jit = GetPrivateProfileBool(env, "Emulation","CpuMode", false, IniName);
+	CommonSettings.use_jit = GetPrivateProfileInt(env, "Emulation","CpuMode", 0, IniName);
 	CommonSettings.jit_max_block_size = GetPrivateProfileInt(env, "Emulation", "JitSize", 10, IniName);
 
 	// This is the Graphics settings
