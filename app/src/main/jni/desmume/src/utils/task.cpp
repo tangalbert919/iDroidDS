@@ -329,6 +329,7 @@ void* Task::Impl::finish()
 {
 	void *returnValue = NULL;
     // This is where we crash.
+    // Watch out for invalid address "0x8"
     //if (!spinlock) {
         pthread_mutex_lock(&this->mutex);
 
