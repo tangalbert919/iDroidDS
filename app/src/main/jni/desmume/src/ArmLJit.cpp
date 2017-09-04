@@ -7408,7 +7408,7 @@ static void cpuReset()
 
 static void cpuSync()
 {
-	arm_jit_sync();
+	JitLutSync();
 }
 
 TEMPLATE static void cpuClear(u32 Addr, u32 Size)
@@ -7451,7 +7451,7 @@ static void cpuSetCacheReserve(u32 reserveInMegs)
 
 static const char* cpuDescription()
 {
-	return "Arm LJit";
+	return "Arm Lightning JIT";
 }
 
 CpuBase arm_ljit =

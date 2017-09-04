@@ -189,23 +189,28 @@
     <!-- Do not translate -->
     <string-array name="filternames">
         <item>Normal</item>
-		<item>HQ2x</item>
-		<item>2XSaI</item>
-		<item>Super2XSaI</item>
-		<item>SuperEagle</item>
-		<item>Scanline</item>
-		<item>Bilinear</item>
-		<item>Nearest 2X</item>
-		<item>HQ2xS</item>
-		<item>LQ2x</item>
-		<item>LQ2xS</item>
+        <item>LQ2X</item>
+        <item>LQ2XS</item>
+        <item>HQ2X</item>
+        <item>HQ2XS</item>
+        <item>HQ4X</item>
+        <item>HQ4XS</item>
+        <item>2xSAI</item>
+        <item>Super2xSAI</item>
+        <item>SuperEagle</item>
+        <item>Scanline</item>
+        <item>Bilinear</item>
+        <item>Nearest 2x</item>
+        <item>Nearest 1.5x</item>
+        <item>Nearest+ 1.5x</item>
         <item>EPX</item>
-        <item>Nearest+ 1.5X</item>
-        <item>Nearest 1.5X</item>
         <item>EPX+</item>
-        <item>EPX 1.5X</item>
-        <item>EPX+ 1.5X</item>
-        <item>HQ4x</item>
+        <item>EPX 1.5x</item>
+        <item>EPX+ 1.5x</item>
+        <item>2xBRZ</item>
+        <item>3xBRZ</item>
+        <item>4xBRZ</item>
+        <item>5xBRZ</item>
     </string-array>
         <string-array name="zerothroughnine">
         <item>0</item>
@@ -219,7 +224,7 @@
         <item>8</item>
         <item>9</item>
     </string-array>
-    <string-array name="zerothroughseventeen">
+    <string-array name="zerothroughtwentytwo">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -238,6 +243,11 @@
         <item>15</item>
         <item>16</item>
         <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
     </string-array>
    	<string-array name="zerothroughtwo">
         <item>0</item>

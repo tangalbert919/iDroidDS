@@ -1220,6 +1220,11 @@ void JitLutDeInit()
 {
 }
 
+void JitLutSync() {
+	NDS_ARM7.next_instruction = NDS_ARM7.instruct_adr;
+	NDS_ARM9.next_instruction = NDS_ARM9.instruct_adr;
+}
+
 void JitLutReset()
 {
 #ifdef MAPPED_JIT_FUNCS

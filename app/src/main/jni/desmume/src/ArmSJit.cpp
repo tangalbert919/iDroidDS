@@ -28,21 +28,21 @@
 #include "MMU_timing.h"
 
 #ifdef MAPPED_JIT_FUNCS
-CACHE_ALIGN JitStackless JIT;
+CACHE_ALIGN JitStackless SLJIT;
 
 uintptr_t *JitStackless::JIT_MEM[2][0x4000] = {{0}};
 
 static uintptr_t *JIT_MEM[2][32] = {
         //arm9
         {
-                /* 0X*/	DUP2(JIT.ARM9_ITCM),
-                /* 1X*/	DUP2(JIT.ARM9_ITCM), // mirror
-                /* 2X*/	DUP2(JIT.MAIN_MEM),
-                /* 3X*/	DUP2(JIT.SWIRAM),
+                /* 0X*/	DUP2(SLJIT.ARM9_ITCM),
+                /* 1X*/	DUP2(SLJIT.ARM9_ITCM), // mirror
+                /* 2X*/	DUP2(SLJIT.MAIN_MEM),
+                /* 3X*/	DUP2(SLJIT.SWIRAM),
                 /* 4X*/	DUP2(NULL),
                 /* 5X*/	DUP2(NULL),
                 /* 6X*/		 NULL,
-                        JIT.ARM9_LCDC,	// Plain ARM9-CPU Access (LCDC mode) (max 656KB)
+                             SLJIT.ARM9_LCDC,	// Plain ARM9-CPU Access (LCDC mode) (max 656KB)
                 /* 7X*/	DUP2(NULL),
                 /* 8X*/	DUP2(NULL),
                 /* 9X*/	DUP2(NULL),
@@ -51,19 +51,19 @@ static uintptr_t *JIT_MEM[2][32] = {
                 /* CX*/	DUP2(NULL),
                 /* DX*/	DUP2(NULL),
                 /* EX*/	DUP2(NULL),
-                /* FX*/	DUP2(JIT.ARM9_BIOS)
+                /* FX*/	DUP2(SLJIT.ARM9_BIOS)
         },
         //arm7
         {
-                /* 0X*/	DUP2(JIT.ARM7_BIOS),
+                /* 0X*/	DUP2(SLJIT.ARM7_BIOS),
                 /* 1X*/	DUP2(NULL),
-                /* 2X*/	DUP2(JIT.MAIN_MEM),
-                /* 3X*/	     JIT.SWIRAM,
-                             JIT.ARM7_ERAM,
+                /* 2X*/	DUP2(SLJIT.MAIN_MEM),
+                /* 3X*/	     SLJIT.SWIRAM,
+                             SLJIT.ARM7_ERAM,
                 /* 4X*/	     NULL,
-                             JIT.ARM7_WIRAM,
+                             SLJIT.ARM7_WIRAM,
                 /* 5X*/	DUP2(NULL),
-                /* 6X*/		 JIT.ARM7_WRAM,		// VRAM allocated as Work RAM to ARM7 (max. 256K)
+                /* 6X*/		 SLJIT.ARM7_WRAM,		// VRAM allocated as Work RAM to ARM7 (max. 256K)
                            NULL,
                 /* 7X*/	DUP2(NULL),
                 /* 8X*/	DUP2(NULL),
@@ -129,7 +129,7 @@ static void init_jit_mem() {
     inited = true;
     for (int proc = 0; proc < 2; proc++)
         for (int i = 0; i < 0x4000; i++)
-            JIT.JIT_MEM[proc][i] = (uintptr_t) (JIT_MEM[proc][i >> 9] + (((i << 14) & JIT_MASK[proc][i >> 9]) >> 1));
+            SLJIT.JIT_MEM[proc][i] = (uintptr_t) (JIT_MEM[proc][i >> 9] + (((i << 14) & JIT_MASK[proc][i >> 9]) >> 1));
 }
 #else
 DS_ALIGN(4096) uintptr_t g_CompiledFuncs[1<<26] = {0};

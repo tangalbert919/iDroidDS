@@ -39,6 +39,7 @@
 #include "CpuBase.h"
 #include "ArmThreadedInterpreter.h"
 #include "ArmLJit.h"
+#include "ArmSJit.h"
 
 #endif
 
@@ -822,6 +823,10 @@ void armcpu_setjitmode(int jitmode)
             arm_cpubase = &arm_oldjit;
 #endif
 			break;
+			// Stackless JIT. Effective as interpreter. Still in construction.
+		/*case 3:
+			arm_cpubase = &arm_sjit;
+			break;*/
 		default:
 			INFO("Unknown engine detected : %d\n", jitmode);
 			arm_cpubase = NULL;
