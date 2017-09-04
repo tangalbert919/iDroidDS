@@ -143,8 +143,8 @@
 	<string name="Options">Options</string>
 	
 	<!-- Release 22 -->
-	<string name="ExecutionEngine">JIT Mode</string>
-	<string name="ExecutionEngineDesc">For faster performance, you can use JIT. 64-bit devices cannot use this, as it will force nds4droid to crash.</string>
+	<string name="ExecutionEngine">CPU Engine</string>
+	<string name="ExecutionEngineDesc">You can select what engine you want to use. It is not recommended to change this setting!</string>
 	
 	<!-- Release 28 -->
 	<string name="SoundSyncMode">Sound sync mode</string>
@@ -271,9 +271,10 @@
         <item>5</item>
     </string-array>
     <string-array name="executionengines">
-        <item>Interpreter</item>
-        <item>Threaded Interpreter</item>
-        <item>JIT Recompiler</item>
+        <item>DeSmuME Interpreter</item>
+        <item>ARM Threaded Interpreter</item>
+        <item>Lightning JIT</item>
+        <item>Stackless JIT</item>
     </string-array>
     <string-array name="zerothroughthree">
         <item>0</item>

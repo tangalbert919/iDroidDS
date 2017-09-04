@@ -23,6 +23,9 @@
 #include <windows.h>
 #else
 #include <pthread.h>
+#include <unistd.h>
+#include <android/log.h>
+
 #if defined HOST_LINUX
 #include <unistd.h>
 #elif defined HOST_BSD || defined HOST_DARWIN
@@ -206,6 +209,8 @@ public:
 	void *workFuncParam;
 	void *ret;
 	bool exitThread;
+
+    volatile bool spinlock, bIncomingWork, bWorkDone;
 };
 
 static void* taskProc(void *arg)
@@ -213,22 +218,45 @@ static void* taskProc(void *arg)
 	Task::Impl *ctx = (Task::Impl *)arg;
 
 	do {
-		pthread_mutex_lock(&ctx->mutex);
+		// For debugging reasons.
+		if(ctx->spinlock)
+			__android_log_print(ANDROID_LOG_INFO,"nds4droid","Started spinlock task");
 
-		while (ctx->workFunc == NULL && !ctx->exitThread) {
-			pthread_cond_wait(&ctx->condWork, &ctx->mutex);
-		}
+		//wait for a chunk of work
+		//if(ctx->spinlock)
+		/*{
+			while(!ctx->bIncomingWork) usleep(0);
+			ctx->bIncomingWork = true;
+			if (ctx->workFunc != NULL) {
+                // Comment this out if not debugging.
+				__android_log_print(ANDROID_LOG_INFO,"nds4droid","Got spinlock work");
+				ctx->ret = ctx->workFunc(ctx->workFuncParam);
+				ctx->bWorkDone = true;
+			} else {
+				ctx->ret = NULL;
+			}
 
-		if (ctx->workFunc != NULL) {
-			ctx->ret = ctx->workFunc(ctx->workFuncParam);
-		} else {
-			ctx->ret = NULL;
-		}
+			ctx->workFunc = NULL;
+		}*/
 
-		ctx->workFunc = NULL;
-		pthread_cond_signal(&ctx->condWork);
+		//else {
+			pthread_mutex_lock(&ctx->mutex);
 
-		pthread_mutex_unlock(&ctx->mutex);
+			while (ctx->workFunc == NULL && !ctx->exitThread) {
+				pthread_cond_wait(&ctx->condWork, &ctx->mutex);
+			}
+
+			if (ctx->workFunc != NULL) {
+				ctx->ret = ctx->workFunc(ctx->workFuncParam);
+			} else {
+				ctx->ret = NULL;
+			}
+
+			ctx->workFunc = NULL;
+			pthread_cond_signal(&ctx->condWork);
+
+			pthread_mutex_unlock(&ctx->mutex);
+		//}
 
 	} while(!ctx->exitThread);
 
@@ -275,38 +303,54 @@ void Task::Impl::start(bool spinlock)
 
 void Task::Impl::execute(const TWork &work, void *param)
 {
-	pthread_mutex_lock(&this->mutex);
+	if(!spinlock) {
+		pthread_mutex_lock(&this->mutex);
 
-	if (work == NULL || !this->_isThreadRunning) {
+		if (work == NULL || !this->_isThreadRunning) {
+			pthread_mutex_unlock(&this->mutex);
+			return;
+		}
+		this->workFunc = work;
+		this->workFuncParam = param;
+		this->bIncomingWork = true;
+		pthread_cond_signal(&this->condWork);
+
 		pthread_mutex_unlock(&this->mutex);
-		return;
 	}
-
-	this->workFunc = work;
-	this->workFuncParam = param;
-	pthread_cond_signal(&this->condWork);
-
-	pthread_mutex_unlock(&this->mutex);
+	else {
+		this->workFunc = work;
+		this->workFuncParam = param;
+		this->bWorkDone = false;
+		this->bIncomingWork = true;
+	}
 }
 
 void* Task::Impl::finish()
 {
 	void *returnValue = NULL;
     // This is where we crash.
-	pthread_mutex_lock(&this->mutex);
+    if (!spinlock) {
+        pthread_mutex_lock(&this->mutex);
 
-	if (!this->_isThreadRunning) {
-		pthread_mutex_unlock(&this->mutex);
-		return returnValue;
-	}
+        if (!this->_isThreadRunning) {
+            pthread_mutex_unlock(&this->mutex);
+            return returnValue;
+        }
 
-	while (this->workFunc != NULL) {
-		pthread_cond_wait(&this->condWork, &this->mutex);
-	}
+        while (this->workFunc != NULL) {
+            pthread_cond_wait(&this->condWork, &this->mutex);
+        }
 
-	returnValue = this->ret;
+        returnValue = this->ret;
 
-	pthread_mutex_unlock(&this->mutex);
+        pthread_mutex_unlock(&this->mutex);
+    }
+    else {
+        while(!bWorkDone)
+            sched_yield();
+        returnValue = this->ret;
+    }
+
 
 	return returnValue;
 }
