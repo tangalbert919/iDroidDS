@@ -223,10 +223,10 @@ static void* taskProc(void *arg)
 			__android_log_print(ANDROID_LOG_INFO,"nds4droid","Started spinlock task");
 
 		//wait for a chunk of work
-		//if(ctx->spinlock)
-		/*{
+		if(ctx->spinlock)
+		{
 			while(!ctx->bIncomingWork) usleep(0);
-			ctx->bIncomingWork = true;
+			ctx->bIncomingWork = false;
 			if (ctx->workFunc != NULL) {
                 // Comment this out if not debugging.
 				__android_log_print(ANDROID_LOG_INFO,"nds4droid","Got spinlock work");
@@ -237,9 +237,9 @@ static void* taskProc(void *arg)
 			}
 
 			ctx->workFunc = NULL;
-		}*/
+		}
 
-		//else {
+		else {
 			pthread_mutex_lock(&ctx->mutex);
 
 			while (ctx->workFunc == NULL && !ctx->exitThread) {
@@ -256,7 +256,7 @@ static void* taskProc(void *arg)
 			pthread_cond_signal(&ctx->condWork);
 
 			pthread_mutex_unlock(&ctx->mutex);
-		//}
+		}
 
 	} while(!ctx->exitThread);
 
@@ -303,7 +303,7 @@ void Task::Impl::start(bool spinlock)
 
 void Task::Impl::execute(const TWork &work, void *param)
 {
-	if(!spinlock) {
+	//if(!spinlock) {
 		pthread_mutex_lock(&this->mutex);
 
 		if (work == NULL || !this->_isThreadRunning) {
@@ -316,20 +316,20 @@ void Task::Impl::execute(const TWork &work, void *param)
 		pthread_cond_signal(&this->condWork);
 
 		pthread_mutex_unlock(&this->mutex);
-	}
-	else {
+	//}
+	/*else {
 		this->workFunc = work;
 		this->workFuncParam = param;
 		this->bWorkDone = false;
 		this->bIncomingWork = true;
-	}
+	}*/
 }
 
 void* Task::Impl::finish()
 {
 	void *returnValue = NULL;
     // This is where we crash.
-    if (!spinlock) {
+    //if (!spinlock) {
         pthread_mutex_lock(&this->mutex);
 
         if (!this->_isThreadRunning) {
@@ -344,12 +344,13 @@ void* Task::Impl::finish()
         returnValue = this->ret;
 
         pthread_mutex_unlock(&this->mutex);
-    }
-    else {
+    //}
+    // Comment this, a ROM can't load. Uncomment this, it crashes.
+    /*else {
         while(!bWorkDone)
             sched_yield();
         returnValue = this->ret;
-    }
+    }*/
 
 
 	return returnValue;
