@@ -823,7 +823,7 @@ void armcpu_setjitmode(int jitmode)
 #endif
 			break;
 		default:
-			INFO("armcpu_setjitmode, unknow jitmode : %d\n", jitmode);
+			INFO("Unknown engine detected : %d\n", jitmode);
 			arm_cpubase = NULL;
 			break;
 	}

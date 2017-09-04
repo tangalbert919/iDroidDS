@@ -16,7 +16,8 @@
 */
 
 
-#ifdef OGLES3RENDER_H
+#ifndef OGLES3RENDER_H
+#define OGLES3RENDER_H
 
 #include <queue>
 #include <set>
@@ -31,5 +32,8 @@
 #define OGLEXT(procPtr, func)		procPtr func = NULL;
 #define INITOGLEXT(procPtr, func)	func = (procPtr)eglGetProcAddress(#func);
 #define EXTERNOGLEXT(procPtr, func)	extern procPtr func;
+
+// VAO
+EXTERNOGLEXT(PFNGLGENVERTEXARRAYSPROC, glGenVertexArrays)
 
 #endif //OGLES3RENDER_H
