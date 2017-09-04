@@ -292,7 +292,7 @@ void Task::Impl::execute(const TWork &work, void *param)
 void* Task::Impl::finish()
 {
 	void *returnValue = NULL;
-
+    // This is where we crash.
 	pthread_mutex_lock(&this->mutex);
 
 	if (!this->_isThreadRunning) {
