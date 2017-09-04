@@ -35,7 +35,7 @@
 #include "../debug.h"
 #include "../NDSSystem.h"
 #include "../path.h"
-#include "../GPU_OSD.h"
+#include "../GPU_osd.h"
 #include "../slot1.h"
 #include "../slot2.h"
 #include "../saves.h"
@@ -46,7 +46,7 @@
 #include "cheatSystem.h"
 //#include "neontest.h"
 
-#if defined(__arm__) && defined(HAVE_NEON)
+#if defined(HAVE_NEON)
 #include <android/math-neon/math_neon.h>
 #endif
 

@@ -39,7 +39,13 @@
 #include "Disassembler.h"
 #include "MMU.h"
 #include "MMU_timing.h"
+
+// New AsmJIT
+//#include "utils/asmjit/asmjit.h"
+
+// Old AsmJit
 #include "utils/AsmJit/AsmJit.h"
+
 #include "arm_jit.h"
 #include "bios.h"
 

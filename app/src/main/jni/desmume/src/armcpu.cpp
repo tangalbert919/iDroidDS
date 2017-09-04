@@ -810,27 +810,21 @@ void armcpu_setjitmode(int jitmode)
 	switch (jitmode)
 	{
 		case 0:
-#if defined(__arm__) || defined(__aarch64__)
-			arm_cpubase = &arm_threadedinterpreter;
-#else
-            arm_cpubase = NULL;
-#endif
+			arm_cpubase = NULL;
 			break;
 		case 1:
+			arm_cpubase = &arm_threadedinterpreter;
+			break;
+		case 2:
 #if defined(__arm__) || defined(__aarch64__)
 			arm_cpubase = &arm_ljit;
 #else
             arm_cpubase = &arm_oldjit;
 #endif
 			break;
-
 		default:
 			INFO("armcpu_setjitmode, unknow jitmode : %d\n", jitmode);
-#if defined(__arm__) || defined(__aarch64__)
-			arm_cpubase = &arm_threadedinterpreter;
-#else
-            arm_cpubase = NULL;
-#endif
+			arm_cpubase = NULL;
 			break;
 	}
 
