@@ -23,11 +23,10 @@
 #include <windows.h>
 #else
 #include <pthread.h>
+
+#if defined HOST_LINUX || defined ANDROID
 #include <unistd.h>
 #include <android/log.h>
-
-#if defined HOST_LINUX
-#include <unistd.h>
 #elif defined HOST_BSD || defined HOST_DARWIN
 #include <sys/sysctl.h>
 #endif
@@ -40,7 +39,7 @@ int getOnlineCores (void)
 	SYSTEM_INFO sysinfo;
 	GetSystemInfo(&sysinfo);
 	return sysinfo.dwNumberOfProcessors;
-#elif defined HOST_LINUX
+#elif defined HOST_LINUX || defined ANDROID
 	return sysconf(_SC_NPROCESSORS_ONLN);
 #elif defined HOST_BSD || defined HOST_DARWIN
 	int cores;
@@ -219,10 +218,10 @@ static void* taskProc(void *arg)
 
 	do {
 		// For debugging reasons.
-		if(ctx->spinlock)
-			__android_log_print(ANDROID_LOG_INFO,"nds4droid","Started spinlock task");
+		//if(ctx->spinlock)
+			//__android_log_print(ANDROID_LOG_INFO,"nds4droid","Started spinlock task");
 
-		//wait for a chunk of work
+		// Wait for a chunk of code. This is for Android.
 		if(ctx->spinlock)
 		{
 			while(!ctx->bIncomingWork) usleep(0);
@@ -240,6 +239,7 @@ static void* taskProc(void *arg)
 		}
 
 		else {
+            // Just this chunk of code is part of DeSmuME.
 			pthread_mutex_lock(&ctx->mutex);
 
 			while (ctx->workFunc == NULL && !ctx->exitThread) {
@@ -295,6 +295,7 @@ void Task::Impl::start(bool spinlock)
 	this->workFuncParam = NULL;
 	this->ret = NULL;
 	this->exitThread = false;
+	this->spinlock = spinlock;
 	pthread_create(&this->_thread, NULL, &taskProc, this);
 	this->_isThreadRunning = true;
 
@@ -303,7 +304,8 @@ void Task::Impl::start(bool spinlock)
 
 void Task::Impl::execute(const TWork &work, void *param)
 {
-	//if(!spinlock) {
+	if(!spinlock) {
+    // This part came with DeSmuME.
 		pthread_mutex_lock(&this->mutex);
 
 		if (work == NULL || !this->_isThreadRunning) {
@@ -316,21 +318,22 @@ void Task::Impl::execute(const TWork &work, void *param)
 		pthread_cond_signal(&this->condWork);
 
 		pthread_mutex_unlock(&this->mutex);
-	//}
-	/*else {
+	}
+	else {
 		this->workFunc = work;
 		this->workFuncParam = param;
 		this->bWorkDone = false;
 		this->bIncomingWork = true;
-	}*/
+	}
 }
 
 void* Task::Impl::finish()
 {
 	void *returnValue = NULL;
-    // This is where we crash.
-    // Watch out for invalid address "0x8"
-    //if (!spinlock) {
+    // The thread seems to enter a negative number, which is very bad.
+    // A fix is needed for this issue.
+    if (!spinlock) {
+    // Only this chunk came with DeSmuME.
         pthread_mutex_lock(&this->mutex);
 
         if (!this->_isThreadRunning) {
@@ -345,13 +348,12 @@ void* Task::Impl::finish()
         returnValue = this->ret;
 
         pthread_mutex_unlock(&this->mutex);
-    //}
-    // Comment this, a ROM can't load. Uncomment this, it crashes.
-    /*else {
+    }
+    else {
         while(!bWorkDone)
             sched_yield();
         returnValue = this->ret;
-    }*/
+    }
 
 
 	return returnValue;

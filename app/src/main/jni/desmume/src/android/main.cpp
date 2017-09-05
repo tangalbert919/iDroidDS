@@ -659,7 +659,7 @@ void JNI_NOARGS(loadSettings)
 
 void JNI(init, jobject _inst)
 {
-#if defined(__arm__) && defined(HAVE_NEON)
+#if defined(HAVE_NEON)
 	//neontest();
 	//enable_runfast();
 #endif
@@ -939,5 +939,11 @@ unsigned int GetPrivateProfileInt(JNIEnv* env, const char* lpAppName, const char
 
 bool GetPrivateProfileBool(JNIEnv* env, const char* lpAppName, const char* lpKeyName, bool bDefault, const char* lpFileName)
 {
+	/*jclass javaClass = env->FindClass("com/opendoorstudios/ds4droid/DeSmuME");
+	if (!javaClass)
+		return bDefault;
+	jmethodID getSettingBool = env->GetStaticMethodID(javaClass, "getSettingBool", "(Ljava/lang/Boolean;I)I");
+	jstring key = env->NewStringUTF(lpKeyName);
+	bool ret = env->CallStaticBooleanMethod(javaClass, getSettingBool, key, bDefault);*/
 	return GetPrivateProfileInt(env, lpAppName, lpKeyName, bDefault ? 1 : 0, lpFileName);
 }
