@@ -330,8 +330,7 @@ void Task::Impl::execute(const TWork &work, void *param)
 void* Task::Impl::finish()
 {
 	void *returnValue = NULL;
-    // The thread seems to enter a negative number, which is very bad.
-    // A fix is needed for this issue.
+    // If param does not loop from NULL to 0x00000002, something is wrong.
     if (!spinlock) {
     // Only this chunk came with DeSmuME.
         pthread_mutex_lock(&this->mutex);
