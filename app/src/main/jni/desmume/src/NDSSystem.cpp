@@ -1758,7 +1758,7 @@ static FORCEINLINE s32 minarmtime(s32 arm9, s32 arm7)
 }
 
 #ifdef HAVE_JIT
-template<bool doarm9, bool doarm7, bool jit>
+template<bool doarm9, bool doarm7, int jit>
 #else
 template<bool doarm9, bool doarm7>
 #endif
@@ -1936,9 +1936,18 @@ void NDS_exec(s32 nb)
 			#endif
 
 #ifdef HAVE_JIT
-			std::pair<s32,s32> arm9arm7 = CommonSettings.use_jit
-				? armInnerLoop<true,true,true>(nds_timer_base,s32next,arm9,arm7)
-				: armInnerLoop<true,true,false>(nds_timer_base,s32next,arm9,arm7);
+			std::pair<s32,s32> arm9arm7; /*= CommonSettings.use_jit*/
+				/*? armInnerLoop<true,true,true>(nds_timer_base,s32next,arm9,arm7)
+				: armInnerLoop<true,true,false>(nds_timer_base,s32next,arm9,arm7);*/
+            switch(CommonSettings.use_jit)
+            {
+                case 1: arm9arm7 = armInnerLoop<true,true,1>(nds_timer_base,s32next,arm9,arm7); break;
+                case 2: arm9arm7 = armInnerLoop<true,true,2>(nds_timer_base,s32next,arm9,arm7); break;
+					// Stackless JIT is here, but needs to be built.
+				//case 3: arm9arm7 = armInnerLoop<true,true,3>(nds_timer_base,s32next,arm9,arm7); break;
+                default: arm9arm7 = armInnerLoop<true,true,0>(nds_timer_base,s32next,arm9,arm7); break;
+
+            }
 #else
 				std::pair<s32,s32> arm9arm7 = armInnerLoop<true,true>(nds_timer_base,s32next,arm9,arm7);
 #endif

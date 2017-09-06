@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2017 The nds4droid Team
+	Copyright (C) 2017 The nds4droid team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #include <string>
 #include "render3D.h"
 #include "types.h"
+#include "OGLES2Render.h"
 
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
@@ -33,7 +34,17 @@
 #define INITOGLEXT(procPtr, func)	func = (procPtr)eglGetProcAddress(#func);
 #define EXTERNOGLEXT(procPtr, func)	extern procPtr func;
 
-// VAO
-EXTERNOGLEXT(PFNGLGENVERTEXARRAYSPROC, glGenVertexArrays)
+#if !defined(GL_ES_VERSION_3_0)
+#error OpenGL ES requires v3.0 headers or later.
+#endif
+
+extern GPU3DInterface gpu3Dgles3;
+
+class OpenGLES3Renderer : public OpenGLESRenderer {
+protected:
+
+public:
+    ~OpenGLES3Renderer();
+};
 
 #endif //OGLES3RENDER_H

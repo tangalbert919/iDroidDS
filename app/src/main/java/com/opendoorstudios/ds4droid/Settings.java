@@ -236,7 +236,7 @@ public class Settings extends PreferenceActivity {
 		if(!prefs.contains(SCREEN_FILTER))
 			editor.putString(SCREEN_FILTER, "0");
 		if(!prefs.contains(RENDERER))
-			editor.putString(RENDERER, "2");
+			editor.putString(RENDERER, "1");
 		if(!prefs.contains(ENABLE_SOUND))
 			editor.putBoolean(ENABLE_SOUND, true);
 		if(!prefs.contains(SHOW_SOUND_MESSAGE))

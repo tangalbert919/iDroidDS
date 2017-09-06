@@ -59,6 +59,7 @@ unsigned int frameCount = 0;
 GPU3DInterface *core3DList[] = {
 	&gpu3DNull,
 	&gpu3Dgles2,
+    //&gpu3Dgles3,
 	&gpu3DRasterize,
 	NULL
 };
@@ -530,6 +531,8 @@ void JNI(resize, jobject bitmap)
 		LOGI("bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_8888");
 	else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGB_565)
 		LOGI("bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGB_565");
+    else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_A_8)
+        LOGI("bitmapInfo.format == ANDROID_BITMAP_FORMAT_A_8");
 }
 
 int JNI_NOARGS(getNativeWidth)
@@ -638,7 +641,7 @@ void loadSettings(JNIEnv* env)
 	CommonSettings.GFX3D_Fog = GetPrivateProfileBool(env, "3D", "EnableFog", 1, IniName);
 	CommonSettings.GFX3D_Texture = GetPrivateProfileBool(env, "3D", "EnableTexture", 1, IniName);
 	CommonSettings.GFX3D_LineHack = GetPrivateProfileBool(env, "3D", "EnableLineHack", 0, IniName);
-	CommonSettings.GFX3D_TXTHack = GetPrivateProfileBool(env, "3D", "EnableTXTHack", false, IniName);
+	CommonSettings.GFX3D_TXTHack = GetPrivateProfileBool(env, "3D", "EnableTXTHack", 0, IniName);
 	fw_config.language = GetPrivateProfileInt(env, "Firmware","Language", 1, IniName);
 
 	// This is the wifi
@@ -729,8 +732,9 @@ void JNI(init, jobject _inst)
 
 	
 	NDS_Init();
-	
-	cur3DCore = GetPrivateProfileInt(env, "3D", "Renderer", 2, IniName);
+
+    // This is for the renderer used. By default, we have to use OpenGL ES 2.0 now.
+	cur3DCore = GetPrivateProfileInt(env, "3D", "Renderer", 1, IniName);
 	NDS_3D_ChangeCore(cur3DCore);
 	
 	LOG("Init sound core\n");
@@ -744,7 +748,7 @@ void JNI(init, jobject _inst)
 	for(int i = 0 ; i < fw_config.nickname_len ; ++i)
 		fw_config.nickname[i] = nickname[i];
 		
-	static const char* message = "Made with love <3";
+	static const char* message = "Made with love";
 	fw_config.message_len = strlen(message);
 	for(int i = 0 ; i < fw_config.message_len ; ++i)
 		fw_config.message[i] = message[i];

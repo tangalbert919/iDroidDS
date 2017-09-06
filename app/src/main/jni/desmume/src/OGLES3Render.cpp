@@ -25,10 +25,20 @@
 #include "NDSSystem.h"
 #include "texcache.h"
 
+//-------------------------------------------------------------
+
+// Basic functions
+
+
 typedef struct {
     unsigned int major;
     unsigned int minor;
 } OGLVersion;
 
-static OGLVersion _OGLDriverVersion = {0, 0};
-//static OpenGLESRenderer *_OGLRenderer = NULL;
+OpenGLES3Renderer::~OpenGLES3Renderer() {
+
+    glFinish();
+
+    DestroyVAOs();
+    DestroyFBOs();
+}
