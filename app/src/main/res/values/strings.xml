@@ -54,7 +54,8 @@
     <string name="threedrendererdesc">Which 3D rendering engine to use.</string>
     <string-array name ="threed_options">
         <item>None</item>
-        <item>OpenGL</item>
+        <item>OpenGL ES 2</item>
+        <item>OpenGL ES 3</item>
         <item>Software</item>
     </string-array>
     <string name="sound">Enable sound</string>

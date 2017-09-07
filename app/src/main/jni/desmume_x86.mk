@@ -100,6 +100,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/movie.cpp \
 							desmume/src/NDSSystem.cpp \
 							desmume/src/OGLES2Render.cpp \
+							desmume/src/OGLES3Render.cpp \
 							desmume/src/path.cpp \
 							desmume/src/rasterize.cpp \
 							desmume/src/readwrite.cpp \
@@ -126,7 +127,7 @@ LOCAL_ARM_NEON 			:= false
 #LOCAL_ARM_MODE 			:= thumb
 LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32 -fno-branch-count-reg
 LOCAL_STATIC_LIBRARIES 	:= sevenzip asmjit
-LOCAL_LDLIBS 			:= -llog -lz -lGLESv2 -lEGL -ljnigraphics -lOpenSLES -landroid
+LOCAL_LDLIBS 			:= -llog -lz -lGLESv2 -lGLESv3 -lEGL -ljnigraphics -lOpenSLES -landroid
 
 #To check for speed improvements
 #LOCAL_CFLAGS += -DMEASURE_FIRST_FRAMES

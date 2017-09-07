@@ -101,6 +101,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/movie.cpp \
 							desmume/src/NDSSystem.cpp \
 							desmume/src/OGLES2Render.cpp \
+							desmume/src/OGLES3Render.cpp \
 							desmume/src/path.cpp \
 							desmume/src/rasterize.cpp \
 							desmume/src/readwrite.cpp \
@@ -130,7 +131,7 @@ LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -
 #To increase performance for the Qualcomm Krait CPU
 #LOCAL_CFLAGS            := -DANDROID -DHAVE-LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE-JIT -DLIGHTNING_ARM -DHAVE_NEON=1 -mfloat-abi=softfp -mfpu=neon-vfpv4 -marm -march=armv7-a -mcpu=krait2
 LOCAL_STATIC_LIBRARIES 	:= mathneon sevenzip
-LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -ljnigraphics -lOpenSLES -landroid
+LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -lGLESv3 -ljnigraphics -lOpenSLES -landroid
 
 #To check for speed improvements
 #LOCAL_CFLAGS += -DMEASURE_FIRST_FRAMES

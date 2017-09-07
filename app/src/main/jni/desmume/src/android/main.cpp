@@ -27,6 +27,7 @@
 #include <android/bitmap.h>
 #include <GPU.h>
 #include <armcpu.h>
+#include "../OGLES3Render.h"
 
 #include "main.h"
 #include "../OGLES2Render.h"
@@ -59,7 +60,7 @@ unsigned int frameCount = 0;
 GPU3DInterface *core3DList[] = {
 	&gpu3DNull,
 	&gpu3Dgles2,
-    //&gpu3Dgles3,
+    &gpu3Dgles3,
 	&gpu3DRasterize,
 	NULL
 };

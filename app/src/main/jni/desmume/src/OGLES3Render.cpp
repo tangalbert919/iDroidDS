@@ -282,4 +282,245 @@ Render3DError OpenGLES3Renderer::CreateFBOs() {
         return OGLERROR_FBO_CREATE_ERROR;
     }
 
+    // Set up final output FBO
+    glGenRenderbuffers(1, &OGLRef.rboFragColorID);
+    glGenRenderbuffers(1, &OGLRef.rboFragDepthStencilID);
+    glBindRenderbuffer(GL_RENDERBUFFER, OGLRef.rboFragColorID);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT);
+    glBindRenderbuffer(GL_RENDERBUFFER, OGLRef.rboFragDepthStencilID);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT);
+
+    glGenFramebuffers(1, &OGLRef.fboRenderID);
+    glBindFramebuffer(GL_FRAMEBUFFER, OGLRef.fboRenderID);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, OGLRef.rboFragColorID);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, OGLRef.rboFragDepthStencilID);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        INFO("OpenGL ES 3.0: Failed to created FBOs. Some emulation features will be disabled.\n");
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteFramebuffers(1, &OGLRef.fboClearImageID);
+        glDeleteTextures(1, &OGLRef.texClearImageColorID);
+        glDeleteTextures(1, &OGLRef.texClearImageDepthStencilID);
+
+        glDeleteFramebuffers(1, &OGLRef.fboRenderID);
+        glDeleteRenderbuffers(1, &OGLRef.rboFragColorID);
+        glDeleteRenderbuffers(1, &OGLRef.rboFragDepthStencilID);
+
+        OGLRef.fboRenderID = 0;
+        return OGLERROR_FBO_CREATE_ERROR;
+    }
+
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+    INFO("OpenGL: Successfully created FBOs.\n");
+
+    return OGLERROR_NOERR;
+}
+
+void OpenGLES3Renderer::DestroyFBOs() {
+    if (!this->isFBOSupported)
+    {
+        return;
+    }
+
+    OGLESRenderRef &OGLRef = *this->ref;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &OGLRef.fboClearImageID);
+    glDeleteTextures(1, &OGLRef.texClearImageColorID);
+    glDeleteTextures(1, &OGLRef.texClearImageDepthStencilID);
+
+    glDeleteFramebuffers(1, &OGLRef.fboRenderID);
+    glDeleteRenderbuffers(1, &OGLRef.rboFragColorID);
+    glDeleteRenderbuffers(1, &OGLRef.rboFragDepthStencilID);
+
+    this->isFBOSupported = false;
+}
+
+Render3DError OpenGLES3Renderer::CreateMultisampledFBO() {
+    // Check the maximum number of samples that the GPU supports and use that.
+    // Since our target resolution is only 256x192 pixels, using the most samples
+    // possible is the best thing to do.
+    GLint maxSamples = 0;
+    glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
+
+    if (maxSamples < 2)
+    {
+        INFO("OpenGL: GPU does not support at least 2x multisampled FBOs. Multisample antialiasing will be disabled.\n");
+        return OGLERROR_FEATURE_UNSUPPORTED;
+    }
+    else if (maxSamples > OGLRENDER_MAX_MULTISAMPLES)
+    {
+        maxSamples = OGLRENDER_MAX_MULTISAMPLES;
+    }
+
+    OGLESRenderRef &OGLRef = *this->ref;
+
+    // Set up FBO render targets
+    glGenRenderbuffers(1, &OGLRef.rboMSFragColorID);
+    glGenRenderbuffers(1, &OGLRef.rboMSFragDepthStencilID);
+
+    glBindRenderbuffer(GL_RENDERBUFFER, OGLRef.rboMSFragColorID);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, maxSamples, GL_RGBA, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT);
+    glBindRenderbuffer(GL_RENDERBUFFER, OGLRef.rboMSFragDepthStencilID);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, maxSamples, GL_DEPTH24_STENCIL8, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT);
+
+    // Set up multisampled rendering FBO
+    glGenFramebuffers(1, &OGLRef.fboMSIntermediateRenderID);
+    glBindFramebuffer(GL_FRAMEBUFFER, OGLRef.fboMSIntermediateRenderID);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, OGLRef.rboMSFragColorID);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, OGLRef.rboMSFragDepthStencilID);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteFramebuffers(1, &OGLRef.fboMSIntermediateRenderID);
+        glDeleteRenderbuffers(1, &OGLRef.rboMSFragColorID);
+        glDeleteRenderbuffers(1, &OGLRef.rboMSFragDepthStencilID);
+
+        INFO("OpenGL ES 3.0: Failed to create multisampled FBO. Multisample antialiasing will be disabled.\n");
+        return OGLERROR_FBO_CREATE_ERROR;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, OGLRef.fboRenderID);
+    INFO("OpenGL ES 3.0: Successfully created multisampled FBO.\n");
+
+    return OGLERROR_NOERR;
+}
+
+void OpenGLES3Renderer::DestroyMultisampledFBO() {
+    if (!this->isMultisampledFBOSupported)
+    {
+        return;
+    }
+
+    OGLESRenderRef &OGLRef = *this->ref;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &OGLRef.fboMSIntermediateRenderID);
+    glDeleteRenderbuffers(1, &OGLRef.rboMSFragColorID);
+    glDeleteRenderbuffers(1, &OGLRef.rboMSFragDepthStencilID);
+
+    this->isMultisampledFBOSupported = false;
+}
+
+Render3DError OpenGLES3Renderer::CreateVAOs() {
+    OGLESRenderRef &OGLRef = *this->ref;
+
+    glGenVertexArrays(1, &OGLRef.vaoMainStatesID);
+    glBindVertexArray(OGLRef.vaoMainStatesID);
+
+    glBindBuffer(GL_ARRAY_BUFFER, OGLRef.vboVertexID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, OGLRef.iboIndexID);
+
+    glEnableVertexAttribArray(OGLVertexAttributeID_Position);
+    glEnableVertexAttribArray(OGLVertexAttributeID_TexCoord0);
+    glEnableVertexAttribArray(OGLVertexAttributeID_Color);
+
+    glVertexAttribPointer(OGLVertexAttributeID_Position, 4, GL_FLOAT, GL_FALSE, sizeof(VERT), (const GLvoid *)offsetof(VERT, coord));
+    glVertexAttribPointer(OGLVertexAttributeID_TexCoord0, 2, GL_FLOAT, GL_FALSE, sizeof(VERT), (const GLvoid *)offsetof(VERT, texcoord));
+    glVertexAttribPointer(OGLVertexAttributeID_Color, 3, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(VERT), (const GLvoid *)offsetof(VERT, color));
+
+    glBindVertexArray(0);
+
+    return OGLERROR_NOERR;
+}
+
+void OpenGLES3Renderer::DestroyVAOs() {
+    if (!this->isVAOSupported)
+    {
+        return;
+    }
+
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &this->ref->vaoMainStatesID);
+
+    this->isVAOSupported = false;
+}
+
+Render3DError OpenGLES3Renderer::LoadShaderPrograms(std::string *outVertexShaderProgram,
+                                                    std::string *outFragmentShaderProgram) {
+    *outVertexShaderProgram = std::string(vertexShader_150);
+    *outFragmentShaderProgram = std::string(fragmentShader_150);
+
+    return OGLERROR_NOERR;
+}
+
+Render3DError OpenGLES3Renderer::SetupShaderIO() {
+    OGLESRenderRef &OGLRef = *this->ref;
+
+    glBindAttribLocation(OGLRef.shaderProgram, OGLVertexAttributeID_Position, "inPosition");
+    glBindAttribLocation(OGLRef.shaderProgram, OGLVertexAttributeID_TexCoord0, "inTexCoord0");
+    glBindAttribLocation(OGLRef.shaderProgram, OGLVertexAttributeID_Color, "inColor");
+    glBindFragDataLocationEXT(OGLRef.shaderProgram, 0, "outFragColor");
+
+    return OGLERROR_NOERR;
+}
+
+void OpenGLES3Renderer::GetExtensionSet(std::set<std::string> *oglExtensionSet) {
+    GLint extensionCount = 0;
+
+    glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+    for (size_t i = 0; i < extensionCount; i++)
+    {
+        std::string extensionName = std::string((const char *)glGetStringi(GL_EXTENSIONS, i));
+        oglExtensionSet->insert(extensionName);
+    }
+}
+
+Render3DError OpenGLES3Renderer::EnableVertexAttributes(const VERTLIST *vertlist,
+                                               const GLushort *indexBuffer,
+                                               const size_t vertIndexCount) {
+    OGLESRenderRef &OGLRef = *this->ref;
+
+    glBindVertexArray(OGLRef.vaoMainStatesID);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(VERT) * vertlist->count, vertlist);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, vertIndexCount * sizeof(GLushort), indexBuffer);
+
+    return OGLERROR_NOERR;
+}
+
+Render3DError OpenGLES3Renderer::DisableVertexAttributes() {
+    glBindVertexArray(0);
+    return OGLERROR_NOERR;
+}
+
+Render3DError OpenGLES3Renderer::SelectRenderingFramebuffer() {
+    OGLESRenderRef &OGLRef = *this->ref;
+    static const GLenum drawDirect[1] = {GL_COLOR_ATTACHMENT0};
+
+    OGLRef.selectedRenderingFBO = (CommonSettings.GFX3D_Renderer_Multisample) ? OGLRef.fboMSIntermediateRenderID : OGLRef.fboRenderID;
+    glBindFramebuffer(GL_FRAMEBUFFER, OGLRef.selectedRenderingFBO);
+    glDrawBuffers(1, &drawDirect[0]);
+
+    return OGLERROR_NOERR;
+}
+
+Render3DError OpenGLES3Renderer::DownsampleFBO() {
+    OGLESRenderRef &OGLRef = *this->ref;
+
+    if (OGLRef.selectedRenderingFBO != OGLRef.fboMSIntermediateRenderID)
+    {
+        return OGLERROR_NOERR;
+    }
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, OGLRef.selectedRenderingFBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, OGLRef.fboRenderID);
+    glBlitFramebuffer(0, 0, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT, 0, 0, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_FRAMEBUFFER, OGLRef.fboRenderID);
+
+    return OGLERROR_NOERR;
+}
+
+Render3DError OpenGLES3Renderer::ClearUsingImage() const {
+    OGLESRenderRef &OGLRef = *this->ref;
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, OGLRef.fboClearImageID);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, OGLRef.selectedRenderingFBO);
+    glBlitFramebuffer(0, 0, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT, 0, 0, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_FRAMEBUFFER, OGLRef.selectedRenderingFBO);
+
+    return OGLERROR_NOERR;
 }

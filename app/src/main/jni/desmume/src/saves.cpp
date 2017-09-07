@@ -57,6 +57,8 @@
 
 #ifdef HOST_WINDOWS
 #include "windows/main.h"
+#elif defined ANDROID
+#include "android/main.h"
 #endif
 
 int lastSaveState = 0;		//Keeps track of last savestate used for quick save/load functions
@@ -945,8 +947,10 @@ static void writechunks(EMUFILE* os);
 
 bool savestate_save(EMUFILE* outstream, int compressionLevel)
 {
-#ifdef HAVE_JIT 
-	arm_jit_sync();
+#ifdef HAVE_JIT
+    if (arm_cpubase)
+		arm_cpubase->Sync();
+	//arm_jit_sync();
 #endif
 	#ifndef HAVE_LIBZ
 	compressionLevel = Z_NO_COMPRESSION;

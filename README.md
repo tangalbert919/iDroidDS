@@ -21,6 +21,7 @@ If you found an issue, please [make an issue ticket here](https://github.com/tan
 
 * Increase performance overall.
 * Improve the OpenGL ES 2.0 Renderer.
+* Work on the OpenGL ES 3.0 Renderer.
 * Fix the DeSmuME default renderer (the rasterizer).
 * Update libraries to the latest version (if applicable).
 
@@ -28,6 +29,7 @@ If you found an issue, please [make an issue ticket here](https://github.com/tan
 
 * The rasterizer can fail during emulation (in fact, it fails very quickly).
 * The OpenGL ES 2.0 Renderer does not support FBOs, resulting in incorrect rendering of some textures.
+* No file is created when saving the game.
 
 **DISCLAIMER:** nds4droid is licensed under the GNU General Public License, which means the software is provided as-is. The Nintendo DS, and the Nintendo DS logo are trademarks of Nintendo, Inc. Games that support the Nintendo DS are trademarks of Nintendo, Inc., and their respective companies and affiliates.
 
