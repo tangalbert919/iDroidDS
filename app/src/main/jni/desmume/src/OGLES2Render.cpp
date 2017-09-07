@@ -465,6 +465,52 @@ static void texDeleteCallback(TexCacheItem *item)
 	_OGLRenderer->DeleteTexture(item);
 }
 
+static void OGLGetDriverVersion(const char *oglVersionString,
+								unsigned int *versionMajor,
+								unsigned int *versionMinor)
+{
+	size_t versionStringLength = 0;
+
+	if (oglVersionString == NULL)
+		return;
+
+	// The first check looks for a dot in the revision string.
+	// This does not apply to OpenGL ES, so I don't know why it's here.
+	const char *versionStrEnd = strstr(oglVersionString, ".");
+	if (versionStrEnd == NULL) {
+		puts(versionStrEnd);
+		return;
+	}
+
+	// Check for the space before the vendor-specific info.
+	versionStrEnd = strstr(oglVersionString, " ");
+	if (versionStrEnd == NULL) {
+		versionStringLength = strlen(oglVersionString);
+		puts(versionStrEnd);
+	}
+
+	else
+		versionStringLength = versionStrEnd - oglVersionString;
+
+	// Copy the version substring and parse it.
+	char *versionSubstring = (char *)malloc(versionStringLength * sizeof(char));
+	strncpy(versionSubstring, oglVersionString, versionStringLength);
+
+	unsigned int major = 0;
+	unsigned int minor = 0;
+
+	sscanf(versionSubstring, "%u.%u", &major, &minor);
+
+	free(versionSubstring);
+	versionSubstring = NULL;
+
+	if (versionMajor != NULL)
+		*versionMajor = major;
+
+	if (versionMinor != NULL)
+		*versionMinor = minor;
+}
+
 static char OGLInit(void)
 {
 	char result = 0;
@@ -483,22 +529,23 @@ static char OGLInit(void)
 
 	if(!BEGINGL())
 	{
-		INFO("OpenGLES2: Could not initialize -- BEGINGL() failed.\n");
+		INFO("OpenGL ES <%s,%s>: Could not initialize -- BEGINGL() failed.\n");
 		result = 0;
 		return result;
 	}
 	
-	// Get OpenGLES2 info
+	// Get OpenGL ES info
 	const char *oglVersionString = (const char *)glGetString(GL_VERSION);
 	const char *oglVendorString = (const char *)glGetString(GL_VENDOR);
 	const char *oglRendererString = (const char *)glGetString(GL_RENDERER);
-	
-	// Check the driver's OpenGLES2 version
-	_OGLDriverVersion.major = 2;
-	_OGLDriverVersion.minor = 0;
+
+	// Check the driver's OpenGL ES version
+	OGLGetDriverVersion(oglVersionString, &_OGLDriverVersion.major, &_OGLDriverVersion.minor);
+    //_OGLDriverVersion.major = 2;
+    //_OGLDriverVersion.minor = 0;
 	if (!IsVersionSupported(OGLRENDER_MINIMUM_DRIVER_VERSION_REQUIRED_MAJOR, OGLRENDER_MINIMUM_DRIVER_VERSION_REQUIRED_MINOR))
 	{
-		INFO("OpenGLES2: Driver does not support OpenGLES2 v%u.%u or later. Disabling 3D renderer.\n[ Driver Info -\n    Version: %s\n    Vendor: %s\n    Renderer: %s ]\n",
+		INFO("OpenGL ES: Driver does not support OpenGL ES v%u.%u or later. Disabling 3D renderer.\n    [ Driver Info -\n    Version: %s\n    Vendor: %s\n    Renderer: %s ]\n",
 			 OGLRENDER_MINIMUM_DRIVER_VERSION_REQUIRED_MAJOR, OGLRENDER_MINIMUM_DRIVER_VERSION_REQUIRED_MINOR,
 			 oglVersionString, oglVendorString, oglRendererString);
 		
@@ -506,7 +553,7 @@ static char OGLInit(void)
 		return result;
 	}
 	
-	// If the renderer doesn't initialize with OpenGLES2 v3.2 or higher, fall back
+	// If the renderer doesn't initialize with OpenGL ES v3.0 or higher, fall back
 	// to one of the lower versions.
 	if (_OGLRenderer == NULL)
 	{
@@ -521,7 +568,7 @@ static char OGLInit(void)
 	
 	if (_OGLRenderer == NULL)
 	{
-		INFO("OpenGLES2: Renderer did not initialize. Disabling 3D renderer.\n[ Driver Info -\n    Version: %s\n    Vendor: %s\n    Renderer: %s ]\n",
+		INFO("OpenGL ES: Renderer did not initialize. Disabling 3D renderer.\n    [ Driver Info -\n    Version: %s\n    Vendor: %s\n    Renderer: %s ]\n",
 			 oglVersionString, oglVendorString, oglRendererString);
 		result = 0;
 		return result;
@@ -536,7 +583,7 @@ static char OGLInit(void)
 			 error == OGLERROR_VERTEX_SHADER_PROGRAM_LOAD_ERROR ||
 			 error == OGLERROR_FRAGMENT_SHADER_PROGRAM_LOAD_ERROR) )
 		{
-			INFO("OpenGLES2: Shaders are not working, even though they should be. Disabling 3D renderer.\n");
+			INFO("OpenGL ES: Shaders are not working, even though they should be. Disabling 3D renderer.\n");
 			result = 0;
 			return result;
 		}
@@ -551,7 +598,7 @@ static char OGLInit(void)
 	unsigned int minor = 0;
 	_OGLRenderer->GetVersion(&major, &minor);
 	
-	INFO("OpenGLES2: Renderer initialized successfully (v%u.%u).\n[ Driver Info -\n    Version: %s\n    Vendor: %s\n    Renderer: %s ]\n",
+	INFO("OpenGL ES: Renderer initialized successfully (v%u.%u).\n[ Driver Info -\n    Version: %s\n    Vendor: %s\n    Renderer: %s ]\n",
 		 major, minor, oglVersionString, oglVendorString, oglRendererString);
 	
 	return result;
@@ -620,6 +667,16 @@ GPU3DInterface gpu3Dgles2 = {
 	OGLVramReconfigureSignal
 };
 
+GPU3DInterface gpu3Dgles3 = {
+        "OpenGLES3",
+        OGLInit,
+        OGLReset,
+        OGLClose,
+        OGLRender,
+        OGLRenderFinish,
+        OGLVramReconfigureSignal
+};
+
 OpenGLESRenderer::OpenGLESRenderer()
 {
 	versionMajor = 0;
@@ -655,7 +712,7 @@ bool OpenGLESRenderer::ValidateShaderCompile(GLuint theShader) const
 		log = new GLchar[logSize];
 		glGetShaderInfoLog(theShader, logSize, &logSize, log);
 		
-		INFO("OpenGLES2: SEVERE - FAILED TO COMPILE SHADER : %s\n", log);
+		INFO("OpenGL ES: SEVERE - FAILED TO COMPILE SHADER : %s\n", log);
 		delete[] log;
 	}
 	
@@ -681,7 +738,7 @@ bool OpenGLESRenderer::ValidateShaderProgramLink(GLuint theProgram) const
 		log = new GLchar[logSize];
 		glGetProgramInfoLog(theProgram, logSize, &logSize, log);
 		
-		INFO("OpenGLES2: SEVERE - FAILED TO LINK SHADER PROGRAM : %s\n", log);
+		INFO("OpenGL ES: SEVERE - FAILED TO LINK SHADER PROGRAM : %s\n", log);
 		delete[] log;
 	}
 	
@@ -837,12 +894,11 @@ Render3DError OpenGLES2Renderer::InitExtensions() {
 	else
 	{
 		OGLRef.fboFinalOutputID = 0;
-		INFO("OpenGLES2: FBOs are unsupported. Some emulation features will be disabled.\n");
+		INFO("OpenGL ES: FBOs are unsupported. Some emulation features will be disabled.\n");
 	}
 
 	this->isMultisampledFBOSupported = this->IsExtensionPresent(&oglExtensionSet, "GL_OES_framebuffer_object") &&
-									   this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil") &&
-									   this->IsExtensionPresent(&oglExtensionSet, "GL_ANGLE_framebuffer_multisample");
+									   this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil");
 
 	if (this->isMultisampledFBOSupported)
 	{
@@ -855,7 +911,7 @@ Render3DError OpenGLES2Renderer::InitExtensions() {
 		}
 	} else {
 		OGLRef.selectedRenderingFBO = 0;
-		INFO("OpenGLES2: Multisampled FBOs are unsupported. Multisample antialiasing will be disabled.\n");
+		INFO("OpenGL ES: Multisampled FBOs are unsupported. Multisample antialiasing will be disabled.\n");
 	}
 	
 	this->InitTextures();
@@ -925,7 +981,7 @@ Render3DError OpenGLES2Renderer::CreateShaders(const std::string *vertexShaderPr
 	OGLRef.vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 	if(!OGLRef.vertexShaderID)
 	{
-		INFO("OpenGLES2: Failed to create the vertex shader.\n");		
+		INFO("OpenGL ES: Failed to create the vertex shader.\n");
 		return OGLERROR_SHADER_CREATE_ERROR;
 	}
 	
@@ -935,7 +991,7 @@ Render3DError OpenGLES2Renderer::CreateShaders(const std::string *vertexShaderPr
 	if (!this->ValidateShaderCompile(OGLRef.vertexShaderID))
 	{
 		glDeleteShader(OGLRef.vertexShaderID);
-		INFO("OpenGLES2: Failed to compile the vertex shader.\n");
+		INFO("OpenGL ES: Failed to compile the vertex shader.\n");
 		return OGLERROR_SHADER_CREATE_ERROR;
 	}
 	
@@ -943,7 +999,7 @@ Render3DError OpenGLES2Renderer::CreateShaders(const std::string *vertexShaderPr
 	if(!OGLRef.fragmentShaderID)
 	{
 		glDeleteShader(OGLRef.vertexShaderID);
-		INFO("OpenGLES2: Failed to create the fragment shader.\n");
+		INFO("OpenGL ES: Failed to create the fragment shader.\n");
 		return OGLERROR_SHADER_CREATE_ERROR;
 	}
 	
@@ -954,7 +1010,7 @@ Render3DError OpenGLES2Renderer::CreateShaders(const std::string *vertexShaderPr
 	{
 		glDeleteShader(OGLRef.vertexShaderID);
 		glDeleteShader(OGLRef.fragmentShaderID);
-		INFO("OpenGLES2: Failed to compile the fragment shader.\n");
+		INFO("OpenGL ES: Failed to compile the fragment shader.\n");
 		return OGLERROR_SHADER_CREATE_ERROR;
 	}
 	
@@ -963,7 +1019,7 @@ Render3DError OpenGLES2Renderer::CreateShaders(const std::string *vertexShaderPr
 	{
 		glDeleteShader(OGLRef.vertexShaderID);
 		glDeleteShader(OGLRef.fragmentShaderID);
-		INFO("OpenGLES2: Failed to create the shader program.\n");
+		INFO("OpenGL ES: Failed to create the shader program.\n");
 		return OGLERROR_SHADER_CREATE_ERROR;
 	}
 	
@@ -980,7 +1036,7 @@ Render3DError OpenGLES2Renderer::CreateShaders(const std::string *vertexShaderPr
 		glDeleteProgram(OGLRef.shaderProgram);
 		glDeleteShader(OGLRef.vertexShaderID);
 		glDeleteShader(OGLRef.fragmentShaderID);
-		INFO("OpenGLES2: Failed to link the shader program.\n");
+		INFO("OpenGL ES: Failed to link the shader program.\n");
 		return OGLERROR_SHADER_CREATE_ERROR;
 	}
 	
@@ -1006,7 +1062,7 @@ Render3DError OpenGLES2Renderer::CreateShaders(const std::string *vertexShaderPr
 	OGLRef.uniformEnableAlphaTest	= glGetUniformLocation(OGLRef.shaderProgram, "enableAlphaTest");
 	OGLRef.uniformAlphaTestRef		= glGetUniformLocation(OGLRef.shaderProgram, "alphaTestRef");
 	
-	INFO("OpenGLES2: Successfully created shaders.\n");
+	INFO("OpenGL ES: Successfully created shaders.\n");
 	
 	return OGLERROR_NOERR;
 }
@@ -1100,7 +1156,7 @@ Render3DError OpenGLES2Renderer::CreateFBOs()
 	
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
-		INFO("OpenGLES2: Failed to created FBOs. Some emulation features will be disabled.\n");
+		INFO("OpenGL ES: Failed to created FBOs. Some emulation features will be disabled.\n");
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDeleteFramebuffers(1, &OGLRef.fboClearImageID);
@@ -1148,7 +1204,7 @@ Render3DError OpenGLES2Renderer::CreateMultisampledFBO() {
 
     if (maxSamples < 2)
     {
-        INFO("OpenGLES: Driver does not support at least 2x multisampled FBOs. Multisample antialiasing will be disabled.\n");
+        INFO("OpenGL ES: Driver does not support at least 2x multisampled FBOs. Multisample antialiasing will be disabled.\n");
         return OGLERROR_FEATURE_UNSUPPORTED;
     }
     else if (maxSamples > OGLRENDER_MAX_MULTISAMPLES)
@@ -1167,7 +1223,7 @@ Render3DError OpenGLES2Renderer::CreateMultisampledFBO() {
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
-        INFO("OpenGLES2: Failed to create multisampled FBO. Multisample antialiasing will be disabled.");
+        INFO("OpenGL ES: Failed to create multisampled FBO. Multisample antialiasing will be disabled.");
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDeleteFramebuffers(1, &OGLRef.fboMSIntermediateRenderID);
@@ -1178,7 +1234,7 @@ Render3DError OpenGLES2Renderer::CreateMultisampledFBO() {
     }
 
 	glESBindFramebuffer(GL_FRAMEBUFFER, OGLRef.fboRenderID);
-	INFO("OpenGLES2: Successfully created multisampled FBO.\n");
+	INFO("OpenGL ES: Successfully created multisampled FBO.\n");
     return OGLERROR_NOERR;
 }
 

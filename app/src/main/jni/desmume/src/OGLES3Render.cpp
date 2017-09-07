@@ -25,49 +25,70 @@
 #include "NDSSystem.h"
 #include "texcache.h"
 
+typedef struct
+{
+    unsigned int major;
+    unsigned int minor;
+} OGLVersion;
+
+static OGLVersion _OGLDriverVersion = {0, 0};
+static OpenGLESRenderer *_OGLRenderer = NULL;
+static bool BEGINGL()
+{
+    if(oglrender_beginOpenGL)
+        return oglrender_beginOpenGL();
+    else return true;
+}
+
+static void ENDGL()
+{
+    if(oglrender_endOpenGL)
+        oglrender_endOpenGL();
+}
+
 //-------------------------------------------------------------
 
 // Basic functions
-OGLEXT(PFNGLGETSTRINGIPROC, glESGetStringi)
+OGLEXT(PFNGLGETSTRINGIPROC, glES3GetStringi)
 
 // Shaders
-OGLEXT(PFNGLBINDFRAGDATALOCATIONEXTPROC, glBindFragDataLocationEXT)
+OGLEXT(PFNGLBINDFRAGDATALOCATIONEXTPROC, glESBindFragDataLocationEXT)
 
 // FBO
-OGLEXT(PFNGLGENFRAMEBUFFERSPROC, glESGenFramebuffers)
-OGLEXT(PFNGLBINDFRAMEBUFFERPROC, glESBindFramebuffer)
-OGLEXT(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glESFramebufferRenderbuffer)
-OGLEXT(PFNGLFRAMEBUFFERTEXTURE2DPROC, glESFramebufferTexture2D)
-OGLEXT(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glESCheckFramebufferStatus)
-OGLEXT(PFNGLDELETEFRAMEBUFFERSPROC, glESDeleteFramebuffers)
-OGLEXT(PFNGLBLITFRAMEBUFFERPROC, glESBlitFramebuffer)
-OGLEXT(PFNGLGENRENDERBUFFERSPROC, glESGenRenderbuffers)
-OGLEXT(PFNGLBINDRENDERBUFFERPROC, glESBindRenderbuffer)
-OGLEXT(PFNGLRENDERBUFFERSTORAGEPROC, glESRenderbufferStorage)
-OGLEXT(PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC, glESRenderbufferStorageMultisample)
-OGLEXT(PFNGLDELETERENDERBUFFERSPROC, glESDeleteRenderbuffers)
+OGLEXT(PFNGLGENFRAMEBUFFERSPROC, glES3GenFramebuffers)
+OGLEXT(PFNGLBINDFRAMEBUFFERPROC, glES3BindFramebuffer)
+OGLEXT(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glES3FramebufferRenderbuffer)
+OGLEXT(PFNGLFRAMEBUFFERTEXTURE2DPROC, glES3FramebufferTexture2D)
+OGLEXT(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glES3CheckFramebufferStatus)
+OGLEXT(PFNGLDELETEFRAMEBUFFERSPROC, glES3DeleteFramebuffers)
+OGLEXT(PFNGLBLITFRAMEBUFFERPROC, glES3BlitFramebuffer)
+OGLEXT(PFNGLGENRENDERBUFFERSPROC, glES3GenRenderbuffers)
+OGLEXT(PFNGLBINDRENDERBUFFERPROC, glES3BindRenderbuffer)
+OGLEXT(PFNGLRENDERBUFFERSTORAGEPROC, glES3RenderbufferStorage)
+OGLEXT(PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC, glES3RenderbufferStorageMultisample)
+OGLEXT(PFNGLDELETERENDERBUFFERSPROC, glES3DeleteRenderbuffers)
 
 void OGLLoadEntryPoints()
 {
     // Basic functions
-    INITOGLEXT(PFNGLGETSTRINGIPROC, glESGetStringi)
+    INITOGLEXT(PFNGLGETSTRINGIPROC, glES3GetStringi)
 
     // Shaders
-    INITOGLEXT(PFNGLBINDFRAGDATALOCATIONEXTPROC, glBindFragDataLocationEXT)
+    INITOGLEXT(PFNGLBINDFRAGDATALOCATIONEXTPROC, glESBindFragDataLocationEXT)
 
     // FBO
-    INITOGLEXT(PFNGLGENFRAMEBUFFERSPROC, glESGenFramebuffers)
-    INITOGLEXT(PFNGLBINDFRAMEBUFFERPROC, glESBindFramebuffer)
-    INITOGLEXT(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glESFramebufferRenderbuffer)
-    INITOGLEXT(PFNGLFRAMEBUFFERTEXTURE2DPROC, glESFramebufferTexture2D)
-    INITOGLEXT(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glESCheckFramebufferStatus)
-    INITOGLEXT(PFNGLDELETEFRAMEBUFFERSPROC, glESDeleteFramebuffers)
-    INITOGLEXT(PFNGLBLITFRAMEBUFFERPROC, glESBlitFramebuffer)
-    INITOGLEXT(PFNGLGENRENDERBUFFERSPROC, glESGenRenderbuffers)
-    INITOGLEXT(PFNGLBINDRENDERBUFFERPROC, glESBindRenderbuffer)
-    INITOGLEXT(PFNGLRENDERBUFFERSTORAGEPROC, glESRenderbufferStorage)
-    INITOGLEXT(PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC, glESRenderbufferStorageMultisample)
-    INITOGLEXT(PFNGLDELETERENDERBUFFERSPROC, glESDeleteRenderbuffers)
+    INITOGLEXT(PFNGLGENFRAMEBUFFERSPROC, glES3GenFramebuffers)
+    INITOGLEXT(PFNGLBINDFRAMEBUFFERPROC, glES3BindFramebuffer)
+    INITOGLEXT(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glES3FramebufferRenderbuffer)
+    INITOGLEXT(PFNGLFRAMEBUFFERTEXTURE2DPROC, glES3FramebufferTexture2D)
+    INITOGLEXT(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glES3CheckFramebufferStatus)
+    INITOGLEXT(PFNGLDELETEFRAMEBUFFERSPROC, glES3DeleteFramebuffers)
+    INITOGLEXT(PFNGLBLITFRAMEBUFFERPROC, glES3BlitFramebuffer)
+    INITOGLEXT(PFNGLGENRENDERBUFFERSPROC, glES3GenRenderbuffers)
+    INITOGLEXT(PFNGLBINDRENDERBUFFERPROC, glES3BindRenderbuffer)
+    INITOGLEXT(PFNGLRENDERBUFFERSTORAGEPROC, glES3RenderbufferStorage)
+    INITOGLEXT(PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC, glES3RenderbufferStorageMultisample)
+    INITOGLEXT(PFNGLDELETERENDERBUFFERSPROC, glES3DeleteRenderbuffers)
 }
 
 // Vertex Shader GLSL 1.50
@@ -459,6 +480,16 @@ Render3DError OpenGLES3Renderer::SetupShaderIO() {
     return OGLERROR_NOERR;
 }
 
+Render3DError OpenGLES3Renderer::CreatePBOs() {
+    OGLESRenderRef &OGLRef = *this->ref;
+
+
+}
+
+void OpenGLES3Renderer::DestroyPBOs() {
+
+}
+
 void OpenGLES3Renderer::GetExtensionSet(std::set<std::string> *oglExtensionSet) {
     GLint extensionCount = 0;
 
@@ -470,9 +501,7 @@ void OpenGLES3Renderer::GetExtensionSet(std::set<std::string> *oglExtensionSet) 
     }
 }
 
-Render3DError OpenGLES3Renderer::EnableVertexAttributes(const VERTLIST *vertlist,
-                                               const GLushort *indexBuffer,
-                                               const size_t vertIndexCount) {
+Render3DError OpenGLES3Renderer::EnableVertexAttributes(const VERTLIST *vertlist, const GLushort *indexBuffer, const size_t vertIndexCount) {
     OGLESRenderRef &OGLRef = *this->ref;
 
     glBindVertexArray(OGLRef.vaoMainStatesID);

@@ -38,8 +38,6 @@
 #error OpenGL ES requires v3.0 headers or later.
 #endif
 
-extern GPU3DInterface gpu3Dgles3;
-
 class OpenGLES3Renderer : public OpenGLES2Renderer {
 protected:
 
