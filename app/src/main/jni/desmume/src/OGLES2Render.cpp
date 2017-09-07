@@ -68,25 +68,141 @@ void (*oglrender_endOpenGL)() = NULL;
 
 //------------------------------------------------------------
 
+// Textures
+OGLEXT(PFNGLACTIVETEXTUREPROC, glActiveTextures)
+
+// Blending
+OGLEXT(PFNGLBLENDFUNCSEPARATEPROC, glESBlendFuncSeparate)
+OGLEXT(PFNGLBLENDEQUATIONSEPARATEPROC, glESBlendEquationSeparate)
+
+// Shaders
+OGLEXT(PFNGLCREATESHADERPROC, glESCreateShader)
+OGLEXT(PFNGLSHADERSOURCEPROC, glESShaderSource)
+OGLEXT(PFNGLCOMPILESHADERPROC, glESCompileShader)
+OGLEXT(PFNGLCREATEPROGRAMPROC, glESCreateProgram)
+OGLEXT(PFNGLATTACHSHADERPROC, glESAttachShader)
+OGLEXT(PFNGLDETACHSHADERPROC, glESDetachShader)
+OGLEXT(PFNGLLINKPROGRAMPROC, glESLinkProgram)
+OGLEXT(PFNGLUSEPROGRAMPROC, glESUseProgram)
+OGLEXT(PFNGLGETSHADERIVPROC, glESGetShaderiv)
+OGLEXT(PFNGLGETSHADERINFOLOGPROC, glESGetShaderInfoLog)
+OGLEXT(PFNGLDELETESHADERPROC, glESDeleteShader)
+OGLEXT(PFNGLDELETEPROGRAMPROC, glESDeleteProgram)
+OGLEXT(PFNGLGETPROGRAMIVPROC, glESGetProgramiv)
+OGLEXT(PFNGLGETPROGRAMINFOLOGPROC, glESGetProgramInfoLog)
+OGLEXT(PFNGLVALIDATEPROGRAMPROC, glESValidateProgram)
+OGLEXT(PFNGLGETUNIFORMLOCATIONPROC, glESGetUniformLocation)
+OGLEXT(PFNGLUNIFORM1IPROC, glESUniform1i)
+OGLEXT(PFNGLUNIFORM1IVPROC, glESUniform1iv)
+OGLEXT(PFNGLUNIFORM1FPROC, glESUniform1f)
+OGLEXT(PFNGLUNIFORM2FPROC, glESUniform2f)
+OGLEXT(PFNGLDRAWBUFFERSEXTPROC, glDrawBuffersEXT)
+
+
+// Generic vertex attributes
+OGLEXT(PFNGLBINDATTRIBLOCATIONPROC, glESBindAttribLocation)
+OGLEXT(PFNGLENABLEVERTEXATTRIBARRAYPROC, glESEnableVertexAttribArray)
+OGLEXT(PFNGLDISABLEVERTEXATTRIBARRAYPROC, glESDisableVertexAttribArray)
+OGLEXT(PFNGLBINDFRAGDATALOCATIONEXTPROC, glBindFragDataLocationEXT)
+
 // VAO
 OGLEXT(PFNGLGENVERTEXARRAYSOESPROC, glGenVertexArraysOES)
 OGLEXT(PFNGLDELETEVERTEXARRAYSOESPROC, glDeleteVertexArraysOES)
 OGLEXT(PFNGLBINDVERTEXARRAYOESPROC, glBindVertexArrayOES)
 
 // VBO
+OGLEXT(PFNGLGENBUFFERSPROC, glESGenBuffers)
+OGLEXT(PFNGLDELETEBUFFERSPROC, glESDeleteBuffers)
+OGLEXT(PFNGLBINDBUFFERPROC, glESBindBuffer)
+OGLEXT(PFNGLBUFFERDATAPROC, glESBufferData)
+OGLEXT(PFNGLBUFFERSUBDATAPROC, glESBufferSubData)
 OGLEXT(PFNGLMAPBUFFEROESPROC, glMapBufferOES)
 OGLEXT(PFNGLUNMAPBUFFEROESPROC, glUnmapBufferOES)
 
+// FBO
+OGLEXT(PFNGLGENFRAMEBUFFERSPROC, glESGenFramebuffers)
+OGLEXT(PFNGLBINDFRAMEBUFFERPROC, glESBindFramebuffer)
+OGLEXT(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glESFramebufferRenderbuffer)
+OGLEXT(PFNGLFRAMEBUFFERTEXTURE2DPROC, glESFramebufferTexture2D)
+OGLEXT(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glESCheckFramebufferStatus)
+OGLEXT(PFNGLFRAMEBUFFERTEXTUREOESPROC, glFramebufferTextureOES)
+OGLEXT(PFNGLBLITFRAMEBUFFERANGLEPROC, glBlitFramebufferANGLE)
+
+// Multisampled FBO
+OGLEXT(PFNGLGENRENDERBUFFERSPROC, glESGenRenderbuffers)
+OGLEXT(PFNGLBINDRENDERBUFFERPROC, glESBindRenderbuffer)
+OGLEXT(PFNGLRENDERBUFFERSTORAGEPROC, glESRenderbufferStorage)
+OGLEXT(PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC, glRenderbufferStorageMultisampleEXT)
+OGLEXT(PFNGLDELETERENDERBUFFERSPROC, glESDeleteRenderbuffers)
+
 static void OGLES2LoadEntryPoints()
 {
-	// VAO
+	// Textures
+	INITOGLEXT(PFNGLACTIVETEXTUREPROC, glActiveTextures)
+
+// Blending
+	INITOGLEXT(PFNGLBLENDFUNCSEPARATEPROC, glESBlendFuncSeparate)
+	INITOGLEXT(PFNGLBLENDEQUATIONSEPARATEPROC, glESBlendEquationSeparate)
+
+// Shaders
+	INITOGLEXT(PFNGLCREATESHADERPROC, glESCreateShader)
+	INITOGLEXT(PFNGLSHADERSOURCEPROC, glESShaderSource)
+	INITOGLEXT(PFNGLCOMPILESHADERPROC, glESCompileShader)
+	INITOGLEXT(PFNGLCREATEPROGRAMPROC, glESCreateProgram)
+	INITOGLEXT(PFNGLATTACHSHADERPROC, glESAttachShader)
+	INITOGLEXT(PFNGLDETACHSHADERPROC, glESDetachShader)
+	INITOGLEXT(PFNGLLINKPROGRAMPROC, glESLinkProgram)
+	INITOGLEXT(PFNGLUSEPROGRAMPROC, glESUseProgram)
+	INITOGLEXT(PFNGLGETSHADERIVPROC, glESGetShaderiv)
+	INITOGLEXT(PFNGLGETSHADERINFOLOGPROC, glESGetShaderInfoLog)
+	INITOGLEXT(PFNGLDELETESHADERPROC, glESDeleteShader)
+	INITOGLEXT(PFNGLDELETEPROGRAMPROC, glESDeleteProgram)
+	INITOGLEXT(PFNGLGETPROGRAMIVPROC, glESGetProgramiv)
+	INITOGLEXT(PFNGLGETPROGRAMINFOLOGPROC, glESGetProgramInfoLog)
+	INITOGLEXT(PFNGLVALIDATEPROGRAMPROC, glESValidateProgram)
+	INITOGLEXT(PFNGLGETUNIFORMLOCATIONPROC, glESGetUniformLocation)
+	INITOGLEXT(PFNGLUNIFORM1IPROC, glESUniform1i)
+	INITOGLEXT(PFNGLUNIFORM1IVPROC, glESUniform1iv)
+	INITOGLEXT(PFNGLUNIFORM1FPROC, glESUniform1f)
+	INITOGLEXT(PFNGLUNIFORM2FPROC, glESUniform2f)
+	INITOGLEXT(PFNGLDRAWBUFFERSEXTPROC, glDrawBuffersEXT)
+
+
+// Generic vertex attributes
+	INITOGLEXT(PFNGLBINDATTRIBLOCATIONPROC, glESBindAttribLocation)
+	INITOGLEXT(PFNGLENABLEVERTEXATTRIBARRAYPROC, glESEnableVertexAttribArray)
+	INITOGLEXT(PFNGLDISABLEVERTEXATTRIBARRAYPROC, glESDisableVertexAttribArray)
+	INITOGLEXT(PFNGLBINDFRAGDATALOCATIONEXTPROC, glBindFragDataLocationEXT)
+
+// VAO
 	INITOGLEXT(PFNGLGENVERTEXARRAYSOESPROC, glGenVertexArraysOES)
 	INITOGLEXT(PFNGLDELETEVERTEXARRAYSOESPROC, glDeleteVertexArraysOES)
 	INITOGLEXT(PFNGLBINDVERTEXARRAYOESPROC, glBindVertexArrayOES)
 
-	// VBO
+// VBO
+	INITOGLEXT(PFNGLGENBUFFERSPROC, glESGenBuffers)
+	INITOGLEXT(PFNGLDELETEBUFFERSPROC, glESDeleteBuffers)
+	INITOGLEXT(PFNGLBINDBUFFERPROC, glESBindBuffer)
+	INITOGLEXT(PFNGLBUFFERDATAPROC, glESBufferData)
+	INITOGLEXT(PFNGLBUFFERSUBDATAPROC, glESBufferSubData)
 	INITOGLEXT(PFNGLMAPBUFFEROESPROC, glMapBufferOES)
 	INITOGLEXT(PFNGLUNMAPBUFFEROESPROC, glUnmapBufferOES)
+
+// FBO
+	INITOGLEXT(PFNGLGENFRAMEBUFFERSPROC, glESGenFramebuffers)
+	INITOGLEXT(PFNGLBINDFRAMEBUFFERPROC, glESBindFramebuffer)
+	INITOGLEXT(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glESFramebufferRenderbuffer)
+	INITOGLEXT(PFNGLFRAMEBUFFERTEXTURE2DPROC, glESFramebufferTexture2D)
+	INITOGLEXT(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glESCheckFramebufferStatus)
+	INITOGLEXT(PFNGLFRAMEBUFFERTEXTUREOESPROC, glFramebufferTextureOES)
+	INITOGLEXT(PFNGLBLITFRAMEBUFFERANGLEPROC, glBlitFramebufferANGLE)
+
+// Multisampled FBO
+	INITOGLEXT(PFNGLGENRENDERBUFFERSPROC, glESGenRenderbuffers)
+	INITOGLEXT(PFNGLBINDRENDERBUFFERPROC, glESBindRenderbuffer)
+	INITOGLEXT(PFNGLRENDERBUFFERSTORAGEPROC, glESRenderbufferStorage)
+	INITOGLEXT(PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC, glRenderbufferStorageMultisampleEXT)
+	INITOGLEXT(PFNGLDELETERENDERBUFFERSPROC, glESDeleteRenderbuffers)
 }
 
 // Vertex Shader GLSL 1.00
@@ -468,7 +584,7 @@ bool OpenGLESRenderer::ValidateShaderCompile(GLuint theShader) const
 {
 	bool isCompileValid = false;
 	GLint status = GL_FALSE;
-	
+
 	glGetShaderiv(theShader, GL_COMPILE_STATUS, &status);
 	if(status == GL_TRUE)
 	{
@@ -559,7 +675,10 @@ void OpenGLESRenderer::ConvertFramebuffer(const u32 *__restrict srcBuffer, u32 *
 
 OpenGLES2Renderer::OpenGLES2Renderer()
 {
+	isVBOSupported = false;
 	isFBOSupported = false;
+	isMultisampledFBOSupported = false;
+	isShaderSupported = false;
 	isVAOSupported = false;
 	
 	// Init OpenGLES2 rendering states
@@ -577,11 +696,15 @@ OpenGLES2Renderer::~OpenGLES2Renderer()
 	
 	gpuScreen3DHasNewData[0] = false;
 	gpuScreen3DHasNewData[1] = false;
+
+	delete[] ref->color4fBuffer;
+	ref->color4fBuffer = NULL;
 	
 	DestroyShaders();
 	DestroyVAOs();
 	DestroyVBOs();
 	DestroyFBOs();
+	DestroyMultisampledFBO();
 	
 	//kill the tex cache to free all the texture ids
 	TexCache_Reset();
@@ -602,45 +725,50 @@ OpenGLES2Renderer::~OpenGLES2Renderer()
 	ref = NULL;
 }
 
-Render3DError OpenGLES2Renderer::InitExtensions()
-{
-	Render3DError error = OGLERROR_NOERR;
-	OGLESRenderRef &OGLRef = *this->ref;
-	
-	// Get OpenGLES2 extensions
-	std::set<std::string> oglExtensionSet;
-	this->GetExtensionSet(&oglExtensionSet);
-	
-	// Initialize OpenGLES2
-	this->InitTables();
-	
-	std::string vertexShaderProgram;
-	std::string fragmentShaderProgram;
-	error = this->LoadShaderPrograms(&vertexShaderProgram, &fragmentShaderProgram);
-	if (error != OGLERROR_NOERR)
-	{
-		return error;
-	}
-	
-	error = this->CreateShaders(&vertexShaderProgram, &fragmentShaderProgram);
-	if (error != OGLERROR_NOERR)
-	{
-		return error;
-	}
-	
-	this->CreateToonTable();
-	
-	this->CreateVBOs();
-	
-	this->isVAOSupported = this->IsExtensionPresent(&oglExtensionSet, "GL_OES_vertex_array_object");
+Render3DError OpenGLES2Renderer::InitExtensions() {
+    Render3DError error = OGLERROR_NOERR;
+    OGLESRenderRef &OGLRef = *this->ref;
+
+    // Get OpenGLES2 extensions
+    std::set<std::string> oglExtensionSet;
+    this->GetExtensionSet(&oglExtensionSet);
+
+    // Initialize OpenGLES2
+    this->InitTables();
+
+    /*this->isShaderSupported = this->IsExtensionPresent(&oglExtensionSet, "GL_EXT_separate_shader_objects") &&
+                              this->IsExtensionPresent(&oglExtensionSet, "GL_EXT_draw_buffers");*/
+
+    //if (this->isShaderSupported) {
+    std::string vertexShaderProgram;
+    std::string fragmentShaderProgram;
+    error = this->LoadShaderPrograms(&vertexShaderProgram, &fragmentShaderProgram);
+    if (error != OGLERROR_NOERR) {
+        return error;
+    }
+
+    error = this->CreateShaders(&vertexShaderProgram, &fragmentShaderProgram);
+    if (error != OGLERROR_NOERR) {
+        return error;
+    }
+    this->CreateToonTable();
+	//else
+		//INFO("OpenGLES2: Shaders are unsupported. Disabling shaders and using fixed-function pipeline. Some features will be disabled.\n");
+
+	//this->isVBOSupported = this->IsExtensionPresent(&oglExtensionSet, "GL_OES_mapbuffer");
+	//if (this->isVBOSupported)
+		this->CreateVBOs();
+
+	this->isVAOSupported = //this->isShaderSupported &&
+						   //this->isVBOSupported &&
+						   this->IsExtensionPresent(&oglExtensionSet, "GL_OES_vertex_array_object");
 	if (this->isVAOSupported)
 	{
 		this->CreateVAOs();
 	}
-	
-	//this->isFBOSupported	= this->IsExtensionPresent(&oglExtensionSet, "GL_OES_depth_texture") &&
-	//						  this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil");
-	this->isFBOSupported = false;
+	this->isFBOSupported	= this->IsExtensionPresent(&oglExtensionSet, "GL_NV_framebuffer_blit") &&
+							  this->IsExtensionPresent(&oglExtensionSet, "GL_OES_geometry_shader");
+							  //this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil");
 	if (this->isFBOSupported)
 	{
 		error = this->CreateFBOs();
@@ -654,6 +782,24 @@ Render3DError OpenGLES2Renderer::InitExtensions()
 	{
 		OGLRef.fboFinalOutputID = 0;
 		INFO("OpenGLES2: FBOs are unsupported. Some emulation features will be disabled.\n");
+	}
+
+	this->isMultisampledFBOSupported = this->IsExtensionPresent(&oglExtensionSet, "GL_OES_framebuffer_object") &&
+									   this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil") &&
+									   this->IsExtensionPresent(&oglExtensionSet, "GL_ANGLE_framebuffer_multisample");
+
+	if (this->isMultisampledFBOSupported)
+	{
+		error = this->CreateMultisampledFBO();
+		if (error != OGLERROR_NOERR)
+		{
+			OGLRef.selectedRenderingFBO = 0;
+			this->isMultisampledFBOSupported = false;
+            //return error;
+		}
+	} else {
+		OGLRef.selectedRenderingFBO = 0;
+		INFO("OpenGLES2: Multisampled FBOs are unsupported. Multisample antialiasing will be disabled.\n");
 	}
 	
 	this->InitTextures();
@@ -681,6 +827,8 @@ Render3DError OpenGLES2Renderer::CreateVBOs()
 
 void OpenGLES2Renderer::DestroyVBOs()
 {
+	if(!this->isVBOSupported)
+		return;
 	OGLESRenderRef &OGLRef = *this->ref;
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -688,6 +836,8 @@ void OpenGLES2Renderer::DestroyVBOs()
 	
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glDeleteBuffers(1, &OGLRef.iboIndexID);
+
+	this->isVBOSupported = false;
 }
 
 Render3DError OpenGLES2Renderer::LoadShaderPrograms(std::string *outVertexShaderProgram, std::string *outFragmentShaderProgram)
@@ -788,11 +938,13 @@ Render3DError OpenGLES2Renderer::CreateShaders(const std::string *vertexShaderPr
 	uniformTexSampler = glGetUniformLocation(OGLRef.shaderProgram, "texToonTable");
 	glUniform1i(uniformTexSampler, OGLTextureUnitID_ToonTable);
 	
-	OGLRef.uniformPolyAlpha			= glGetUniformLocation(OGLRef.shaderProgram, "polyAlpha");
-	OGLRef.uniformTexScale			= glGetUniformLocation(OGLRef.shaderProgram, "texScale");
+	OGLRef.uniformPolyAlpha 		= glGetUniformLocation(OGLRef.shaderProgram, "polyAlpha");
 	OGLRef.uniformPolyID			= glGetUniformLocation(OGLRef.shaderProgram, "polyID");
-	OGLRef.uniformHasTexture		= glGetUniformLocation(OGLRef.shaderProgram, "hasTexture");
 	OGLRef.uniformPolygonMode		= glGetUniformLocation(OGLRef.shaderProgram, "polygonMode");
+
+	OGLRef.uniformTexScale			= glGetUniformLocation(OGLRef.shaderProgram, "texScale");
+
+	OGLRef.uniformHasTexture		= glGetUniformLocation(OGLRef.shaderProgram, "hasTexture");
 	OGLRef.uniformToonShadingMode	= glGetUniformLocation(OGLRef.shaderProgram, "toonShadingMode");
 	OGLRef.uniformWBuffer			= glGetUniformLocation(OGLRef.shaderProgram, "oglWBuffer");
 	OGLRef.uniformEnableAlphaTest	= glGetUniformLocation(OGLRef.shaderProgram, "enableAlphaTest");
@@ -817,6 +969,8 @@ void OpenGLES2Renderer::DestroyShaders()
 	glDeleteShader(OGLRef.fragmentShaderID);
 	
 	this->DestroyToonTable();
+
+	this->isShaderSupported = false;
 }
 
 Render3DError OpenGLES2Renderer::CreateVAOs()
@@ -861,6 +1015,24 @@ Render3DError OpenGLES2Renderer::CreateFBOs()
 	
 	// Set up FBO render targets
 	this->CreateClearImage();
+	glGenTextures(1, &OGLRef.texClearImageColorID);
+	glGenTextures(1, &OGLRef.texClearImageDepthStencilID);
+
+	glBindTexture(GL_TEXTURE_2D, OGLRef.texClearImageColorID);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_INT_24_8_OES, NULL);
+
+	glBindTexture(GL_TEXTURE_2D, OGLRef.texClearImageDepthStencilID);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_EXT, GL_NONE);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8_OES, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT, 0, GL_DEPTH_STENCIL_OES, GL_UNSIGNED_INT_24_8_OES, NULL);
+
 	
 	// Set up FBOs
 	glGenFramebuffers(1, &OGLRef.fboClearImageID);
@@ -876,7 +1048,9 @@ Render3DError OpenGLES2Renderer::CreateFBOs()
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDeleteFramebuffers(1, &OGLRef.fboClearImageID);
-		this->DestroyClearImage();
+		glDeleteTextures(1, &OGLRef.texClearImageColorID);
+		glDeleteTextures(1, &OGLRef.texClearImageDepthStencilID);
+		//this->DestroyClearImage();
 		
 		this->isFBOSupported = false;
 		return OGLERROR_FBO_CREATE_ERROR;
@@ -902,8 +1076,68 @@ void OpenGLES2Renderer::DestroyFBOs()
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDeleteFramebuffers(1, &OGLRef.fboClearImageID);
-	this->DestroyClearImage();
+	glDeleteTextures(1, &OGLRef.texClearImageColorID);
+	glDeleteTextures(1, &OGLRef.texClearImageDepthStencilID);
+
+	//this->DestroyClearImage();
 	this->isFBOSupported = false;
+}
+
+Render3DError OpenGLES2Renderer::CreateMultisampledFBO() {
+    // Check the maximum number of samples that the driver supports and use that.
+    // Since our target resolution is only 256x192 pixels, using the most samples
+    // possible is the best thing to do.
+    GLint maxSamples = 0;
+    glGetIntegerv(GL_MAX_SAMPLES_EXT, &maxSamples);
+
+    if (maxSamples < 2)
+    {
+        INFO("OpenGLES: Driver does not support at least 2x multisampled FBOs. Multisample antialiasing will be disabled.\n");
+        return OGLERROR_FEATURE_UNSUPPORTED;
+    }
+    else if (maxSamples > OGLRENDER_MAX_MULTISAMPLES)
+        maxSamples = OGLRENDER_MAX_MULTISAMPLES;
+
+    OGLESRenderRef &OGLRef = *this->ref;
+
+    // Set up FBO render targets
+    glGenRenderbuffers(1, &OGLRef.rboMSFragColorID);
+    glGenRenderbuffers(1, &OGLRef.rboFragDepthStencilID);
+
+    glBindRenderbuffer(GL_RENDERBUFFER, OGLRef.rboMSFragColorID);
+    glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER, maxSamples, GL_RGBA, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT);
+    glBindRenderbuffer(GL_RENDERBUFFER, OGLRef.rboMSFragDepthStencilID);
+    glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER, maxSamples, GL_DEPTH24_STENCIL8_OES, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        INFO("OpenGLES2: Failed to create multisampled FBO. Multisample antialiasing will be disabled.");
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteFramebuffers(1, &OGLRef.fboMSIntermediateRenderID);
+        glDeleteRenderbuffers(1, &OGLRef.rboMSFragColorID);
+        glDeleteRenderbuffers(1, &OGLRef.rboMSFragDepthStencilID);
+
+        return OGLERROR_FBO_CREATE_ERROR;
+    }
+
+	glESBindFramebuffer(GL_FRAMEBUFFER, OGLRef.fboRenderID);
+	INFO("OpenGLES2: Successfully created multisampled FBO.\n");
+    return OGLERROR_NOERR;
+}
+
+void OpenGLES2Renderer::DestroyMultisampledFBO() {
+    if (!this->isMultisampledFBOSupported)
+        return;
+
+    OGLESRenderRef &OGLRef = *this->ref;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &OGLRef.fboMSIntermediateRenderID);
+    glDeleteRenderbuffers(1, &OGLRef.rboMSFragColorID);
+    glDeleteRenderbuffers(1, &OGLRef.rboMSFragDepthStencilID);
+
+    this->isMultisampledFBOSupported = false;
 }
 
 Render3DError OpenGLES2Renderer::InitFinalRenderStates(const std::set<std::string> *oglExtensionSet)
@@ -911,7 +1145,6 @@ Render3DError OpenGLES2Renderer::InitFinalRenderStates(const std::set<std::strin
 	OGLESRenderRef &OGLRef = *this->ref;
 	
 	bool isBlendEquationSeparateSupported = this->IsExtensionPresent(oglExtensionSet, "GL_EXT_blend_minmax");
-	
 	// Blending Support
 	if (isBlendEquationSeparateSupported)
 	{
@@ -930,6 +1163,12 @@ Render3DError OpenGLES2Renderer::InitFinalRenderStates(const std::set<std::strin
 	
 	// Always enable depth test, and control using glDepthMask().
 	glEnable(GL_DEPTH_TEST);
+
+	// Map the vertex list's colors with 4 floats per color. This is being done
+	// because OpenGL needs 4-colors per vertex to support translucency. (The DS
+	// uses 3-colors per vertex, and adds alpha through the poly, so we can't
+	// simply reference the colors+alpha from just the vertices by themselves.)
+	OGLRef.color4fBuffer = this->isShaderSupported ? NULL : new GLfloat[VERTLIST_SIZE * 4];
 	
 	return OGLERROR_NOERR;
 }
@@ -990,7 +1229,7 @@ Render3DError OpenGLES2Renderer::UploadToonTable(const GLuint *toonTableBuffer)
 {
 	glActiveTexture(GL_TEXTURE0 + OGLTextureUnitID_ToonTable);
 	glBindTexture(GL_TEXTURE_2D, this->ref->texToonTableID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 32, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, toonTableBuffer);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 32, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, toonTableBuffer);
 	glActiveTexture(GL_TEXTURE0);
 	
 	return OGLERROR_NOERR;
@@ -1081,11 +1320,11 @@ void OpenGLES2Renderer::GetExtensionSet(std::set<std::string> *oglExtensionSet)
 
 Render3DError OpenGLES2Renderer::ExpandFreeTextures()
 {
-	static const int kInitTextures = 128;
+	static const GLsizei kInitTextures = 128;
 	GLuint oglTempTextureID[kInitTextures];
 	glGenTextures(kInitTextures, oglTempTextureID);
 	
-	for(int i=0;i<kInitTextures;i++)
+	for(GLsizei i=0;i<kInitTextures;i++)
 	{
 		this->ref->freeTextureIDs.push(oglTempTextureID[i]);
 	}

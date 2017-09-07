@@ -274,7 +274,7 @@
         <item>DeSmuME Interpreter</item>
         <item>ARM Threaded Interpreter</item>
         <item>Lightning JIT</item>
-        <item>Stackless JIT</item>
+        <item>Stackless JIT (WIP)</item>
     </string-array>
     <string-array name="zerothroughthree">
         <item>0</item>

@@ -31,16 +31,52 @@
 #include <GLES2/gl2ext.h>
 #include <EGL/egl.h>
 
+// We need to use this as well.
+//#include <GLES3/gl3.h>
+
+//#include <GLES/gl.h>
+//#include <GLES/glext.h>
+
 #define OGLEXT(procPtr, func)		procPtr func = NULL;
 #define INITOGLEXT(procPtr, func)	func = (procPtr)eglGetProcAddress(#func);
 #define EXTERNOGLEXT(procPtr, func)	extern procPtr func;
 
-// Shaders
-EXTERNOGLEXT(PFNGLDRAWBUFFERSEXTPROC, glDrawBuffersEXT)
+// Textures
+EXTERNOGLEXT(PFNGLACTIVETEXTUREPROC, glActiveTextures)
 
 // Blending
-EXTERNOGLEXT(PFNGLBLENDFUNCSEPARATEIOESPROC, glBlendFuncSeperateiOES)
-EXTERNOGLEXT(PFNGLBLENDEQUATIONIOESPROC, glBlendEquationSeperateiOES)
+EXTERNOGLEXT(PFNGLBLENDFUNCSEPARATEPROC, glESBlendFuncSeparate)
+EXTERNOGLEXT(PFNGLBLENDEQUATIONSEPARATEPROC, glESBlendEquationSeparate)
+
+// Shaders
+EXTERNOGLEXT(PFNGLCREATESHADERPROC, glESCreateShader)
+EXTERNOGLEXT(PFNGLSHADERSOURCEPROC, glESShaderSource)
+EXTERNOGLEXT(PFNGLCOMPILESHADERPROC, glESCompileShader)
+EXTERNOGLEXT(PFNGLCREATEPROGRAMPROC, glESCreateProgram)
+EXTERNOGLEXT(PFNGLATTACHSHADERPROC, glESAttachShader)
+EXTERNOGLEXT(PFNGLDETACHSHADERPROC, glESDetachShader)
+EXTERNOGLEXT(PFNGLLINKPROGRAMPROC, glESLinkProgram)
+EXTERNOGLEXT(PFNGLUSEPROGRAMPROC, glESUseProgram)
+EXTERNOGLEXT(PFNGLGETSHADERIVPROC, glESGetShaderiv)
+EXTERNOGLEXT(PFNGLGETSHADERINFOLOGPROC, glESGetShaderInfoLog)
+EXTERNOGLEXT(PFNGLDELETESHADERPROC, glESDeleteShader)
+EXTERNOGLEXT(PFNGLDELETEPROGRAMPROC, glESDeleteProgram)
+EXTERNOGLEXT(PFNGLGETPROGRAMIVPROC, glESGetProgramiv)
+EXTERNOGLEXT(PFNGLGETPROGRAMINFOLOGPROC, glESGetProgramInfoLog)
+EXTERNOGLEXT(PFNGLVALIDATEPROGRAMPROC, glESValidateProgram)
+EXTERNOGLEXT(PFNGLGETUNIFORMLOCATIONPROC, glESGetUniformLocation)
+EXTERNOGLEXT(PFNGLUNIFORM1IPROC, glESUniform1i)
+EXTERNOGLEXT(PFNGLUNIFORM1IVPROC, glESUniform1iv)
+EXTERNOGLEXT(PFNGLUNIFORM1FPROC, glESUniform1f)
+EXTERNOGLEXT(PFNGLUNIFORM2FPROC, glESUniform2f)
+EXTERNOGLEXT(PFNGLDRAWBUFFERSEXTPROC, glDrawBuffersEXT)
+
+
+// Generic vertex attributes
+EXTERNOGLEXT(PFNGLBINDATTRIBLOCATIONPROC, glESBindAttribLocation)
+EXTERNOGLEXT(PFNGLENABLEVERTEXATTRIBARRAYPROC, glESEnableVertexAttribArray)
+EXTERNOGLEXT(PFNGLDISABLEVERTEXATTRIBARRAYPROC, glESDisableVertexAttribArray)
+EXTERNOGLEXT(PFNGLBINDFRAGDATALOCATIONEXTPROC, glBindFragDataLocationEXT)
 
 // VAO
 EXTERNOGLEXT(PFNGLGENVERTEXARRAYSOESPROC, glGenVertexArraysOES)
@@ -48,15 +84,29 @@ EXTERNOGLEXT(PFNGLDELETEVERTEXARRAYSOESPROC, glDeleteVertexArraysOES)
 EXTERNOGLEXT(PFNGLBINDVERTEXARRAYOESPROC, glBindVertexArrayOES)
 
 // VBO
+EXTERNOGLEXT(PFNGLGENBUFFERSPROC, glESGenBuffers)
+EXTERNOGLEXT(PFNGLDELETEBUFFERSPROC, glESDeleteBuffers)
+EXTERNOGLEXT(PFNGLBINDBUFFERPROC, glESBindBuffer)
+EXTERNOGLEXT(PFNGLBUFFERDATAPROC, glESBufferData)
+EXTERNOGLEXT(PFNGLBUFFERSUBDATAPROC, glESBufferSubData)
 EXTERNOGLEXT(PFNGLMAPBUFFEROESPROC, glMapBufferOES)
 EXTERNOGLEXT(PFNGLUNMAPBUFFEROESPROC, glUnmapBufferOES)
 
 // FBO
+EXTERNOGLEXT(PFNGLGENFRAMEBUFFERSPROC, glESGenFramebuffers)
+EXTERNOGLEXT(PFNGLBINDFRAMEBUFFERPROC, glESBindFramebuffer)
+EXTERNOGLEXT(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glESFramebufferRenderbuffer)
+EXTERNOGLEXT(PFNGLFRAMEBUFFERTEXTURE2DPROC, glESFramebufferTexture2D)
+EXTERNOGLEXT(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glESCheckFramebufferStatus)
 EXTERNOGLEXT(PFNGLFRAMEBUFFERTEXTUREOESPROC, glFramebufferTextureOES)
+EXTERNOGLEXT(PFNGLBLITFRAMEBUFFERNVPROC, glBlitFramebufferNV)
 
 // Multisampled FBO
-EXTERNOGLEXT(PFNGLTEXSTORAGE3DMULTISAMPLEOESPROC, glTexStorage3DMultisampleOES)
+EXTERNOGLEXT(PFNGLGENRENDERBUFFERSPROC, glESGenRenderbuffers)
+EXTERNOGLEXT(PFNGLBINDRENDERBUFFERPROC, glESBindRenderbuffer)
+EXTERNOGLEXT(PFNGLRENDERBUFFERSTORAGEPROC, glESRenderbufferStorage)
 EXTERNOGLEXT(PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC, glRenderbufferStorageMultisampleEXT)
+EXTERNOGLEXT(PFNGLDELETERENDERBUFFERSPROC, glESDeleteRenderbuffers)
 
 // Define the minimum required OpenGL version for the driver to support
 #define OGLRENDER_MINIMUM_DRIVER_VERSION_REQUIRED_MAJOR			2
@@ -110,13 +160,17 @@ struct OGLESRenderRef
 	// FBO
 	GLuint texClearImageColorID;
 	GLuint texClearImageDepthStencilID;
+
 	GLuint fboClearImageID;
+    GLuint fboMSIntermediateRenderID;
+    GLuint fboRenderID;
+    GLuint selectedRenderingFBO;
 	
-	GLuint rboFinalOutputColorID;
-	GLuint rboFinalOutputDepthStencilID;
+	GLuint rboFragColorID;
+	GLuint rboFragDepthStencilID;
+    GLuint rboMSFragColorID;
+    GLuint rboMSFragDepthStencilID;
 	GLuint fboFinalOutputID;
-	
-	GLuint selectedRenderingFBO;
 	
 	// Shader states
 	GLuint vertexShaderID;
@@ -125,6 +179,7 @@ struct OGLESRenderRef
 	
 	GLint uniformPolyID;
 	GLint uniformPolyAlpha;
+
 	GLint uniformTexScale;
 	GLint uniformHasTexture;
 	GLint uniformPolygonMode;
@@ -142,7 +197,9 @@ struct OGLESRenderRef
 	std::queue<GLuint> freeTextureIDs;
 	
 	// Client-side Buffers
-	DS_ALIGN(16) GLushort vertIndexBuffer[OGLRENDER_VERT_INDEX_BUFFER_COUNT];
+    //DS_ALIGN(16) GLushort vertIndexBuffer[OGLRENDER_VERT_INDEX_BUFFER_COUNT];
+    GLfloat *color4fBuffer;
+    CACHE_ALIGN GLushort vertIndexBuffer[OGLRENDER_VERT_INDEX_BUFFER_COUNT];
 };
 
 struct GFX3D_State;
@@ -189,8 +246,12 @@ protected:
 	OGLESRenderRef *ref;
 	
 	// OpenGL Feature Support
-	bool isFBOSupported;
+    bool isVBOSupported;
+    bool isFBOSupported;
 	bool isVAOSupported;
+    bool isMultisampledFBOSupported;
+    bool isShaderSupported;
+
 	
 	// Textures
 	TexCacheItem *currTexture;
@@ -208,6 +269,8 @@ protected:
 	virtual void DestroyVBOs() = 0;
 	virtual Render3DError CreateFBOs() = 0;
 	virtual void DestroyFBOs() = 0;
+    virtual Render3DError CreateMultisampledFBO() = 0;
+    virtual void DestroyMultisampledFBO() = 0;
 	virtual Render3DError CreateShaders(const std::string *vertexShaderProgram, const std::string *fragmentShaderProgram) = 0;
 	virtual void DestroyShaders() = 0;
 	virtual Render3DError CreateVAOs() = 0;
@@ -276,6 +339,8 @@ protected:
 	virtual void DestroyVBOs();
 	virtual Render3DError CreateFBOs();
 	virtual void DestroyFBOs();
+	virtual Render3DError CreateMultisampledFBO();
+	virtual void DestroyMultisampledFBO();
 	virtual Render3DError CreateShaders(const std::string *vertexShaderProgram, const std::string *fragmentShaderProgram);
 	virtual void DestroyShaders();
 	virtual Render3DError CreateVAOs();

@@ -27,7 +27,7 @@
 #include "OGLES2Render.h"
 
 #include <GLES3/gl3.h>
-#include <GLES3/gl3ext.h>
+#include <GLES2/gl2ext.h>
 #include <EGL/egl.h>
 
 #define OGLEXT(procPtr, func)		procPtr func = NULL;
