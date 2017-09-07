@@ -311,7 +311,63 @@ static const char *fragmentShader_100 = {"\
 		\n\
 		gl_FragColor = fragColor; \n\
 	} \n\
-"};
+"
+        /*"\
+	varying vec4 vtxPosition; \n\
+	varying vec2 vtxTexCoord; \n\
+	varying vec4 vtxColor; \n\
+	\n\
+	uniform sampler2D texMainRender; \n\
+	uniform sampler2D texToonTable; \n\
+	\n\
+	uniform int stateToonShadingMode; \n\
+	uniform bool stateEnableAlphaTest; \n\
+	uniform bool stateUseWDepth; \n\
+	uniform float stateAlphaTestRef; \n\
+	\n\
+	uniform int polyMode; \n\
+	uniform int polyID; \n\
+	\n\
+	uniform bool polyEnableTexture; \n\
+	\n\
+	void main() \n\
+	{ \n\
+		vec4 mainTexColor = (polyEnableTexture) ? texture2D(texMainRender, vtxTexCoord) : vec4(1.0, 1.0, 1.0, 1.0); \n\
+		vec4 tempFragColor = mainTexColor; \n\
+		\n\
+		if(polyMode == 0) \n\
+		{ \n\
+			tempFragColor = vtxColor * mainTexColor; \n\
+		} \n\
+		else if(polyMode == 1) \n\
+		{ \n\
+			tempFragColor.rgb = (polyEnableTexture) ? (mainTexColor.rgb * mainTexColor.a) + (vtxColor.rgb * (1.0 - mainTexColor.a)) : vtxColor.rgb; \n\
+			tempFragColor.a = vtxColor.a; \n\
+		} \n\
+		else if(polyMode == 2) \n\
+		{ \n\
+			vec3 toonColor = vec3(texture2D(texToonTable, vtxColor.r).rgb); \n\
+			tempFragColor.rgb = (stateToonShadingMode == 0) ? mainTexColor.rgb * toonColor.rgb : min((mainTexColor.rgb * vtxColor.rgb) + toonColor.rgb, 1.0); \n\
+			tempFragColor.a = mainTexColor.a * vtxColor.a; \n\
+		} \n\
+		else if(polyMode == 3) \n\
+		{ \n\
+			if (polyID != 0) \n\
+			{ \n\
+				tempFragColor = vtxColor; \n\
+			} \n\
+		} \n\
+		\n\
+		if (tempFragColor.a == 0.0 || (stateEnableAlphaTest && tempFragColor.a < stateAlphaTestRef)) \n\
+		{ \n\
+			discard; \n\
+		} \n\
+		\n\
+		float vertW = (vtxPosition.w == 0.0) ? 0.00000001 : vtxPosition.w; \n\
+		gl_FragDepth = (stateUseWDepth) ? vtxPosition.w/4096.0 : clamp((vtxPosition.z/vertW) * 0.5 + 0.5, 0.0, 1.0); \n\
+		gl_FragColor = tempFragColor; \n\
+	} \n\
+"*/};
 
 //FORCEINLINE u32 BGRA8888_32_To_RGBA6665_32(const u32 srcPix)
 //{

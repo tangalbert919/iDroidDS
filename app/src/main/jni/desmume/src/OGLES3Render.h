@@ -40,9 +40,30 @@
 
 extern GPU3DInterface gpu3Dgles3;
 
-class OpenGLES3Renderer : public OpenGLESRenderer {
+class OpenGLES3Renderer : public OpenGLES2Renderer {
 protected:
 
+    bool isPBOSupported;
+    virtual Render3DError InitExtensions();
+    virtual Render3DError CreateFBOs();
+    virtual void DestroyFBOs();
+    virtual Render3DError CreateMultisampledFBO();
+    virtual void DestroyMultisampledFBO();
+    virtual Render3DError CreateVAOs();
+    virtual void DestroyVAOs();
+    virtual Render3DError CreatePBOs();
+    virtual void DestroyPBOs();
+
+    virtual Render3DError LoadShaderPrograms(std::string *outVertexShaderProgram, std::string *outFragmentShaderProgram);
+    virtual Render3DError SetupShaderIO();
+
+    virtual void GetExtensionSet(std::set<std::string> *oglExtensionSet);
+    virtual Render3DError EnableVertexAttributes(const VERTLIST *vertlist, const GLushort *indexBuffer, const size_t vertIndexCount);
+    virtual Render3DError DisableVertexAttributes();
+    virtual Render3DError SelectRenderingFramebuffer();
+    virtual Render3DError DownsampleFBO();
+
+    virtual Render3DError ClearUsingImage() const;
 public:
     ~OpenGLES3Renderer();
 };
