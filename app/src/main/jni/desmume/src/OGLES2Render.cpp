@@ -551,7 +551,7 @@ static char OGLInit(void)
 	}
 
     // If OpenGL ES 3.0 is supported, we will do this.
-    /*if (IsVersionSupported(3,0)) {
+    if (IsVersionSupported(3,0)) {
         if (OGLES3LoadEntryPoints_Func != NULL && OGLES3CreateRenderers_Func != NULL) {
             OGLES3LoadEntryPoints_Func();
             OGLES2LoadEntryPoints();
@@ -561,7 +561,7 @@ static char OGLInit(void)
 		else
 			INFO("OpenGL ES: Something went wrong with initializing with v3.0. Falling back to v2.0.");
 
-    }*/
+    }
 	
 	// If the renderer doesn't initialize with OpenGL ES v3.0 or higher, fall back
 	// to one of the lower versions.
@@ -875,8 +875,6 @@ Render3DError OpenGLES2Renderer::InitExtensions() {
         return error;
     }
     this->CreateToonTable();
-	//else
-		//INFO("OpenGLES2: Shaders are unsupported. Disabling shaders and using fixed-function pipeline. Some features will be disabled.\n");
 
 	//this->isVBOSupported = this->IsExtensionPresent(&oglExtensionSet, "GL_OES_mapbuffer");
 	//if (this->isVBOSupported)
@@ -891,7 +889,7 @@ Render3DError OpenGLES2Renderer::InitExtensions() {
 	}
 	this->isFBOSupported	= this->IsExtensionPresent(&oglExtensionSet, "GL_OES_framebuffer_object") &&
 							  this->IsExtensionPresent(&oglExtensionSet, "GL_EXT_geometry_shader");
-							  //this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil");
+							  this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil");
 	if (this->isFBOSupported)
 	{
 		error = this->CreateFBOs();
@@ -908,6 +906,7 @@ Render3DError OpenGLES2Renderer::InitExtensions() {
 	}
 
 	/*this->isMultisampledFBOSupported = this->IsExtensionPresent(&oglExtensionSet, "GL_OES_framebuffer_object") &&
+                                       this->IsExtensionPresent(&oglExtensionSet, "GL_EXT_multisampled_render_to_texture")&&
 									   this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil");*/
 	this->isMultisampledFBOSupported = false;
 	if (this->isMultisampledFBOSupported)
