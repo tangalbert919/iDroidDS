@@ -65,8 +65,8 @@ static void ENDGL()
 bool (*oglrender_init)() = NULL;
 bool (*oglrender_beginOpenGL)() = NULL;
 void (*oglrender_endOpenGL)() = NULL;
-void (*OGLES3LoadEntryPoints)() = NULL;
-void (*OGLES3CreateRenderers)(OpenGLESRenderer **pGLESRenderer) = NULL;
+void (*OGLES3LoadEntryPoints_Func)() = NULL;
+void (*OGLES3CreateRenderers_Func)(OpenGLESRenderer **pGLESRenderer) = NULL;
 
 //------------------------------------------------------------
 
@@ -553,10 +553,10 @@ static char OGLInit(void)
 
     // If OpenGL ES 3.0 is supported, we will do this.
     if (isES3Supported) {
-        if (OGLES3LoadEntryPoints != NULL && OGLES3CreateRenderers != NULL) {
-            OGLES3LoadEntryPoints();
+        if (OGLES3LoadEntryPoints_Func != NULL && OGLES3CreateRenderers_Func != NULL) {
+            OGLES3LoadEntryPoints_Func();
             OGLES2LoadEntryPoints();
-            OGLES3CreateRenderers(&_OGLRenderer);
+            OGLES3CreateRenderers_Func(&_OGLRenderer);
             INFO("OpenGL ES: Renderer initialized successfully (v%u.%u).\n[ Driver Info -\n    Version: %s\n    Vendor: %s\n    Renderer: %s ]\n");
         }
 		else
@@ -598,6 +598,11 @@ static char OGLInit(void)
 			result = 0;
 			return result;
 		}
+        else if (IsVersionSupported(3, 0) && error == OGLERROR_FBO_CREATE_ERROR && OGLES3LoadEntryPoints_Func != NULL) {
+            INFO("OpenGL ES: FBOs are not working, even though they should be. Disabling 3D renderer.\n");
+            result = 0;
+            return result;
+        }
 	}
 	
 	// Initialization finished -- reset the renderer
