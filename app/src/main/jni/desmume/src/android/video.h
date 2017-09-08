@@ -67,8 +67,8 @@ public:
 
 
 	void reset() {
-		width = 192;
-		height = 256;
+		width = 256;
+		height = 384;
 	}
 
 	void setfilter(int filter) {
@@ -81,33 +81,33 @@ public:
 		switch(filter) {
 
 			case NONE:
-				width = 192;
-				height = 256;
+				width = 256;
+				height = 384;
 				break;
 			case EPX1_5X:
 			case EPXPLUS1_5X:
 			case NEAREST1_5X:
 			case NEARESTPLUS1_5X:
-				width = 192*3/2;
-				height = 256*3/2;
+				width = 256*3/2;
+				height = 384*3/2;
 				break;
       		case HQ4X:
 			case HQ4XS:
 			case _4XBRZ:
-				width = 192*4;
-				height = 256*4;
+				width = 256*4;
+				height = 384*4;
         	break;
 			case _3XBRZ:
-				width = 192*3;
-				height = 256*3;
+				width = 256*3;
+				height = 384*3;
 				break;
 			case _5XBRZ:
-				width = 192*5;
-				height = 256*5;
+				width = 256*5;
+				height = 384*5;
 				break;
 			default:
-				width = 192*2;
-				height = 256*2;
+				width = 256*2;
+				height = 384*2;
 				break;
 		}
 	}
@@ -124,8 +124,8 @@ public:
 
 	void filter() {
 
-		src.Height = 256;
-		src.Width = 192;
+		src.Height = 384;
+		src.Width = 256;
 		src.Pitch = 512;
 		src.Surface = (u8*)buffer;
 
@@ -214,7 +214,7 @@ public:
 	}
 
 	int dividebyratio(int x) {
-		return x * 192 / width;
+		return x * 256 / width;
 	}
 
 	int rotatedwidth() {
@@ -278,6 +278,6 @@ public:
 	}
 
 	int scaledscreengap() {
-		return screengap * height / 256;
+		return screengap * height / 384;
 	}
 };

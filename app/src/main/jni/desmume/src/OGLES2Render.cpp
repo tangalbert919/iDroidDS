@@ -127,7 +127,7 @@ OGLEXT(PFNGLBINDFRAMEBUFFERPROC, glESBindFramebuffer)
 OGLEXT(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glESFramebufferRenderbuffer)
 OGLEXT(PFNGLFRAMEBUFFERTEXTURE2DPROC, glESFramebufferTexture2D)
 OGLEXT(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glESCheckFramebufferStatus)
-OGLEXT(PFNGLFRAMEBUFFERTEXTUREOESPROC, glFramebufferTextureOES)
+OGLEXT(PFNGLFRAMEBUFFERTEXTUREEXTPROC, glFramebufferTextureEXT)
 //OGLEXT(PFNGLBLITFRAMEBUFFERANGLEPROC, glBlitFramebufferANGLE)
 
 // Multisampled FBO
@@ -196,7 +196,7 @@ static void OGLES2LoadEntryPoints()
 	INITOGLEXT(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glESFramebufferRenderbuffer)
 	INITOGLEXT(PFNGLFRAMEBUFFERTEXTURE2DPROC, glESFramebufferTexture2D)
 	INITOGLEXT(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glESCheckFramebufferStatus)
-	INITOGLEXT(PFNGLFRAMEBUFFERTEXTUREOESPROC, glFramebufferTextureOES)
+	INITOGLEXT(PFNGLFRAMEBUFFERTEXTUREEXTPROC, glFramebufferTextureEXT)
 	//INITOGLEXT(PFNGLBLITFRAMEBUFFERANGLEPROC, glBlitFramebufferANGLE)
 
 // Multisampled FBO
@@ -506,7 +506,6 @@ static void OGLGetDriverVersion(const char *oglVersionString,
 		*versionMinor = minor;
 }
 
-template<bool isES3Supported>
 static char OGLInit(void)
 {
 	char result = 0;
@@ -552,7 +551,7 @@ static char OGLInit(void)
 	}
 
     // If OpenGL ES 3.0 is supported, we will do this.
-    if (isES3Supported) {
+    /*if (IsVersionSupported(3,0)) {
         if (OGLES3LoadEntryPoints_Func != NULL && OGLES3CreateRenderers_Func != NULL) {
             OGLES3LoadEntryPoints_Func();
             OGLES2LoadEntryPoints();
@@ -562,7 +561,7 @@ static char OGLInit(void)
 		else
 			INFO("OpenGL ES: Something went wrong with initializing with v3.0. Falling back to v2.0.");
 
-    }
+    }*/
 	
 	// If the renderer doesn't initialize with OpenGL ES v3.0 or higher, fall back
 	// to one of the lower versions.
@@ -598,11 +597,6 @@ static char OGLInit(void)
 			result = 0;
 			return result;
 		}
-        else if (IsVersionSupported(3, 0) && error == OGLERROR_FBO_CREATE_ERROR && OGLES3LoadEntryPoints_Func != NULL) {
-            INFO("OpenGL ES: FBOs are not working, even though they should be. Disabling 3D renderer.\n");
-            result = 0;
-            return result;
-        }
 	}
 	
 	// Initialization finished -- reset the renderer
@@ -675,7 +669,7 @@ static void OGLRenderFinish()
 
 GPU3DInterface gpu3Dgles2 = {
 	"OpenGLES2",
-	OGLInit<false>,
+	OGLInit,
 	OGLReset,
 	OGLClose,
 	OGLRender,
@@ -685,7 +679,7 @@ GPU3DInterface gpu3Dgles2 = {
 
 GPU3DInterface gpu3Dgles3 = {
         "OpenGLES3",
-        OGLInit<true>,
+        OGLInit,
         OGLReset,
         OGLClose,
         OGLRender,
@@ -895,8 +889,8 @@ Render3DError OpenGLES2Renderer::InitExtensions() {
 	{
 		this->CreateVAOs();
 	}
-	this->isFBOSupported	= this->IsExtensionPresent(&oglExtensionSet, "GL_NV_framebuffer_blit") &&
-							  this->IsExtensionPresent(&oglExtensionSet, "GL_OES_geometry_shader");
+	this->isFBOSupported	= this->IsExtensionPresent(&oglExtensionSet, "GL_OES_framebuffer_object") &&
+							  this->IsExtensionPresent(&oglExtensionSet, "GL_EXT_geometry_shader");
 							  //this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil");
 	if (this->isFBOSupported)
 	{
@@ -913,9 +907,9 @@ Render3DError OpenGLES2Renderer::InitExtensions() {
 		INFO("OpenGL ES: FBOs are unsupported. Some emulation features will be disabled.\n");
 	}
 
-	this->isMultisampledFBOSupported = this->IsExtensionPresent(&oglExtensionSet, "GL_OES_framebuffer_object") &&
-									   this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil");
-
+	/*this->isMultisampledFBOSupported = this->IsExtensionPresent(&oglExtensionSet, "GL_OES_framebuffer_object") &&
+									   this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil");*/
+	this->isMultisampledFBOSupported = false;
 	if (this->isMultisampledFBOSupported)
 	{
 		error = this->CreateMultisampledFBO();
@@ -1188,7 +1182,7 @@ Render3DError OpenGLES2Renderer::CreateFBOs()
 	OGLRef.fboFinalOutputID = 0;
 	glBindFramebuffer(GL_FRAMEBUFFER, OGLRef.fboFinalOutputID);
 	
-	INFO("OpenGLES2: Successfully created FBOs.\n");
+	INFO("OpenGL ES: Successfully created FBOs.\n");
 	
 	return OGLERROR_NOERR;
 }
