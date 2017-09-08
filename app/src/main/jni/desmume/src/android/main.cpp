@@ -220,7 +220,7 @@ static bool android_opengl_init() {
         return false;
     }
 	
-	INFO("EGL(%u.%u): Created OpenGLES\n", major ,minor);
+	INFO("EGL(%u.%u): Created OpenGL ES\n", major ,minor);
     return true;
 }
 
@@ -491,7 +491,7 @@ jint JNI(draw, jobject bitmapMain, jobject bitmapTouch, jboolean rotate)
 	//why do we do this over and over? well, we are compositing to
 	//filteredbuffer32bpp, and it needs to get refreshed each frame..
 	//const int size = video.size();
-	const int size = 256*384;
+	const int size = 192*256;
 	u16* src = (u16*)video.srcBuffer;
 	if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_8888)
 	{

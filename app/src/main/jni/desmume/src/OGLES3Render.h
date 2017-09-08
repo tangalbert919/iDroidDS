@@ -38,6 +38,9 @@
 #error OpenGL ES requires v3.0 headers or later.
 #endif
 
+void OGLES3LLoadEntryPoints();
+void OGLES3CreateRenderer(OpenGLESRenderer **pGLESRenderer);
+
 class OpenGLES3Renderer : public OpenGLES2Renderer {
 protected:
 

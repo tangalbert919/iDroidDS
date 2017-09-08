@@ -65,6 +65,8 @@ static void ENDGL()
 bool (*oglrender_init)() = NULL;
 bool (*oglrender_beginOpenGL)() = NULL;
 void (*oglrender_endOpenGL)() = NULL;
+void (*OGLES3LoadEntryPoints)() = NULL;
+void (*OGLES3CreateRenderers)(OpenGLESRenderer **pGLESRenderer) = NULL;
 
 //------------------------------------------------------------
 
@@ -126,7 +128,7 @@ OGLEXT(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glESFramebufferRenderbuffer)
 OGLEXT(PFNGLFRAMEBUFFERTEXTURE2DPROC, glESFramebufferTexture2D)
 OGLEXT(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glESCheckFramebufferStatus)
 OGLEXT(PFNGLFRAMEBUFFERTEXTUREOESPROC, glFramebufferTextureOES)
-OGLEXT(PFNGLBLITFRAMEBUFFERANGLEPROC, glBlitFramebufferANGLE)
+//OGLEXT(PFNGLBLITFRAMEBUFFERANGLEPROC, glBlitFramebufferANGLE)
 
 // Multisampled FBO
 OGLEXT(PFNGLGENRENDERBUFFERSPROC, glESGenRenderbuffers)
@@ -195,7 +197,7 @@ static void OGLES2LoadEntryPoints()
 	INITOGLEXT(PFNGLFRAMEBUFFERTEXTURE2DPROC, glESFramebufferTexture2D)
 	INITOGLEXT(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glESCheckFramebufferStatus)
 	INITOGLEXT(PFNGLFRAMEBUFFERTEXTUREOESPROC, glFramebufferTextureOES)
-	INITOGLEXT(PFNGLBLITFRAMEBUFFERANGLEPROC, glBlitFramebufferANGLE)
+	//INITOGLEXT(PFNGLBLITFRAMEBUFFERANGLEPROC, glBlitFramebufferANGLE)
 
 // Multisampled FBO
 	INITOGLEXT(PFNGLGENRENDERBUFFERSPROC, glESGenRenderbuffers)
@@ -474,32 +476,25 @@ static void OGLGetDriverVersion(const char *oglVersionString,
 	if (oglVersionString == NULL)
 		return;
 
-	// The first check looks for a dot in the revision string.
-	// This does not apply to OpenGL ES, so I don't know why it's here.
-	const char *versionStrEnd = strstr(oglVersionString, ".");
+	// The first check looks for " V".
+	const char *versionStrEnd = strstr(oglVersionString, " V");
 	if (versionStrEnd == NULL) {
-		puts(versionStrEnd);
 		return;
 	}
+	//INFO(versionStrEnd);
 
-	// Check for the space before the vendor-specific info.
-	versionStrEnd = strstr(oglVersionString, " ");
-	if (versionStrEnd == NULL) {
-		versionStringLength = strlen(oglVersionString);
-		puts(versionStrEnd);
-	}
-
-	else
-		versionStringLength = versionStrEnd - oglVersionString;
-
+	// This is where we cut out the other stuff we don't need from
+    // the version string.
+    versionStringLength = versionStrEnd - oglVersionString;
 	// Copy the version substring and parse it.
 	char *versionSubstring = (char *)malloc(versionStringLength * sizeof(char));
 	strncpy(versionSubstring, oglVersionString, versionStringLength);
 
+    //INFO(versionSubstring);
 	unsigned int major = 0;
 	unsigned int minor = 0;
 
-	sscanf(versionSubstring, "%u.%u", &major, &minor);
+	sscanf(versionSubstring, "OpenGL ES %u.%u", &major, &minor);
 
 	free(versionSubstring);
 	versionSubstring = NULL;
@@ -511,6 +506,7 @@ static void OGLGetDriverVersion(const char *oglVersionString,
 		*versionMinor = minor;
 }
 
+template<bool isES3Supported>
 static char OGLInit(void)
 {
 	char result = 0;
@@ -541,6 +537,8 @@ static char OGLInit(void)
 
 	// Check the driver's OpenGL ES version
 	OGLGetDriverVersion(oglVersionString, &_OGLDriverVersion.major, &_OGLDriverVersion.minor);
+
+    // This was the old stuff.
     //_OGLDriverVersion.major = 2;
     //_OGLDriverVersion.minor = 0;
 	if (!IsVersionSupported(OGLRENDER_MINIMUM_DRIVER_VERSION_REQUIRED_MAJOR, OGLRENDER_MINIMUM_DRIVER_VERSION_REQUIRED_MINOR))
@@ -552,6 +550,19 @@ static char OGLInit(void)
 		result = 0;
 		return result;
 	}
+
+    // If OpenGL ES 3.0 is supported, we will do this.
+    if (isES3Supported) {
+        if (OGLES3LoadEntryPoints != NULL && OGLES3CreateRenderers != NULL) {
+            OGLES3LoadEntryPoints();
+            OGLES2LoadEntryPoints();
+            OGLES3CreateRenderers(&_OGLRenderer);
+            INFO("OpenGL ES: Renderer initialized successfully (v%u.%u).\n[ Driver Info -\n    Version: %s\n    Vendor: %s\n    Renderer: %s ]\n");
+        }
+		else
+			INFO("OpenGL ES: Something went wrong with initializing with v3.0. Falling back to v2.0.");
+
+    }
 	
 	// If the renderer doesn't initialize with OpenGL ES v3.0 or higher, fall back
 	// to one of the lower versions.
@@ -568,13 +579,13 @@ static char OGLInit(void)
 	
 	if (_OGLRenderer == NULL)
 	{
-		INFO("OpenGL ES: Renderer did not initialize. Disabling 3D renderer.\n    [ Driver Info -\n    Version: %s\n    Vendor: %s\n    Renderer: %s ]\n",
+		INFO("OpenGL ES: Renderer did not initialize. Disabling 3D renderer.\n[ Driver Info -\n    Version: %s\n    Vendor: %s\n    Renderer: %s ]\n",
 			 oglVersionString, oglVendorString, oglRendererString);
 		result = 0;
 		return result;
 	}
 	
-	// Initialize OpenGLES2 extensions
+	// Initialize OpenGL ES extensions
 	error = _OGLRenderer->InitExtensions();
 	if (error != OGLERROR_NOERR)
 	{
@@ -659,7 +670,7 @@ static void OGLRenderFinish()
 
 GPU3DInterface gpu3Dgles2 = {
 	"OpenGLES2",
-	OGLInit,
+	OGLInit<false>,
 	OGLReset,
 	OGLClose,
 	OGLRender,
@@ -669,7 +680,7 @@ GPU3DInterface gpu3Dgles2 = {
 
 GPU3DInterface gpu3Dgles3 = {
         "OpenGLES3",
-        OGLInit,
+        OGLInit<true>,
         OGLReset,
         OGLClose,
         OGLRender,

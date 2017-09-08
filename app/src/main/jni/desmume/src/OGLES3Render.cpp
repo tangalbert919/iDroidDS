@@ -68,7 +68,7 @@ OGLEXT(PFNGLRENDERBUFFERSTORAGEPROC, glES3RenderbufferStorage)
 OGLEXT(PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC, glES3RenderbufferStorageMultisample)
 OGLEXT(PFNGLDELETERENDERBUFFERSPROC, glES3DeleteRenderbuffers)
 
-void OGLLoadEntryPoints()
+void OGLES3LoadEntryPoints()
 {
     // Basic functions
     INITOGLEXT(PFNGLGETSTRINGIPROC, glES3GetStringi)
@@ -180,7 +180,7 @@ static const char *fragmentShader_150 = {"\
 	} \n\
 "};
 
-void OGLCreateRenderer(OpenGLESRenderer **pGLESRenderer)
+void OGLES3CreateRenderer(OpenGLESRenderer **pGLESRenderer)
 {
     if (IsVersionSupported(3, 0))
     {
