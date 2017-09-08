@@ -45,6 +45,7 @@ class OpenGLES3Renderer : public OpenGLES2Renderer {
 protected:
 
     bool isPBOSupported;
+    bool isMultisampledFBOSupported;
     virtual Render3DError InitExtensions();
     virtual Render3DError CreateFBOs();
     virtual void DestroyFBOs();
@@ -63,6 +64,7 @@ protected:
     virtual Render3DError DisableVertexAttributes();
     virtual Render3DError SelectRenderingFramebuffer();
     virtual Render3DError DownsampleFBO();
+    virtual Render3DError ReadBackPixels();
 
     virtual Render3DError ClearUsingImage() const;
 public:

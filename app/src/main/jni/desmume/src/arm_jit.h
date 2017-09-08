@@ -20,9 +20,7 @@
 #define ARM_JIT
 
 #include "types.h"
-#include "CpuBase.h"
-
-#ifndef _MSC_VER
+#ifndef _MSC_VER 
 #include <stdint.h>
 #endif
 
@@ -68,7 +66,5 @@ extern uintptr_t compiled_funcs[];
 #endif
 
 extern u32 saveBlockSizeJIT;
-
-extern CpuBase arm_oldjit;
 
 #endif

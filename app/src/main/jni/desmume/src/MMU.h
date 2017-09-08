@@ -31,7 +31,6 @@
 
 #ifdef HAVE_JIT
 #include "arm_jit.h"
-#include "JitCommon.h"
 
 #endif
 
@@ -813,14 +812,7 @@ FORCEINLINE void _MMU_write08(const int PROCNUM, const MMU_ACCESS_TYPE AT, const
 
 	if ( (addr & 0x0F000000) == 0x02000000) {
 #ifdef HAVE_JIT
-#if !defined(__arm__) && !defined(__aarch64__)
 		JIT_COMPILED_FUNC_KNOWNBANK(addr, MAIN_MEM, _MMU_MAIN_MEM_MASK, 0) = 0;
-#else
-		if(PROCNUM==ARMCPU_ARM7)
-		{
-			JITLUT_HANDLE_KNOWNBANK(addr, MAIN_MEM, _MMU_MAIN_MEM_MASK16, 0) = 0;
-		}
-#endif
 #endif
 		T1WriteByte( MMU.MAIN_MEM, addr & _MMU_MAIN_MEM_MASK, val);
 #ifdef HAVE_LUA
@@ -859,14 +851,7 @@ FORCEINLINE void _MMU_write16(const int PROCNUM, const MMU_ACCESS_TYPE AT, const
 
 	if ( (addr & 0x0F000000) == 0x02000000) {
 #ifdef HAVE_JIT
-#if !defined(__arm__) && !defined(__aarch64__)
 		JIT_COMPILED_FUNC_KNOWNBANK(addr, MAIN_MEM, _MMU_MAIN_MEM_MASK16, 0) = 0;
-#else
-		if(PROCNUM==ARMCPU_ARM7)
-		{
-			JITLUT_HANDLE_KNOWNBANK(addr, MAIN_MEM, _MMU_MAIN_MEM_MASK16, 0) = 0;
-		}
-#endif
 #endif
 		T1WriteWord( MMU.MAIN_MEM, addr & _MMU_MAIN_MEM_MASK16, val);
 #ifdef HAVE_LUA
@@ -905,16 +890,8 @@ FORCEINLINE void _MMU_write32(const int PROCNUM, const MMU_ACCESS_TYPE AT, const
 
 	if ( (addr & 0x0F000000) == 0x02000000) {
 #ifdef HAVE_JIT
-#if !defined(__arm__) && !defined(__aarch64__)
 		JIT_COMPILED_FUNC_KNOWNBANK(addr, MAIN_MEM, _MMU_MAIN_MEM_MASK32, 0) = 0;
 		JIT_COMPILED_FUNC_KNOWNBANK(addr, MAIN_MEM, _MMU_MAIN_MEM_MASK32, 1) = 0;
-#else
-		if(PROCNUM==ARMCPU_ARM7)
-		{
-			JITLUT_HANDLE_KNOWNBANK(addr, MAIN_MEM, _MMU_MAIN_MEM_MASK32, 0) = 0;
-			JITLUT_HANDLE_KNOWNBANK(addr, MAIN_MEM, _MMU_MAIN_MEM_MASK32, 1) = 0;
-		}
-#endif
 #endif
 		T1WriteLong( MMU.MAIN_MEM, addr & _MMU_MAIN_MEM_MASK32, val);
 #ifdef HAVE_LUA

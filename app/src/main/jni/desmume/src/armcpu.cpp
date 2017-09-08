@@ -30,17 +30,11 @@
 #include "Disassembler.h"
 #include "NDSSystem.h"
 #include "MMU_timing.h"
-#include "arm_jit.h"
 #ifdef HAVE_LUA
 #include "lua-engine.h"
 #endif
 #ifdef HAVE_JIT
-
-#include "CpuBase.h"
-#include "ArmThreadedInterpreter.h"
-#include "ArmLJit.h"
-#include "ArmSJit.h"
-
+#include "arm_jit.h"
 #endif
 
 template<u32> static u32 armcpu_prefetch();
@@ -740,15 +734,8 @@ u32 armcpu_exec()
 	if (jit)
 	{
 		ARMPROC.instruct_adr &= ARMPROC.CPSR.bits.T?0xFFFFFFFE:0xFFFFFFFC;
-#if !defined(__arm__) && !defined(__aarch64__)
 		ArmOpCompiled f = (ArmOpCompiled)JIT_COMPILED_FUNC(ARMPROC.instruct_adr, PROCNUM);
-        return f ? f() : arm_jit_compile<PROCNUM>();
-#else
-        // This seems to give off some sort of error between u32 and ArmOpCompiled.
-        ArmOpCompiled f = (ArmOpCompiled)JITLUT_HANDLE(ARMPROC.instruct_adr, PROCNUM);
-        return f ? f() : cpuExecute<PROCNUM>();
-#endif
-
+		return f ? f() : arm_jit_compile<PROCNUM>();
 	}
 
 	return armcpu_exec<PROCNUM>();
@@ -796,51 +783,3 @@ const armcpu_ctrl_iface arm_default_ctrl_iface = {
 	remove_post_exec_fn,
 	NULL
 };
-void armcpu_setjitmode(int jitmode)
-{
-	CommonSettings.jit_max_block_size = CommonSettings.jit_max_block_size > 0 ? CommonSettings.jit_max_block_size : 1;
-#ifdef HAVE_JIT
-	if (arm_cpubase)
-	{
-		arm_cpubase->Sync();
-		arm_cpubase->Shutdown();
-
-		arm_cpubase = NULL;
-	}
-
-	switch (jitmode)
-	{
-		case 0:
-			arm_cpubase = NULL;
-			break;
-		case 1:
-			arm_cpubase = &arm_threadedinterpreter;
-			break;
-		case 2:
-#if defined(__arm__) || defined(__aarch64__)
-			arm_cpubase = &arm_ljit;
-#else
-            arm_cpubase = &arm_oldjit;
-#endif
-			break;
-			// Stackless JIT. Effective as interpreter. Still in construction.
-		/*case 3:
-			arm_cpubase = &arm_sjit;
-			break;*/
-		default:
-			INFO("Unknown engine detected : %d\n", jitmode);
-			arm_cpubase = NULL;
-			break;
-	}
-
-	if (arm_cpubase)
-	{
-		INFO("armcpu_setjitmode : %s\n", arm_cpubase->Description());
-
-		arm_cpubase->Reserve();
-		arm_cpubase->Reset();
-	}
-	else
-		INFO("armcpu_setjitmode, jit off\n");
-#endif
-}

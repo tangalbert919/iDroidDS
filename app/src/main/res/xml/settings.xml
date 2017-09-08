@@ -2,7 +2,7 @@
     
       <PreferenceCategory android:title="@string/Gameplay">
           <ListPreference android:entries="@array/languages" android:summary="@string/LanguageDesc" android:title="@string/Language" android:key="Language" android:entryValues="@array/zerothroughfive"/>
-          <ListPreference android:entries="@array/executionengines" android:summary="@string/ExecutionEngineDesc" android:title="@string/ExecutionEngine" android:key="CpuMode" android:entryValues="@array/zerothroughthree" />
+          <ListPreference android:entries="@array/executionengines" android:summary="@string/ExecutionEngineDesc" android:title="@string/ExecutionEngine" android:key="CpuMode" android:entryValues="@array/zerothroughone" />
 		  <!--<CheckBoxPreference android:title="@string/ExecutionEngine" android:summary="@string/ExecutionEngineDesc" android:key="CpuMode"/>-->
       	  <com.opendoorstudios.ds4droid.SliderPreference
       	      android:key="JitSize"

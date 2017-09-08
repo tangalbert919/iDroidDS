@@ -39,13 +39,7 @@
 #include "Disassembler.h"
 #include "MMU.h"
 #include "MMU_timing.h"
-
-// New AsmJIT
-//#include "utils/asmjit/asmjit.h"
-
-// Old AsmJit
 #include "utils/AsmJit/AsmJit.h"
-
 #include "arm_jit.h"
 #include "bios.h"
 
@@ -4322,9 +4316,6 @@ static int pcmp_entry(PROFILER_ENTRY *info1, PROFILER_ENTRY *info2)
 #endif
 #endif
 
-CpuBase arm_oldjit =
-		{
-		};
 void arm_jit_close()
 {
 #if (PROFILER_JIT_LEVEL > 0)

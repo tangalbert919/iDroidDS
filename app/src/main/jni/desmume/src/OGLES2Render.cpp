@@ -800,7 +800,6 @@ OpenGLES2Renderer::OpenGLES2Renderer()
 {
 	isVBOSupported = false;
 	isFBOSupported = false;
-	isMultisampledFBOSupported = false;
 	isShaderSupported = false;
 	isVAOSupported = false;
 	
@@ -827,7 +826,6 @@ OpenGLES2Renderer::~OpenGLES2Renderer()
 	DestroyVAOs();
 	DestroyVBOs();
 	DestroyFBOs();
-	DestroyMultisampledFBO();
 	
 	//kill the tex cache to free all the texture ids
 	TexCache_Reset();
@@ -903,24 +901,6 @@ Render3DError OpenGLES2Renderer::InitExtensions() {
 	{
 		OGLRef.fboFinalOutputID = 0;
 		INFO("OpenGL ES: FBOs are unsupported. Some emulation features will be disabled.\n");
-	}
-
-	/*this->isMultisampledFBOSupported = this->IsExtensionPresent(&oglExtensionSet, "GL_OES_framebuffer_object") &&
-                                       this->IsExtensionPresent(&oglExtensionSet, "GL_EXT_multisampled_render_to_texture")&&
-									   this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil");*/
-	this->isMultisampledFBOSupported = false;
-	if (this->isMultisampledFBOSupported)
-	{
-		error = this->CreateMultisampledFBO();
-		if (error != OGLERROR_NOERR)
-		{
-			OGLRef.selectedRenderingFBO = 0;
-			this->isMultisampledFBOSupported = false;
-            //return error;
-		}
-	} else {
-		OGLRef.selectedRenderingFBO = 0;
-		INFO("OpenGL ES: Multisampled FBOs are unsupported. Multisample antialiasing will be disabled.\n");
 	}
 	
 	this->InitTextures();
@@ -1204,63 +1184,6 @@ void OpenGLES2Renderer::DestroyFBOs()
 	this->isFBOSupported = false;
 }
 
-Render3DError OpenGLES2Renderer::CreateMultisampledFBO() {
-    // Check the maximum number of samples that the driver supports and use that.
-    // Since our target resolution is only 256x192 pixels, using the most samples
-    // possible is the best thing to do.
-    GLint maxSamples = 0;
-    glGetIntegerv(GL_MAX_SAMPLES_EXT, &maxSamples);
-
-    if (maxSamples < 2)
-    {
-        INFO("OpenGL ES: Driver does not support at least 2x multisampled FBOs. Multisample antialiasing will be disabled.\n");
-        return OGLERROR_FEATURE_UNSUPPORTED;
-    }
-    else if (maxSamples > OGLRENDER_MAX_MULTISAMPLES)
-        maxSamples = OGLRENDER_MAX_MULTISAMPLES;
-
-    OGLESRenderRef &OGLRef = *this->ref;
-
-    // Set up FBO render targets
-    glGenRenderbuffers(1, &OGLRef.rboMSFragColorID);
-    glGenRenderbuffers(1, &OGLRef.rboFragDepthStencilID);
-
-    glBindRenderbuffer(GL_RENDERBUFFER, OGLRef.rboMSFragColorID);
-    glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER, maxSamples, GL_RGBA, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT);
-    glBindRenderbuffer(GL_RENDERBUFFER, OGLRef.rboMSFragDepthStencilID);
-    glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER, maxSamples, GL_DEPTH24_STENCIL8_OES, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    {
-        INFO("OpenGL ES: Failed to create multisampled FBO. Multisample antialiasing will be disabled.");
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glDeleteFramebuffers(1, &OGLRef.fboMSIntermediateRenderID);
-        glDeleteRenderbuffers(1, &OGLRef.rboMSFragColorID);
-        glDeleteRenderbuffers(1, &OGLRef.rboMSFragDepthStencilID);
-
-        return OGLERROR_FBO_CREATE_ERROR;
-    }
-
-	glESBindFramebuffer(GL_FRAMEBUFFER, OGLRef.fboRenderID);
-	INFO("OpenGL ES: Successfully created multisampled FBO.\n");
-    return OGLERROR_NOERR;
-}
-
-void OpenGLES2Renderer::DestroyMultisampledFBO() {
-    if (!this->isMultisampledFBOSupported)
-        return;
-
-    OGLESRenderRef &OGLRef = *this->ref;
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDeleteFramebuffers(1, &OGLRef.fboMSIntermediateRenderID);
-    glDeleteRenderbuffers(1, &OGLRef.rboMSFragColorID);
-    glDeleteRenderbuffers(1, &OGLRef.rboMSFragDepthStencilID);
-
-    this->isMultisampledFBOSupported = false;
-}
-
 Render3DError OpenGLES2Renderer::InitFinalRenderStates(const std::set<std::string> *oglExtensionSet)
 {
 	OGLESRenderRef &OGLRef = *this->ref;
@@ -1377,7 +1300,7 @@ Render3DError OpenGLES2Renderer::CreateClearImage()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_EXT, GL_NONE);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8_OES, 256, 192, 0, GL_DEPTH_STENCIL_OES, GL_UNSIGNED_INT_24_8_OES, NULL);
 	
 	glActiveTexture(GL_TEXTURE0);

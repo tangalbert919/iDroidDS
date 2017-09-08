@@ -139,7 +139,6 @@ enum OGLErrorCode
 	OGLERROR_SHADER_UNSUPPORTED,
 	OGLERROR_VAO_UNSUPPORTED,
 	OGLERROR_FBO_UNSUPPORTED,
-	OGLERROR_MULTISAMPLED_FBO_UNSUPPORTED,
 	
 	OGLERROR_VERTEX_SHADER_PROGRAM_LOAD_ERROR,
 	OGLERROR_FRAGMENT_SHADER_PROGRAM_LOAD_ERROR,
@@ -156,11 +155,13 @@ struct OGLESRenderRef
 	// VBO
 	GLuint vboVertexID;
 	GLuint iboIndexID;
+
+	// PBO
+	GLuint pboRenderDataID[2];
 	
 	// FBO
 	GLuint texClearImageColorID;
 	GLuint texClearImageDepthStencilID;
-
 	GLuint fboClearImageID;
     GLuint fboMSIntermediateRenderID;
     GLuint fboRenderID;
@@ -253,7 +254,6 @@ protected:
     bool isVBOSupported;
     bool isFBOSupported;
 	bool isVAOSupported;
-    bool isMultisampledFBOSupported;
     bool isShaderSupported;
 
 	
@@ -273,8 +273,6 @@ protected:
 	virtual void DestroyVBOs() = 0;
 	virtual Render3DError CreateFBOs() = 0;
 	virtual void DestroyFBOs() = 0;
-    virtual Render3DError CreateMultisampledFBO() = 0;
-    virtual void DestroyMultisampledFBO() = 0;
 	virtual Render3DError CreateShaders(const std::string *vertexShaderProgram, const std::string *fragmentShaderProgram) = 0;
 	virtual void DestroyShaders() = 0;
 	virtual Render3DError CreateVAOs() = 0;
@@ -343,8 +341,6 @@ protected:
 	virtual void DestroyVBOs();
 	virtual Render3DError CreateFBOs();
 	virtual void DestroyFBOs();
-	virtual Render3DError CreateMultisampledFBO();
-	virtual void DestroyMultisampledFBO();
 	virtual Render3DError CreateShaders(const std::string *vertexShaderProgram, const std::string *fragmentShaderProgram);
 	virtual void DestroyShaders();
 	virtual Render3DError CreateVAOs();

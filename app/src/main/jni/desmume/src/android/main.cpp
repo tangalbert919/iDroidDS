@@ -601,6 +601,7 @@ void loadSettings(JNIEnv* env)
 	CommonSettings.cheatsDisable = GetPrivateProfileBool(env,"General", "cheatsDisable", false, IniName);
 	CommonSettings.autodetectBackupMethod = GetPrivateProfileInt(env,"General", "autoDetectMethod", 0, IniName);
 	enableMicrophone = GetPrivateProfileBool(env, "General", "EnableMicrophone", true, IniName);
+	CommonSettings.backupSave = GetPrivateProfileBool(env, "General", "backupSave", true, IniName);
 
 	// This is the video settings
 	video.rotation =  GetPrivateProfileInt(env,"Video","WindowRotate", 0, IniName);
@@ -689,18 +690,21 @@ void JNI(init, jobject _inst)
 	
 	INFO("Init NDS");
 	
-	int slot1_device_type = NDS_SLOT1_RETAIL_AUTO;
+	/*int slot1_device_type = NDS_SLOT1_RETAIL_AUTO;
 	switch (slot1_device_type)
 	{
 		case NDS_SLOT1_NONE:
+			break;
 		case NDS_SLOT1_RETAIL_MCROM:
+			break;
 		case NDS_SLOT1_R4:
+			break;
 		case NDS_SLOT1_RETAIL_NAND:
 			break;
 		default:
 			slot1_device_type = NDS_SLOT1_RETAIL_AUTO;
 			break;
-	}
+	}*/
 
 	int slot2_device_type = NDS_SLOT2_AUTO;
 	switch (slot2_device_type)
@@ -728,7 +732,7 @@ void JNI(init, jobject _inst)
 			break;
 	}
 
-	slot1_Change((NDS_SLOT1_TYPE)slot1_device_type);
+	//slot1_Change((NDS_SLOT1_TYPE)slot1_device_type);
 	slot2_Change((NDS_SLOT2_TYPE)slot2_device_type);
 
 	
@@ -768,7 +772,7 @@ void JNI(init, jobject _inst)
 
 void JNI(changeCpuMode, int type)
 {
-	armcpu_setjitmode(type);
+	arm_jit_reset(type);
 }
 
 void JNI(change3D, int type)

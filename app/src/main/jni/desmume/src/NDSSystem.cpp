@@ -54,7 +54,6 @@
 #include "slot2.h"
 #include "SPU.h"
 #include "wifi.h"
-#include "JitCommon.h"
 
 #ifdef GDB_STUB
 #include "gdbstub.h"
@@ -202,14 +201,7 @@ void NDS_DeInit(void)
 	cheatSearch = NULL;
 
 #ifdef HAVE_JIT
-#if !defined(__arm__) && !defined(__aarch64__)
 	arm_jit_close();
-#else
-	if (arm_cpubase)
-		arm_cpubase->Shutdown;
-
-	JitLutDeInit();
-#endif
 #endif
 
 #ifdef LOG_ARM7
@@ -1936,18 +1928,9 @@ void NDS_exec(s32 nb)
 			#endif
 
 #ifdef HAVE_JIT
-			std::pair<s32,s32> arm9arm7; /*= CommonSettings.use_jit*/
-				/*? armInnerLoop<true,true,true>(nds_timer_base,s32next,arm9,arm7)
-				: armInnerLoop<true,true,false>(nds_timer_base,s32next,arm9,arm7);*/
-            switch(CommonSettings.use_jit)
-            {
-                case 1: arm9arm7 = armInnerLoop<true,true,1>(nds_timer_base,s32next,arm9,arm7); break;
-                case 2: arm9arm7 = armInnerLoop<true,true,2>(nds_timer_base,s32next,arm9,arm7); break;
-					// Stackless JIT is here, but needs to be built.
-				//case 3: arm9arm7 = armInnerLoop<true,true,3>(nds_timer_base,s32next,arm9,arm7); break;
-                default: arm9arm7 = armInnerLoop<true,true,0>(nds_timer_base,s32next,arm9,arm7); break;
-
-            }
+			std::pair<s32,s32> arm9arm7 = CommonSettings.use_jit
+				? armInnerLoop<true,true,true>(nds_timer_base,s32next,arm9,arm7)
+				: armInnerLoop<true,true,false>(nds_timer_base,s32next,arm9,arm7);
 #else
 				std::pair<s32,s32> arm9arm7 = armInnerLoop<true,true>(nds_timer_base,s32next,arm9,arm7);
 #endif
@@ -2497,11 +2480,7 @@ void NDS_Reset()
 	JumbleMemory();
 
 	#ifdef HAVE_JIT
-    #if defined(__arm__) || defined(__aarch64__)
-    armcpu_setjitmode(CommonSettings.use_jit);
-    #else
-		arm_jit_reset(CommonSettings.use_jit);
-    #endif
+    arm_jit_reset(CommonSettings.use_jit);
 	#endif
 
 

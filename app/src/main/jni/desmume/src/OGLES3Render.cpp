@@ -195,6 +195,7 @@ OpenGLES3Renderer::~OpenGLES3Renderer() {
 
     DestroyVAOs();
     DestroyFBOs();
+    DestroyPBOs();
     DestroyMultisampledFBO();
 }
 
@@ -335,7 +336,7 @@ Render3DError OpenGLES3Renderer::CreateFBOs() {
 
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-    INFO("OpenGL: Successfully created FBOs.\n");
+    INFO("OpenGL ES: Successfully created FBOs.\n");
 
     return OGLERROR_NOERR;
 }
@@ -369,7 +370,7 @@ Render3DError OpenGLES3Renderer::CreateMultisampledFBO() {
 
     if (maxSamples < 2)
     {
-        INFO("OpenGL: GPU does not support at least 2x multisampled FBOs. Multisample antialiasing will be disabled.\n");
+        INFO("OpenGL ES: GPU does not support at least 2x multisampled FBOs. Multisample antialiasing will be disabled.\n");
         return OGLERROR_FEATURE_UNSUPPORTED;
     }
     else if (maxSamples > OGLRENDER_MAX_MULTISAMPLES)
@@ -482,12 +483,27 @@ Render3DError OpenGLES3Renderer::SetupShaderIO() {
 
 Render3DError OpenGLES3Renderer::CreatePBOs() {
     OGLESRenderRef &OGLRef = *this->ref;
+    glGenBuffers(2, this->ref->pboRenderDataID);
+    for (size_t i = 0; i < 2; i++) {
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, this->ref->pboRenderDataID[i]);
+        glBufferData(GL_PIXEL_PACK_BUFFER, GFX3D_FRAMEBUFFER_WIDTH * GFX3D_FRAMEBUFFER_HEIGHT * sizeof(u32), NULL, GL_STREAM_READ);
+    }
 
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
+    return OGLERROR_NOERR;
 }
 
 void OpenGLES3Renderer::DestroyPBOs() {
 
+    if (!this->isPBOSupported) {
+        return;
+    }
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+    glDeleteBuffers(2, this->ref->pboRenderDataID);
+
+    this->isPBOSupported = false;
 }
 
 void OpenGLES3Renderer::GetExtensionSet(std::set<std::string> *oglExtensionSet) {
@@ -539,6 +555,22 @@ Render3DError OpenGLES3Renderer::DownsampleFBO() {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, OGLRef.fboRenderID);
     glBlitFramebuffer(0, 0, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT, 0, 0, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_FRAMEBUFFER, OGLRef.fboRenderID);
+
+    return OGLERROR_NOERR;
+}
+
+Render3DError OpenGLES3Renderer::ReadBackPixels() {
+    const size_t i = this->doubleBufferIndex;
+
+    if (this->isPBOSupported) {
+        this->DownsampleFBO();
+
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, this->ref->pboRenderDataID[i]);
+        glReadPixels(0, 0, GFX3D_FRAMEBUFFER_WIDTH, GFX3D_FRAMEBUFFER_HEIGHT, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+    }
+
+    this->gpuScreen3DHasNewData[i] = true;
 
     return OGLERROR_NOERR;
 }

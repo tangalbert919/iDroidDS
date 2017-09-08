@@ -46,7 +46,6 @@
 #include "encrypt.h"
 #include "GPU.h"
 #include "SPU.h"
-#include "ArmLJit.h"
 
 #ifdef DO_ASSERT_UNALIGNED
 #define ASSERT_UNALIGNED(x) assert(x)
@@ -3257,11 +3256,7 @@ void FASTCALL _MMU_ARM9_write08(u32 adr, u8 val)
 	if(adr < 0x02000000)
 	{
 #ifdef HAVE_JIT
-#if !defined(__arm__) && !defined(__aarch64__)
 		JIT_COMPILED_FUNC_KNOWNBANK(adr, ARM9_ITCM, 0x7FFF, 0) = 0;
-#else
-		JITLUT_HANDLE_KNOWNBANK(adr, ARM9_ITCM, 0x7FFF, 0) = 0;
-#endif
 #endif
 		T1WriteByte(MMU.ARM9_ITCM, adr & 0x7FFF, val);
 		return;
@@ -3519,13 +3514,8 @@ void FASTCALL _MMU_ARM9_write08(u32 adr, u8 val)
 	if(restricted) return; //block 8bit vram writes
 
 #ifdef HAVE_JIT
-#if !defined(__arm__) && !defined(__aarch64__)
     if (JIT_MAPPED(adr, ARMCPU_ARM9))
 		JIT_COMPILED_FUNC_PREMASKED(adr, ARMCPU_ARM9, 0) = 0;
-#else
-    if (JITLUT_MAPPED(adr, ARMCPU_ARM9))
-		JITLUT_HANDLE_PREMASKED(adr, ARMCPU_ARM9, 0) = 0;
-#endif
 #endif
 
 	// Removed the &0xFF as they are implicit with the adr&0x0FFFFFFF [shash]
@@ -3542,11 +3532,7 @@ void FASTCALL _MMU_ARM9_write16(u32 adr, u16 val)
 	if (adr < 0x02000000)
 	{
 #ifdef HAVE_JIT
-#if !defined(__arm__) && !defined(__aarch64__)
 		JIT_COMPILED_FUNC_KNOWNBANK(adr, ARM9_ITCM, 0x7FFF, 0) = 0;
-#else
-		JITLUT_HANDLE_KNOWNBANK(adr, ARM9_ITCM, 0x7FFF, 0) = 0;
-#endif
 #endif
 		T1WriteWord(MMU.ARM9_ITCM, adr & 0x7FFF, val);
 		return;
@@ -3981,13 +3967,8 @@ void FASTCALL _MMU_ARM9_write16(u32 adr, u16 val)
 	if(unmapped) return;
 
 #ifdef HAVE_JIT
-#if !defined(__arm__) && !defined(__aarch64__)
 	if (JIT_MAPPED(adr, ARMCPU_ARM9))
 		JIT_COMPILED_FUNC_PREMASKED(adr, ARMCPU_ARM9, 0) = 0;
-#else
-    if (JITLUT_MAPPED(adr, ARMCPU_ARM9))
-		JITLUT_HANDLE_PREMASKED(adr, ARMCPU_ARM9, 0) = 0;
-#endif
 #endif
 
 	// Removed the &0xFF as they are implicit with the adr&0x0FFFFFFF [shash]
@@ -4004,13 +3985,8 @@ void FASTCALL _MMU_ARM9_write32(u32 adr, u32 val)
 	if(adr<0x02000000)
 	{
 #ifdef HAVE_JIT
-#if !defined(__arm__) && !defined(__aarch64__)
 		JIT_COMPILED_FUNC_KNOWNBANK(adr, ARM9_ITCM, 0x7FFF, 0) = 0;
 		JIT_COMPILED_FUNC_KNOWNBANK(adr, ARM9_ITCM, 0x7FFF, 1) = 0;
-#else
-		JITLUT_HANDLE_KNOWNBANK(adr, ARM9_ITCM, 0x7FFF, 0) = 0;
-		JITLUT_HANDLE_KNOWNBANK(adr, ARM9_ITCM, 0x7FFF, 1) = 0;
-#endif
 #endif
 		T1WriteLong(MMU.ARM9_ITCM, adr & 0x7FFF, val);
 		return ;
@@ -4422,17 +4398,10 @@ void FASTCALL _MMU_ARM9_write32(u32 adr, u32 val)
 	if(unmapped) return;
 
 #ifdef HAVE_JIT
-#if !defined(__arm__) && !defined(__aarch64__)
 	if (JIT_MAPPED(adr, ARMCPU_ARM9))
 	{
 		JIT_COMPILED_FUNC_PREMASKED(adr, ARMCPU_ARM9, 0) = 0;
 		JIT_COMPILED_FUNC_PREMASKED(adr, ARMCPU_ARM9, 1) = 0;
-#else
-    if (JITLUT_MAPPED(adr, ARMCPU_ARM9))
-    {
-      	JITLUT_HANDLE_PREMASKED(adr, ARMCPU_ARM9, 0) = 0;
-		JITLUT_HANDLE_PREMASKED(adr, ARMCPU_ARM9, 1) = 0;
-#endif
 	}
 #endif
 
@@ -4858,11 +4827,7 @@ void FASTCALL _MMU_ARM7_write08(u32 adr, u8 val)
 #ifdef HAVE_JIT
 				// hack for firmware boot in JIT mode
 				if (CommonSettings.UseExtFirmware && CommonSettings.BootFromFirmware && firmware->loaded() && val == 1)
-#if !defined(__arm__) && !defined(__aarch64__)
 					CommonSettings.jit_max_block_size = saveBlockSizeJIT;
-#else
-                    CommonSettings.jit_max_block_size = armBlockSizeJIT;
-#endif
 #endif
 				break;
 
@@ -4912,13 +4877,8 @@ void FASTCALL _MMU_ARM7_write08(u32 adr, u8 val)
 	if(unmapped) return;
 
 #ifdef HAVE_JIT
-#if !defined(__arm__) && !defined(__aarch64__)
 	if (JIT_MAPPED(adr, ARMCPU_ARM7))
 		JIT_COMPILED_FUNC_PREMASKED(adr, ARMCPU_ARM7, 0) = 0;
-#else
-    if (JITLUT_MAPPED(adr, ARMCPU_ARM7))
-    	JITLUT_HANDLE_PREMASKED(adr, ARMCPU_ARM7, 0) = 0;
-#endif
 #endif
 	
 	// Removed the &0xFF as they are implicit with the adr&0x0FFFFFFF [shash]
@@ -5099,13 +5059,8 @@ void FASTCALL _MMU_ARM7_write16(u32 adr, u16 val)
 	if(unmapped) return;
 
 #ifdef HAVE_JIT
-#if !defined(__arm__) && !defined(__aarch64__)
 	if (JIT_MAPPED(adr, ARMCPU_ARM7))
 		JIT_COMPILED_FUNC_PREMASKED(adr, ARMCPU_ARM7, 0) = 0;
-#else
-	if (JITLUT_MAPPED(adr, ARMCPU_ARM7))
-		JITLUT_HANDLE_PREMASKED(adr, ARMCPU_ARM7, 0) = 0;
-#endif
 #endif
 
 	// Removed the &0xFF as they are implicit with the adr&0x0FFFFFFF [shash]
@@ -5203,17 +5158,10 @@ void FASTCALL _MMU_ARM7_write32(u32 adr, u32 val)
 	if(unmapped) return;
 
 #ifdef HAVE_JIT
-#if !defined(__arm__) && !defined(__aarch64__)
 	if (JIT_MAPPED(adr, ARMCPU_ARM7))
 	{
 		JIT_COMPILED_FUNC_PREMASKED(adr, ARMCPU_ARM7, 0) = 0;
 		JIT_COMPILED_FUNC_PREMASKED(adr, ARMCPU_ARM7, 1) = 0;
-#else
-    if (JITLUT_MAPPED(adr, ARMCPU_ARM7))
-    {
-        JITLUT_HANDLE_PREMASKED(adr, ARMCPU_ARM7, 0) = 0;
-        JITLUT_HANDLE_PREMASKED(adr, ARMCPU_ARM7, 1) = 0;
-#endif
 	}
 #endif
 

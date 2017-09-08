@@ -59,7 +59,6 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/utils/fsnitro.cpp \
 							desmume/src/utils/guid.cpp \
 							desmume/src/utils/md5.cpp \
-							desmume/src/utils/MemBuffer.cpp \
 							desmume/src/utils/task.cpp \
 							desmume/src/utils/vfat.cpp \
 							desmume/src/utils/xstring.cpp \
@@ -75,13 +74,10 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/arm_instructions.cpp \
 							desmume/src/armcpu.cpp \
 							desmume/src/arm_jit.cpp \
-							desmume/src/ArmAnalyze.cpp \
-							desmume/src/ArmThreadedInterpreter.cpp \
 							desmume/src/bios.cpp \
 							desmume/src/cheatSystem.cpp \
 							desmume/src/common.cpp \
 							desmume/src/cp15.cpp \
-							desmume/src/CpuBase.cpp \
 							desmume/src/debug.cpp \
 							desmume/src/Disassembler.cpp \
 							desmume/src/driver.cpp \
@@ -93,7 +89,6 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/gfx3d.cpp \
 							desmume/src/GPU.cpp \
 							desmume/src/GPU_osd_stub.cpp \
-							desmume/src/JitCommon.cpp \
 							desmume/src/matrix.cpp \
 							desmume/src/mc.cpp \
 							desmume/src/MMU.cpp \

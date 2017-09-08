@@ -948,9 +948,7 @@ static void writechunks(EMUFILE* os);
 bool savestate_save(EMUFILE* outstream, int compressionLevel)
 {
 #ifdef HAVE_JIT
-    if (arm_cpubase)
-		arm_cpubase->Sync();
-	//arm_jit_sync();
+	arm_jit_sync();
 #endif
 	#ifndef HAVE_LIBZ
 	compressionLevel = Z_NO_COMPRESSION;

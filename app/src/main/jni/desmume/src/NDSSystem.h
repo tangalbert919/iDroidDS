@@ -525,7 +525,7 @@ extern struct TCommonSettings {
 		//id rather have people discover a bonus speedhack than discover new bugs in a new version
 		use_jit = 0;
 #else
-		use_jit = false;
+		use_jit = 0;
 #endif
 
 		num_cores = NDS_GetCPUCoreCount();
@@ -571,7 +571,7 @@ extern struct TCommonSettings {
 	
 	FAST_ALIGN bool advanced_timing;
 
-	int use_jit;
+	bool use_jit;
 	u32	jit_max_block_size;
 	
 	struct _Wifi {

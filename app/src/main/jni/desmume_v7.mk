@@ -11,8 +11,7 @@ LOCAL_MODULE    		:= 	libdesmumev7
 LOCAL_C_INCLUDES		:= 	$(LOCAL_PATH)/desmume/src \
 							$(LOCAL_PATH)/desmume/src/android \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP \
-							$(LOCAL_PATH)/desmume/src/android/7z/CPP/include_windows \
-							$(LOCAL_PATH)/desmume/src/utils/lightning-old/include
+							$(LOCAL_PATH)/desmume/src/android/7z/CPP/include_windows
 						   
 LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/addons/slot1_r4.cpp \
@@ -60,7 +59,6 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/utils/fsnitro.cpp \
 							desmume/src/utils/guid.cpp \
 							desmume/src/utils/md5.cpp \
-							desmume/src/utils/MemBuffer.cpp \
 							desmume/src/utils/task.cpp \
 							desmume/src/utils/vfat.cpp \
 							desmume/src/utils/xstring.cpp \
@@ -74,15 +72,13 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/filter/scanline.cpp \
 							desmume/src/filter/xbrz.cpp \
 							desmume/src/arm_instructions.cpp \
-							desmume/src/ArmAnalyze.cpp \
+							desmume/src/utils/arm_arm/arm_gen.cpp \
+							desmume/src/utils/arm_arm/arm_jit.cpp \
 							desmume/src/armcpu.cpp \
-							desmume/src/ArmThreadedInterpreter.cpp \
-							desmume/src/ArmLJit.cpp \
 							desmume/src/bios.cpp \
 							desmume/src/cheatSystem.cpp \
 							desmume/src/common.cpp \
 							desmume/src/cp15.cpp \
-							desmume/src/CpuBase.cpp \
 							desmume/src/debug.cpp \
 							desmume/src/Disassembler.cpp \
 							desmume/src/driver.cpp \
@@ -94,7 +90,6 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/gfx3d.cpp \
 							desmume/src/GPU.cpp \
 							desmume/src/GPU_osd_stub.cpp \
-							desmume/src/JitCommon.cpp \
 							desmume/src/matrix.cpp \
 							desmume/src/mc.cpp \
 							desmume/src/MMU.cpp \
@@ -126,7 +121,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							
 LOCAL_ARM_NEON 			:= false
 LOCAL_ARM_MODE 			:= arm
-LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -DLIGHTNING_ARM -mfloat-abi=softfp -mfpu=vfpv3-d16 -marm -march=armv7-a
+LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -mfloat-abi=softfp -mfpu=vfpv3-d16 -marm -march=armv7-a
 LOCAL_STATIC_LIBRARIES 	:= sevenzip
 LOCAL_LDLIBS 			:= -llog -lz -lGLESv2 -lGLESv3 -lEGL -ljnigraphics -lOpenSLES -landroid
 
