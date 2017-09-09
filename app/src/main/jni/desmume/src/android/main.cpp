@@ -407,6 +407,7 @@ void nds4droid_core()
 	NDS_endProcessingInput();
 	NDS_exec<false>();
 	SPU_Emulate_user();
+    backup_setManualBackupType(0);
 #ifdef MEASURE_FIRST_FRAMES
 	unsigned int end = GetTickCount();
 	if(mff_do)
@@ -582,6 +583,7 @@ int JNI_NOARGS(runOther)
 void JNI(saveState, int slot)
 {
 	savestate_slot(slot);
+    save_types = MC_TYPE_AUTODETECT;
 }
 
 void JNI(restoreState, int slot)
@@ -626,12 +628,12 @@ void loadSettings(JNIEnv* env)
 	CommonSettings.micMode = (TCommonSettings::MicMode)GetPrivateProfileInt(env,"MicSettings", "MicMode", (int)TCommonSettings::InternalNoise, IniName);
 
 	// This is for sound
-	CommonSettings.spu_advanced = GetPrivateProfileBool(env,"Sound", "SpuAdvanced", false, IniName);
-	CommonSettings.spuInterpolationMode = (SPUInterpolationMode)GetPrivateProfileInt(env, "Sound","SPUInterpolation", 1, IniName);
-	snd_synchmode = GetPrivateProfileInt(env, "Sound","SynchMode",0,IniName);
-	snd_synchmethod = GetPrivateProfileInt(env, "Sound","SynchMethod",0,IniName);
+	CommonSettings.spu_advanced = GetPrivateProfileBool(env,"Audio", "Advanced", false, IniName);
+	CommonSettings.spuInterpolationMode = (SPUInterpolationMode)GetPrivateProfileInt(env, "Audio","Interpolation", 1, IniName);
+	snd_synchmode = GetPrivateProfileInt(env, "Audio","SynchMode",0,IniName);
+	snd_synchmethod = GetPrivateProfileInt(env, "Audio","SynchMethod",0,IniName);
 
-	// This is about JIT
+	// This is about JIT, although it won't EVER work.
 	CommonSettings.advanced_timing = GetPrivateProfileBool(env,"Emulation", "AdvancedTiming", false, IniName);
 	CommonSettings.use_jit = GetPrivateProfileInt(env, "Emulation","CpuMode", 0, IniName);
 	CommonSettings.jit_max_block_size = GetPrivateProfileInt(env, "Emulation", "JitSize", 10, IniName);
@@ -744,7 +746,7 @@ void JNI(init, jobject _inst)
 	
 	LOG("Init sound core\n");
 	sndcoretype = GetPrivateProfileInt(env, "Sound","SoundCore2", SNDCORE_OPENSL, IniName);
-	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize2", DESMUME_SAMPLE_RATE*8/60, IniName);
+	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize2", DESMUME_SAMPLE_RATE, IniName);
 	SPU_ChangeSoundCore(sndcoretype, sndbuffersize);
 	SPU_SetSynchMode(snd_synchmode,snd_synchmethod);
 	
