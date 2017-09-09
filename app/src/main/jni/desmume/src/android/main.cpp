@@ -583,7 +583,6 @@ int JNI_NOARGS(runOther)
 void JNI(saveState, int slot)
 {
 	savestate_slot(slot);
-    save_types = MC_TYPE_AUTODETECT;
 }
 
 void JNI(restoreState, int slot)
@@ -651,6 +650,7 @@ void loadSettings(JNIEnv* env)
 	// This is the wifi
 	CommonSettings.wifi.mode = GetPrivateProfileInt(env,"Wifi", "Mode", 0, IniName);
 	CommonSettings.wifi.infraBridgeAdapter = GetPrivateProfileInt(env,"Wifi", "BridgeAdapter", 0, IniName);
+
 }
 
 void JNI_NOARGS(reloadFirmware)
@@ -746,7 +746,9 @@ void JNI(init, jobject _inst)
 	
 	LOG("Init sound core\n");
 	sndcoretype = GetPrivateProfileInt(env, "Sound","SoundCore2", SNDCORE_OPENSL, IniName);
-	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize2", DESMUME_SAMPLE_RATE, IniName);
+	// The buffer size was set to 5880 (44100*8*60) by Jeff.
+	// Let's try using 5600 (44100*8/63) to make the audio sound correct.
+	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize2", DESMUME_SAMPLE_RATE*8/63, IniName);
 	SPU_ChangeSoundCore(sndcoretype, sndbuffersize);
 	SPU_SetSynchMode(snd_synchmode,snd_synchmethod);
 	

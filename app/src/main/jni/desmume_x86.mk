@@ -55,7 +55,6 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/utils/datetime.cpp \
 							desmume/src/utils/dlditool.cpp \
 							desmume/src/utils/emufat.cpp \
-							desmume/src/utils/FileMap.cpp \
 							desmume/src/utils/fsnitro.cpp \
 							desmume/src/utils/guid.cpp \
 							desmume/src/utils/md5.cpp \

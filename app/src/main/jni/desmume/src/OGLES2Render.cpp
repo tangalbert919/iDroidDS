@@ -71,7 +71,7 @@ void (*OGLES3CreateRenderers_Func)(OpenGLESRenderer **pGLESRenderer) = NULL;
 //------------------------------------------------------------
 
 // Textures
-OGLEXT(PFNGLACTIVETEXTUREPROC, glActiveTextures)
+OGLEXT(PFNGLACTIVETEXTUREPROC, glESActiveTextures)
 
 // Blending
 OGLEXT(PFNGLBLENDFUNCSEPARATEPROC, glESBlendFuncSeparate)
@@ -105,7 +105,7 @@ OGLEXT(PFNGLDRAWBUFFERSEXTPROC, glDrawBuffersEXT)
 OGLEXT(PFNGLBINDATTRIBLOCATIONPROC, glESBindAttribLocation)
 OGLEXT(PFNGLENABLEVERTEXATTRIBARRAYPROC, glESEnableVertexAttribArray)
 OGLEXT(PFNGLDISABLEVERTEXATTRIBARRAYPROC, glESDisableVertexAttribArray)
-OGLEXT(PFNGLBINDFRAGDATALOCATIONEXTPROC, glBindFragDataLocationEXT)
+OGLEXT(PFNGLVERTEXATTRIBPOINTERPROC, glESVertexAttribPointer)
 
 // VAO
 OGLEXT(PFNGLGENVERTEXARRAYSOESPROC, glGenVertexArraysOES)
@@ -128,19 +128,13 @@ OGLEXT(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glESFramebufferRenderbuffer)
 OGLEXT(PFNGLFRAMEBUFFERTEXTURE2DPROC, glESFramebufferTexture2D)
 OGLEXT(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glESCheckFramebufferStatus)
 OGLEXT(PFNGLFRAMEBUFFERTEXTUREEXTPROC, glFramebufferTextureEXT)
+OGLEXT(PFNGLDELETEFRAMEBUFFERSPROC, glESDeleteFramebuffers)
 //OGLEXT(PFNGLBLITFRAMEBUFFERANGLEPROC, glBlitFramebufferANGLE)
-
-// Multisampled FBO
-OGLEXT(PFNGLGENRENDERBUFFERSPROC, glESGenRenderbuffers)
-OGLEXT(PFNGLBINDRENDERBUFFERPROC, glESBindRenderbuffer)
-OGLEXT(PFNGLRENDERBUFFERSTORAGEPROC, glESRenderbufferStorage)
-OGLEXT(PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC, glRenderbufferStorageMultisampleEXT)
-OGLEXT(PFNGLDELETERENDERBUFFERSPROC, glESDeleteRenderbuffers)
 
 static void OGLES2LoadEntryPoints()
 {
 	// Textures
-	INITOGLEXT(PFNGLACTIVETEXTUREPROC, glActiveTextures)
+	INITOGLEXT(PFNGLACTIVETEXTUREPROC, glESActiveTextures)
 
 // Blending
 	INITOGLEXT(PFNGLBLENDFUNCSEPARATEPROC, glESBlendFuncSeparate)
@@ -174,7 +168,7 @@ static void OGLES2LoadEntryPoints()
 	INITOGLEXT(PFNGLBINDATTRIBLOCATIONPROC, glESBindAttribLocation)
 	INITOGLEXT(PFNGLENABLEVERTEXATTRIBARRAYPROC, glESEnableVertexAttribArray)
 	INITOGLEXT(PFNGLDISABLEVERTEXATTRIBARRAYPROC, glESDisableVertexAttribArray)
-	INITOGLEXT(PFNGLBINDFRAGDATALOCATIONEXTPROC, glBindFragDataLocationEXT)
+	INITOGLEXT(PFNGLVERTEXATTRIBPOINTERPROC, glESVertexAttribPointer)
 
 // VAO
 	INITOGLEXT(PFNGLGENVERTEXARRAYSOESPROC, glGenVertexArraysOES)
@@ -197,14 +191,9 @@ static void OGLES2LoadEntryPoints()
 	INITOGLEXT(PFNGLFRAMEBUFFERTEXTURE2DPROC, glESFramebufferTexture2D)
 	INITOGLEXT(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glESCheckFramebufferStatus)
 	INITOGLEXT(PFNGLFRAMEBUFFERTEXTUREEXTPROC, glFramebufferTextureEXT)
+	INITOGLEXT(PFNGLDELETEFRAMEBUFFERSPROC, glESDeleteFramebuffers)
 	//INITOGLEXT(PFNGLBLITFRAMEBUFFERANGLEPROC, glBlitFramebufferANGLE)
 
-// Multisampled FBO
-	INITOGLEXT(PFNGLGENRENDERBUFFERSPROC, glESGenRenderbuffers)
-	INITOGLEXT(PFNGLBINDRENDERBUFFERPROC, glESBindRenderbuffer)
-	INITOGLEXT(PFNGLRENDERBUFFERSTORAGEPROC, glESRenderbufferStorage)
-	INITOGLEXT(PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC, glRenderbufferStorageMultisampleEXT)
-	INITOGLEXT(PFNGLDELETERENDERBUFFERSPROC, glESDeleteRenderbuffers)
 }
 
 // Vertex Shader GLSL 1.00
@@ -886,8 +875,9 @@ Render3DError OpenGLES2Renderer::InitExtensions() {
 		this->CreateVAOs();
 	}
 	this->isFBOSupported	= this->IsExtensionPresent(&oglExtensionSet, "GL_OES_framebuffer_object") &&
-							  this->IsExtensionPresent(&oglExtensionSet, "GL_EXT_geometry_shader");
-							  this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil");
+							  this->IsExtensionPresent(&oglExtensionSet, "GL_EXT_geometry_shader") &&
+							  this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil") &&
+							  this->IsExtensionPresent(&oglExtensionSet, "GL_EXT_draw_buffer");
 	if (this->isFBOSupported)
 	{
 		error = this->CreateFBOs();

@@ -24,7 +24,6 @@
 #include <string>
 #include "render3D.h"
 #include "types.h"
-#include "OGLES2Render.h"
 
 #include <GLES3/gl3.h>
 #include <GLES2/gl2ext.h>
@@ -37,6 +36,8 @@
 #if !defined(GL_ES_VERSION_3_0)
 #error OpenGL ES requires v3.0 headers or later.
 #endif
+
+#include "OGLES2Render.h"
 
 void OGLES3LLoadEntryPoints();
 void OGLES3CreateRenderer(OpenGLESRenderer **pGLESRenderer);
