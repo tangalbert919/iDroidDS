@@ -692,7 +692,7 @@ void JNI(init, jobject _inst)
 	
 	INFO("Init NDS");
 	
-	/*int slot1_device_type = NDS_SLOT1_RETAIL_AUTO;
+	int slot1_device_type = NDS_SLOT1_RETAIL_AUTO;
 	switch (slot1_device_type)
 	{
 		case NDS_SLOT1_NONE:
@@ -706,7 +706,7 @@ void JNI(init, jobject _inst)
 		default:
 			slot1_device_type = NDS_SLOT1_RETAIL_AUTO;
 			break;
-	}*/
+	}
 
 	int slot2_device_type = NDS_SLOT2_AUTO;
 	switch (slot2_device_type)
@@ -734,7 +734,7 @@ void JNI(init, jobject _inst)
 			break;
 	}
 
-	//slot1_Change((NDS_SLOT1_TYPE)slot1_device_type);
+	slot1_Change((NDS_SLOT1_TYPE)slot1_device_type);
 	slot2_Change((NDS_SLOT2_TYPE)slot2_device_type);
 
 	

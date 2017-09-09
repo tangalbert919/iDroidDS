@@ -876,8 +876,7 @@ Render3DError OpenGLES2Renderer::InitExtensions() {
 	}
 	this->isFBOSupported	= this->IsExtensionPresent(&oglExtensionSet, "GL_OES_framebuffer_object") &&
 							  this->IsExtensionPresent(&oglExtensionSet, "GL_EXT_geometry_shader") &&
-							  this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil") &&
-							  this->IsExtensionPresent(&oglExtensionSet, "GL_EXT_draw_buffer");
+							  this->IsExtensionPresent(&oglExtensionSet, "GL_OES_packed_depth_stencil");
 	if (this->isFBOSupported)
 	{
 		error = this->CreateFBOs();

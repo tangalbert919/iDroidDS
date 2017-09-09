@@ -608,7 +608,6 @@ std::string CFIRMWARE::GetExternalFilePath()
 	if (configPath[strlen(configPath)-1] == DIRECTORY_DELIMITER_CHAR)
 			configPath[strlen(configPath)-1] = 0;
 	std::string finalPath = std::string(configPath) + DIRECTORY_DELIMITER_CHAR + fwFileName + FILE_EXT_DELIMITER_CHAR + FW_CONFIG_FILE_EXT;
-
 	return finalPath;
 }
 
