@@ -25,13 +25,7 @@
 #include "render3D.h"
 #include "types.h"
 
-#if defined(GL_ES_VERSION_3_2)
-#include <GLES3/gl32.h>
-#elif defined(GL_ES_VERSION_3_1)
-#include <GLES3/gl31.h>
-#else
 #include <GLES3/gl3.h>
-#endif
 #include <GLES2/gl2ext.h>
 #include <EGL/egl.h>
 
