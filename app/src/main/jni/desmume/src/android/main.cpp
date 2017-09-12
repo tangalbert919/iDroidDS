@@ -746,9 +746,7 @@ void JNI(init, jobject _inst)
 	
 	LOG("Init sound core\n");
 	sndcoretype = GetPrivateProfileInt(env, "Sound","SoundCore2", SNDCORE_OPENSL, IniName);
-	// The buffer size was set to 5880 (44100*8*60) by Jeff.
-	// Let's try using 5600 (44100*8/63) to make the audio sound correct.
-	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize2", DESMUME_SAMPLE_RATE*8/63, IniName);
+	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize2", DESMUME_SAMPLE_RATE*8/60, IniName);
 	SPU_ChangeSoundCore(sndcoretype, sndbuffersize);
 	SPU_SetSynchMode(snd_synchmode,snd_synchmethod);
 	
@@ -816,7 +814,7 @@ void JNI(setWorkingDir, jstring path, jstring temp)
 	env->ReleaseStringUTFChars(path, szPath);
 	
 	szPath = env->GetStringUTFChars(temp, &isCopy);
-	strncpy(androidTempPath, szPath, 1024);
+	strncpy(androidTempPath, szPath, MAX_PATH);
 	env->ReleaseStringUTFChars(temp, szPath);
 }
 

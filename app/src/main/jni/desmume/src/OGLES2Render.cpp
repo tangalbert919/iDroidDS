@@ -1134,7 +1134,7 @@ Render3DError OpenGLES2Renderer::CreateFBOs()
 	
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
-		INFO("OpenGL ES: Failed to created FBOs. Some emulation features will be disabled.\n");
+		INFO("OpenGL ES: Failed to create FBOs. Some emulation features will be disabled.\n");
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDeleteFramebuffers(1, &OGLRef.fboClearImageID);
@@ -1973,3 +1973,4 @@ Render3DError OpenGLES2Renderer::RenderFinish()
 	
 	return OGLERROR_NOERR;
 }
+
