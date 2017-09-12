@@ -746,7 +746,7 @@ void JNI(init, jobject _inst)
 	
 	LOG("Init sound core\n");
 	sndcoretype = GetPrivateProfileInt(env, "Sound","SoundCore2", SNDCORE_OPENSL, IniName);
-	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize2", DESMUME_SAMPLE_RATE*8/60, IniName);
+	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize2", DESMUME_SAMPLE_RATE*8/65, IniName);
 	SPU_ChangeSoundCore(sndcoretype, sndbuffersize);
 	SPU_SetSynchMode(snd_synchmode,snd_synchmethod);
 	
