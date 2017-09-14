@@ -814,8 +814,6 @@ void JNI(setWorkingDir, jstring path, jstring temp)
 	jboolean isCopy; 
 	const char* szPath = env->GetStringUTFChars(path, &isCopy);
 	strncpy(pathToModule, szPath, MAX_PATH);
-    strncpy(pathToBattery, szPath, MAX_PATH);
-    strncpy(pathToStates, szPath, MAX_PATH);
 	env->ReleaseStringUTFChars(path, szPath);
 	
 	szPath = env->GetStringUTFChars(temp, &isCopy);
