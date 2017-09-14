@@ -92,6 +92,8 @@ EGLContext context;
 const char* IniName = NULL;
 char androidTempPath[1024];
 char pathToModule[1024];
+char pathToBattery[1024];
+char pathToStates[1024];
 extern bool enableMicrophone;
 
 #ifdef USE_PROFILER
@@ -812,6 +814,8 @@ void JNI(setWorkingDir, jstring path, jstring temp)
 	jboolean isCopy; 
 	const char* szPath = env->GetStringUTFChars(path, &isCopy);
 	strncpy(pathToModule, szPath, MAX_PATH);
+    strncpy(pathToBattery, szPath, MAX_PATH);
+    strncpy(pathToStates, szPath, MAX_PATH);
 	env->ReleaseStringUTFChars(path, szPath);
 	
 	szPath = env->GetStringUTFChars(temp, &isCopy);
