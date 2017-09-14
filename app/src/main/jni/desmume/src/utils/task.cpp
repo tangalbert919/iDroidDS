@@ -37,7 +37,7 @@ int getOnlineCores (void)
 	SYSTEM_INFO sysinfo;
 	GetSystemInfo(&sysinfo);
 	return sysinfo.dwNumberOfProcessors;
-#elif defined HOST_LINUX
+#elif defined HOST_LINUX || defined ANDROID
 	return sysconf(_SC_NPROCESSORS_ONLN);
 #elif defined HOST_BSD || defined HOST_DARWIN
 	int cores;

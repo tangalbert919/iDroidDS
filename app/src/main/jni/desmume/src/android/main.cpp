@@ -92,8 +92,6 @@ EGLContext context;
 const char* IniName = NULL;
 char androidTempPath[1024];
 char pathToModule[1024];
-char pathToBattery[1024];
-char pathToStates[1024];
 extern bool enableMicrophone;
 
 #ifdef USE_PROFILER
