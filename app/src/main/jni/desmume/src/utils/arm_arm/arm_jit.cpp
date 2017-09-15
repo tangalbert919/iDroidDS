@@ -245,7 +245,7 @@ static void call(reg_t reg)
    block->blx(reg);
 
    const unsigned PROCNUM = block_procnum;
-   block->load_constant(RCPU, (uint32_t)&ARMPROC);
+   block->load_constant(RCPU, (uintptr_t)&ARMPROC);
 
    load_status(3);
 }
@@ -437,12 +437,12 @@ void _MMU_write32_7(u32 addr, u32 val) { _MMU_write32<1>(addr & 0xFFFFFFFC, val)
 
 static const uint32_t mem_funcs[12] =
 {
-   (uint32_t)_MMU_read08_9 , (uint32_t)_MMU_read08_7,
-   (uint32_t)_MMU_write08_9, (uint32_t)_MMU_write08_7,
-   (uint32_t)_MMU_read16_9,  (uint32_t)_MMU_read16_7,
-   (uint32_t)_MMU_write16_9, (uint32_t)_MMU_write16_7,
-   (uint32_t)_MMU_read32_9,  (uint32_t)_MMU_read32_7,
-   (uint32_t)_MMU_write32_9, (uint32_t)_MMU_write32_7
+   (uintptr_t)_MMU_read08_9 , (uintptr_t)_MMU_read08_7,
+   (uintptr_t)_MMU_write08_9, (uintptr_t)_MMU_write08_7,
+   (uintptr_t)_MMU_read16_9,  (uintptr_t)_MMU_read16_7,
+   (uintptr_t)_MMU_write16_9, (uintptr_t)_MMU_write16_7,
+   (uintptr_t)_MMU_read32_9,  (uintptr_t)_MMU_read32_7,
+   (uintptr_t)_MMU_write32_9, (uintptr_t)_MMU_write32_7
 };
 
 
@@ -1393,7 +1393,7 @@ static ArmOpCompiled compile_basicblock()
    regman->reset();
    block->push(0x4DF0);
 
-   block->load_constant(RCPU, (uint32_t)&ARMPROC);
+   block->load_constant(RCPU, (uintptr_t)&ARMPROC);
    block->load_constant(RCYC, 0);
 
    load_status(3);
@@ -1421,7 +1421,7 @@ static ArmOpCompiled compile_basicblock()
             regman->flush_all();
             regman->reset();
 
-            block->load_constant(0, (uint32_t)&armcpu_exec<PROCNUM>);
+            block->load_constant(0, (uintptr_t)&armcpu_exec<PROCNUM>);
             call(0);
             block->add(RCYC, alu2::reg(0));
 
