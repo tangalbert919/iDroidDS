@@ -6,7 +6,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion "26.0.1"
     defaultConfig {
-        applicationId 'com.opendoorstudiosdev.ds4droid'
+        applicationId 'com.opendoorstudios.ds4droid'
         minSdkVersion 21
         targetSdkVersion 22
         versionCode 48

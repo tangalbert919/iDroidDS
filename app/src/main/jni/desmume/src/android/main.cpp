@@ -27,7 +27,6 @@
 #include <android/bitmap.h>
 #include <GPU.h>
 #include <armcpu.h>
-#include "../OGLES3Render.h"
 
 #include "main.h"
 #include "../OGLES2Render.h"

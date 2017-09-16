@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2006-2007 shash
-	Copyright (C) 2008-2015 DeSmuME team
+	Copyright (C) 2008-2013 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -17,14 +17,10 @@
 */
 
 #include "render3D.h"
-
-#include <string.h>
-
 #include "gfx3d.h"
 #include "MMU.h"
 #include "texcache.h"
 
-//static CACHE_ALIGN u32 dsDepthToD24S8_LUT3D[32768] = {0};
 int cur3DCore = GPU3D_NULL;
 
 GPU3DInterface gpu3DNull = { 
@@ -98,23 +94,6 @@ bool NDS_3D_ChangeCore(int newCore)
 	return true;
 }
 
-/*Render3D::Render3D()
-{
-	static bool needTableInit = true;
-	
-	if (needTableInit)
-	{
-		for (size_t i = 0; i < 32768; i++)
-		{
-			dsDepthToD24S8_LUT3D[i] = DS_DEPTH15TO24(i) << 8;
-		}
-		
-		needTableInit = false;
-	}
-	
-	Reset();
-}*/
-
 Render3DError Render3D::BeginRender(const GFX3D_State *renderState)
 {
 	return RENDER3DERROR_NOERR;
@@ -140,7 +119,7 @@ Render3DError Render3D::EndRender(const u64 frameCount)
 	return RENDER3DERROR_NOERR;
 }
 
-Render3DError Render3D::UpdateClearImage(const u16 *__restrict colorBuffer, const u32 *__restrict depthStencilBuffer)
+Render3DError Render3D::UpdateClearImage(const u16 *__restrict colorBuffer, const u16 *__restrict depthBuffer, const u8 clearStencil, const u8 xScroll, const u8 yScroll)
 {
 	return RENDER3DERROR_NOERR;
 }
@@ -167,7 +146,7 @@ Render3DError Render3D::ClearFramebuffer(const GFX3D_State *renderState)
 	clearColor.b = (renderState->clearColor >> 10) & 0x1F;
 	clearColor.a = (renderState->clearColor >> 16) & 0x1F;
 	
-	const u8 polyID = (renderState->clearColor >> 24) & 0x3F;
+	const u8 clearStencil = (renderState->clearColor >> 24) & 0x3F;
 	
 	if (renderState->enableClearImage)
 	{
@@ -176,41 +155,20 @@ Render3DError Render3D::ClearFramebuffer(const GFX3D_State *renderState)
 		const u16 scrollBits = T1ReadWord(MMU.ARM9_REG, 0x356); //CLRIMAGE_OFFSET
 		const u8 xScroll = scrollBits & 0xFF;
 		const u8 yScroll = (scrollBits >> 8) & 0xFF;
-
-        // Pokemon games crash when they meet their match right here.
-		/*size_t dd = (GFX3D_FRAMEBUFFER_WIDTH * GFX3D_FRAMEBUFFER_HEIGHT) - GFX3D_FRAMEBUFFER_WIDTH;
 		
-		for (size_t iy = 0; iy < GFX3D_FRAMEBUFFER_HEIGHT; iy++)
-		{
-			const size_t y = ((iy + yScroll) & 0xFF) << 8;
-			
-			for (size_t ix = 0; ix < GFX3D_FRAMEBUFFER_WIDTH; ix++)
-			{
-				const size_t x = (ix + xScroll) & 0xFF;
-				const size_t adr = y + x;
-				
-				this->clearImageColor16Buffer[dd] = clearColorBuffer[adr];
-				this->clearImageDepthStencilBuffer[dd] = dsDepthToD24S8_LUT3D[clearDepthBuffer[adr] & 0x7FFF] | polyID;
-				
-				dd++;
-			}
-			
-			dd -= GFX3D_FRAMEBUFFER_WIDTH * 2;
-		}*/
-		
-		error = this->UpdateClearImage(this->clearImageColor16Buffer, this->clearImageDepthStencilBuffer);
+		error = this->UpdateClearImage(clearColorBuffer, clearDepthBuffer, clearStencil, xScroll, yScroll);
 		if (error == RENDER3DERROR_NOERR)
 		{
 			error = this->ClearUsingImage();
 		}
 		else
 		{
-			error = this->ClearUsingValues(clearColor.r, clearColor.g, clearColor.b, clearColor.a, renderState->clearDepth, polyID);
+			error = this->ClearUsingValues(clearColor.r, clearColor.g, clearColor.b, clearColor.a, renderState->clearDepth, clearStencil);
 		}
 	}
 	else
 	{
-		error = this->ClearUsingValues(clearColor.r, clearColor.g, clearColor.b, clearColor.a, renderState->clearDepth, polyID);
+		error = this->ClearUsingValues(clearColor.r, clearColor.g, clearColor.b, clearColor.a, renderState->clearDepth, clearStencil);
 	}
 	
 	return error;
@@ -236,17 +194,13 @@ Render3DError Render3D::SetupTexture(const POLY *thePoly, bool enableTexturing)
 	return RENDER3DERROR_NOERR;
 }
 
-Render3DError Render3D::SetupViewport(const u32 viewportValue)
+Render3DError Render3D::SetupViewport(const POLY *thePoly)
 {
 	return RENDER3DERROR_NOERR;
 }
 
 Render3DError Render3D::Reset()
 {
-	// Commenting this out solves our speed problem.
-	//memset(this->clearImageColor16Buffer, 0, sizeof(this->clearImageColor16Buffer));
-	//memset(this->clearImageDepthStencilBuffer, 0, sizeof(this->clearImageDepthStencilBuffer));
-	
 	return RENDER3DERROR_NOERR;
 }
 
