@@ -32,31 +32,31 @@
     <string name="Settings">Settings</string>
     
     <!-- Release 2 -->
-    <string name="touchnotify">To toggle between touch mode and keypad mode, tap the "touch" button at the top</string>
+    <string name="touchnotify">To toggle between touch mode and keypad mode, tap the "touch" button on the center of the screen.</string>
     <string name="frameskip">Frame skip</string>
-    <string name="frameskipdesc">How many frames to skip when emulating. Helps make slow emulation match real time.</string>
-    <string name="vsync">VSync</string>
+    <string name="frameskipdesc">This allows emulating to match real time faster. Useful on slow devices.</string>
+    <string name="vsync">V-Sync</string>
     <string name="vsyncdesc">Only draw to the screen in-between frames. Can slow down emulation but turning off may cause graphical glitches.</string>
     <string name="fps">Show FPS</string>
-    <string name="fpsdesc">Draw FPS onto screen.</string>
+    <string name="fpsdesc">Display the FPS on the top of the screen.</string>
     <string name="showtouchmsg">Show touch message</string>
     <string name="showtouchmsgdesc">Display a message to the user explaining touch/keypad mode switching.</string>
     
     <!-- Release 3 -->
-    <string name="loading">Loading</string>    
+    <string name="loading">Loading ROM…</string>
     
     <!-- Release 4 -->
     <string name="filter">Screen filter</string>
-    <string name="filterdesc">Filter to use when upscaling from Nintendo DS resolution to your screen. Higher quality filters may degrade performance.</string>
+    <string name="filterdesc">These filters will enhance the graphics on your device. However, this means sacrificing performance.</string>
     
     <!-- Release 5 -->
     <string name="threedrenderer">3D Renderer</string>
-    <string name="threedrendererdesc">Which 3D rendering engine to use.</string>
+    <string name="threedrendererdesc">Here, you can select which renderer you want to use. One will be better than the other.</string>
     <string-array name ="threed_options">
         <item>None</item>
         <item>OpenGL ES 2</item>
         <item>OpenGL ES 3</item>
-        <item>Software</item>
+        <item>Rasterizer</item>
     </string-array>
     <string name="sound">Enable sound</string>
     <string name="sounddesc">Enable processing and playback of audio. Disabling can increase performance.</string>
@@ -145,7 +145,7 @@
 	
 	<!-- Release 22 -->
 	<string name="ExecutionEngine">CPU Engine</string>
-	<string name="ExecutionEngineDesc">You can select what engine you want to use. It is not recommended to change this setting!</string>
+	<string name="ExecutionEngineDesc">You can select what engine you want to use. Only devices running an Intel CPU should change this setting!</string>
 	
 	<!-- Release 28 -->
 	<string name="SoundSyncMode">Sound sync mode</string>

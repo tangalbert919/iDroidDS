@@ -22,10 +22,11 @@ public class About extends Activity {
 		DeSmuME.load();
 		
 		switch(DeSmuME.getCPUType()) {
-		case DeSmuME.CPUTYPE_V7: library = "v7"; break;
-		case DeSmuME.CPUTYPE_NEON: library = "neon"; break;
-		case DeSmuME.CPUTYPE_X86: library = "x86"; break;
-		case DeSmuME.CPUTYPE_ARM64: library = "arm64"; break;
+		case DeSmuME.CPUTYPE_V7: library = "ARMv7-A legacy edition"; break;
+		case DeSmuME.CPUTYPE_NEON: library = "ARMv7-A + NEON edition"; break;
+		case DeSmuME.CPUTYPE_X86: library = "x86 edition"; break;
+		case DeSmuME.CPUTYPE_X64: library = "x64 edition"; break;
+		case DeSmuME.CPUTYPE_ARM64: library = "ARMv8-A edition"; break;
 		default: library = "unknown";
 		}
 		
@@ -38,7 +39,7 @@ public class About extends Activity {
 			e.printStackTrace();
 		}
 	
-		build.append(getString(R.string.app_name)).append(" ").append(version).append(
+		build.append("You are using ").append(getString(R.string.app_name)).append(" ").append(version).append(
 						"/").append(library);
 		
 		textVersion.setText(build.toString());

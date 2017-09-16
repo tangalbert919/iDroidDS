@@ -91,8 +91,8 @@ EGLSurface surface;
 EGLContext context;
 const char* IniName = NULL;
 char androidTempPath[1024];
-char pathToModule[1024];
 extern bool enableMicrophone;
+PathInfo pathInfo;
 
 #ifdef USE_PROFILER
 bool profiler_start = false;
@@ -751,12 +751,12 @@ void JNI(init, jobject _inst)
 	SPU_ChangeSoundCore(sndcoretype, sndbuffersize);
 	SPU_SetSynchMode(snd_synchmode,snd_synchmethod);
 	
-	static const char* nickname = "nds4droid";
+	static const char* nickname = "Me";
 	fw_config.nickname_len = strlen(nickname);
 	for(int i = 0 ; i < fw_config.nickname_len ; ++i)
 		fw_config.nickname[i] = nickname[i];
 		
-	static const char* message = "Made with love";
+	static const char* message = "One and Only";
 	fw_config.message_len = strlen(message);
 	for(int i = 0 ; i < fw_config.message_len ; ++i)
 		fw_config.message[i] = message[i];
@@ -811,7 +811,7 @@ void JNI(setWorkingDir, jstring path, jstring temp)
 {
 	jboolean isCopy; 
 	const char* szPath = env->GetStringUTFChars(path, &isCopy);
-	strncpy(pathToModule, szPath, MAX_PATH);
+	strncpy(pathInfo.pathToModule, szPath, MAX_PATH);
 	env->ReleaseStringUTFChars(path, szPath);
 	
 	szPath = env->GetStringUTFChars(temp, &isCopy);

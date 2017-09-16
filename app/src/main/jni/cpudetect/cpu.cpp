@@ -24,6 +24,7 @@
 #define CPUTYPE_NEON 1
 #define CPUTYPE_X86 2
 #define CPUTYPE_ARM64 3
+#define CPUTYPE_X64 4
 
 extern "C"
 {
@@ -43,17 +44,19 @@ jint JNI_NOARGS(getCPUType)
 			return CPUTYPE_V7;
 		}
 	}
-	else if (cpuFamily == ANDROID_CPU_FAMILY_X86 || cpuFamily == ANDROID_CPU_FAMILY_X86_64)
+	else if (cpuFamily == ANDROID_CPU_FAMILY_X86)
 	{
 		return CPUTYPE_X86;
 	}
+	else if (cpuFamily == ANDROID_CPU_FAMILY_X86_64)
+		return CPUTYPE_X64;
     else if (cpuFamily == ANDROID_CPU_FAMILY_ARM64)
     {
         return CPUTYPE_ARM64;
     }
 	else
 	{
-		return CPUTYPE_V7; //
+		return CPUTYPE_V7;
 	}
 }
 

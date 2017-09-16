@@ -220,8 +220,8 @@ public class Settings extends PreferenceActivity {
 					editor.putString(FRAME_SKIP, "3");
 			}
 			if(prefs.contains(CPU_MODE)) {
-				//the new default cpu engine in 35 is "lightning jit"
-				//Release 48 now makes the interpreter the default cpu engine because of arm64 problems.
+				//Version 35 made Lightning JIT the default. Version 48 reverted this as
+				//lightning JIT was removed.
 				if(currentInstall <= 34)
 					editor.putString(CPU_MODE, "0");
 			}

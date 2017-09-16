@@ -34,6 +34,7 @@ public class DeSmuME {
 	static final int CPUTYPE_NEON = 1;
 	static final int CPUTYPE_X86 = 2;
 	static final int CPUTYPE_ARM64 = 3;
+	static final int CPUTYPE_X64 = 4;
 	
 	static void load()
 	{
@@ -44,19 +45,23 @@ public class DeSmuME {
 		switch(cpuType) {
 			case CPUTYPE_V7:
 				System.loadLibrary("desmumev7");
-				Log.i(MainActivity.TAG, "Using old ARMv7-A library");
+				Log.i(MainActivity.TAG, "Using legacy ARMv7-A library.");
 				break;
 			case CPUTYPE_NEON:
 				System.loadLibrary("desmumeneon");
-				Log.i(MainActivity.TAG, "Using ARMv7-A library with NEON");
+				Log.i(MainActivity.TAG, "Using ARMv7-A library with NEON.");
 				break;
 			case CPUTYPE_X86:
 				System.loadLibrary("desmumex86");
 				Log.i(MainActivity.TAG, "Using x86 native library");
 				break;
+			case CPUTYPE_X64:
+				System.loadLibrary("desmumex64");
+				Log.i(MainActivity.TAG, "Using x64 native library");
+				break;
 			case CPUTYPE_ARM64:
 				System.loadLibrary("desmumearm64");
-				Log.i(MainActivity.TAG, "Using ARMv8-A (ARM64) library");
+				Log.i(MainActivity.TAG, "Using 64-bit ARM library.");
 				break;
 			default:
 				System.loadLibrary("desmumev7");

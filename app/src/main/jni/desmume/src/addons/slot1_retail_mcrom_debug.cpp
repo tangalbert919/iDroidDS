@@ -66,7 +66,7 @@ public:
 			printf("NitroFS: change load type to \"Load to RAM\"\n");
 			return;
 		}
-		pathData = path.getpath(path.SLOT1D) + path.GetRomNameWithoutExtension();
+		//pathData = path.getpath(path.SLOT1D) + path.GetRomNameWithoutExtension();
 		printf("Path to Slot1 data: %s\n", pathData.c_str());
 		
 		fs = new FS_NITRO(gameInfo.romdata);

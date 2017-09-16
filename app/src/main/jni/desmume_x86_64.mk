@@ -7,7 +7,7 @@ MY_LOCAL_PATH := $(LOCAL_PATH)
 include $(CLEAR_VARS)
 
 
-LOCAL_MODULE    		:= 	libdesmumex86
+LOCAL_MODULE    		:= 	libdesmumex64
 LOCAL_C_INCLUDES		:= 	$(LOCAL_PATH)/desmume/src \
 							$(LOCAL_PATH)/desmume/src/android \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP \
@@ -119,7 +119,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 
 LOCAL_ARM_NEON 			:= false
 #LOCAL_ARM_MODE 			:= thumb
-LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -march=i686 -mtune=atom -mssse3 -mfpmath=sse -m32 -fno-branch-count-reg
+LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -mtune=atom -mssse3 -mfpmath=sse -m64 -fno-branch-count-reg
 LOCAL_STATIC_LIBRARIES 	:= sevenzip asmjit
 LOCAL_LDLIBS 			:= -llog -lz -lGLESv2 -lGLESv3 -lEGL -ljnigraphics -lOpenSLES -landroid
 
