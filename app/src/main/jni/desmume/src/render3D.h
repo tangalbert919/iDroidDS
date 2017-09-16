@@ -105,7 +105,7 @@ protected:
 	virtual Render3DError SetupViewport(const u32 viewportValue);
 	
 public:
-	Render3D();
+	//Render3D();
 	
 	virtual Render3DError Reset();
 	virtual Render3DError Render(const GFX3D_State *renderState, const VERTLIST *vertList, const POLYLIST *polyList, const INDEXLIST *indexList, const u64 frameCount);

@@ -24,7 +24,7 @@
 #include "MMU.h"
 #include "texcache.h"
 
-static CACHE_ALIGN u32 dsDepthToD24S8_LUT3D[32768] = {0};
+//static CACHE_ALIGN u32 dsDepthToD24S8_LUT3D[32768] = {0};
 int cur3DCore = GPU3D_NULL;
 
 GPU3DInterface gpu3DNull = { 
@@ -98,7 +98,7 @@ bool NDS_3D_ChangeCore(int newCore)
 	return true;
 }
 
-Render3D::Render3D()
+/*Render3D::Render3D()
 {
 	static bool needTableInit = true;
 	
@@ -113,7 +113,7 @@ Render3D::Render3D()
 	}
 	
 	Reset();
-}
+}*/
 
 Render3DError Render3D::BeginRender(const GFX3D_State *renderState)
 {

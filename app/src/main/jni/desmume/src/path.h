@@ -17,7 +17,6 @@
 
 #include <string>
 #include "types.h"
-#include "arm_jit.h"
 
 #if defined(HOST_WINDOWS)
 	#define WIN32_LEAN_AND_MEAN
@@ -84,7 +83,7 @@ public:
 	#define FIRMWAREKEY		"Firmware"
 	#define FORMATKEY		"format"
 	#define DEFAULTFORMATKEY "defaultFormat"
-	#define NEEDSSAVINGKEY	"needsSaving"
+	//#define NEEDSSAVINGKEY	"needsSaving"
 	#define LASTVISITKEY	"lastVisit"
 	#define LUAKEY			"Lua"
 	#define SLOT1DKEY		"Slot1D"

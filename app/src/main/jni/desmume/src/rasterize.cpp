@@ -431,19 +431,38 @@ public:
 			wrap = (texParam>>16)&0xF;
 			enabled = gfx3d.renderState.enableTexturing && (texFormat!=0);
 		}
-
-		FORCEINLINE void clamp(s32 &val, const int size, const s32 sizemask){
+		// This is the 0.9.11 version.
+		/*FORCEINLINE void clamp(s32 &val, const int size, const s32 sizemask){
 			if(val<0) val = 0;
 			if(val>sizemask) val = sizemask;
 		}
 		FORCEINLINE void hclamp(s32 &val) { clamp(val,width,wmask); }
-		FORCEINLINE void vclamp(s32 &val) { clamp(val,height,hmask); }
+		FORCEINLINE void vclamp(s32 &val) { clamp(val,height,hmask); }*/
 
-		FORCEINLINE void repeat(s32 &val, const int size, const s32 sizemask) {
+		//jeffq: branchless clamp
+        #define clamp(val, unused, sizemax) \
+			((val = val + ( -val & ( val >> 31 ) )), (val = sizemax + ( ( val - sizemax ) & ( (val - sizemax) >> 31))))
+
+		/*FORCEINLINE void hclamp(int &val) { clamp(val,width,wmask); }
+		FORCEINLINE void vclamp(int &val) { clamp(val,height,hmask); }*/
+
+        #define hclamp(val) clamp(val,width,wmask)
+        #define vclamp(val) clamp(val,height,hmask)
+        // Also the 0.9.11 version.
+		/*FORCEINLINE void repeat(s32 &val, const int size, const s32 sizemask) {
 			val &= sizemask;
 		}
 		FORCEINLINE void hrepeat(s32 &val) { repeat(val,width,wmask); }
-		FORCEINLINE void vrepeat(s32 &val) { repeat(val,height,hmask); }
+		FORCEINLINE void vrepeat(s32 &val) { repeat(val,height,hmask); }*/
+
+		// Old version (I think it was 0.9.9 or something).
+        #define repeat(val, unused, sizemask) val &= sizemask
+
+		/*FORCEINLINE void hrepeat(int &val) { repeat(val,width,wmask); }
+		FORCEINLINE void vrepeat(int &val) { repeat(val,height,hmask); }*/
+
+        #define hrepeat(val) repeat(val,width,wmask)
+        #define vrepeat(val) repeat(val,height,hmask)
 
 		FORCEINLINE void flip(s32 &val, const int size, const s32 sizemask) {
 			val &= ((size<<1)-1);
