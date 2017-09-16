@@ -497,16 +497,26 @@ jint JNI(draw, jobject bitmapMain, jobject bitmapTouch, jboolean rotate)
 	{
 		u32* dest = video.buffer;
 		for(int i=0;i<size;++i)
-			*dest++ = 0xFF000000ul | RGB15TO32_NOALPHA(*src++);
+			*dest++ = (u32) (0xFF000000ul | RGB15TO32_NOALPHA(*src++));
 
 		video.filter();
 	}
 	else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGB_565)
 	{
-		u16* dest = (u16*)video.buffer;
+		u16* dest = (u16 *) video.buffer;
 		for(int i=0;i<size;++i)
 			*dest++ = RGB15TO16_REVERSE(*src++);
+
+		video.filter();
 	}
+    else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_4444)
+    {
+        u16* dest = (u16*)video.buffer;
+        for(int i=0;i<size;++i)
+            *dest++ = (u16) RGB15TO24_REVERSE(*src++);
+
+		video.filter();
+    }
 
 	//here the magic happens
 	void* pixels = NULL;
@@ -532,8 +542,8 @@ void JNI(resize, jobject bitmap)
 		LOGI("bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_8888");
 	else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGB_565)
 		LOGI("bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGB_565");
-    else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_A_8)
-        LOGI("bitmapInfo.format == ANDROID_BITMAP_FORMAT_A_8");
+    else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_4444)
+        LOGI("bitMapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_4444");
 }
 
 int JNI_NOARGS(getNativeWidth)
