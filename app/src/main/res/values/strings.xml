@@ -10,7 +10,7 @@
 		<item>Delete</item>
 		<!--item>Cut</item-->
 		<!--item>Copy</item-->
-		<item>Send To...</item>
+		<item>Send To…</item>
 	</string-array>
 	<string name="rom_error">There was an error loading this ROM :(</string>
 	<string name="OK">OK</string>
@@ -182,13 +182,17 @@
 	<string name="FileBrowser">File browser</string>
 	
 	<!-- Release 39 -->
-	<string name="ScanningForROMs">Scanning external storage...</string>
+	<string name="ScanningForROMs">Scanning external storage…</string>
 	
 	<!-- Release 43 -->
 	<string name="DisableROMBrowser">Disable ROM browser</string>
 	<string name="DisableROMBrowserDesc">Disable the auto-scanning ROM browser. Simply show the file browser on launch.</string>
+
+    <!-- Release 48 -->
+    <string name="SoundInterpolation">Sound Interpolation</string>
+    <string name="SoundInterpolationDesc">This setting is responsible for making audio sound better. It is recommended to keep it at "Linear".</string>
 	
-    <!-- Do not translate -->
+    <!-- New filters were added in version 48. Translation probably needs to be done. -->
     <string-array name="filternames">
         <item>Normal</item>
         <item>LQ2X</item>
@@ -289,6 +293,11 @@
     <string-array name="soundsyncmodes">
         <item>Dual sync/async</item>
         <item>Sync</item>
+    </string-array>
+    <string-array name="soundinterpolationmodes">
+        <item>None</item>
+        <item>Linear</item>
+        <item>Cosine</item>
     </string-array>
     <string-array name="zerothroughfour">
         <item>0</item>

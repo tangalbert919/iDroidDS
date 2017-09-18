@@ -28,7 +28,7 @@ import android.preference.PreferenceManager;
 class EmulatorThread extends Thread {
 	
 	EmulatorThread(MainActivity activity) {
-		super("CursedThread");
+		super("DeSmuME Thread");
 		this.activity = activity;
 	}
 	

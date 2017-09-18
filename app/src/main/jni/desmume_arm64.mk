@@ -122,7 +122,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 LOCAL_ARM_MODE 			:= arm
 LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -march=armv8-a -mtune=cortex-a53 -fpermissive -Wl,--fix-cortex-a8
 LOCAL_STATIC_LIBRARIES 	:= sevenzip
-LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -lGLESv3 -ljnigraphics -lOpenSLES -landroid
+LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -lGLESv3 -ljnigraphics -lOpenSLES -landroid -lOpenMAXAL
 
 #To check for speed improvements
 #LOCAL_CFLAGS += -DMEASURE_FIRST_FRAMES

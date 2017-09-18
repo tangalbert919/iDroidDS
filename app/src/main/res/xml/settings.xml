@@ -31,6 +31,7 @@
           <CheckBoxPreference android:summary="@string/sounddesc" android:key="SoundCore2" android:title="@string/sound"/>
           <CheckBoxPreference android:summary="@string/EnableMicrophoneDesc" android:key="EnableMicrophone" android:title="@string/EnableMicrophone" />
           <ListPreference android:entries="@array/soundsyncmodes" android:entryValues="@array/zerothroughone" android:key="SynchMode" android:title="@string/SoundSyncMode" android:summary="@string/SoundSyncModeDesc" />
+		  <ListPreference android:entries="@array/soundinterpolationmodes" android:entryValues="@array/zerothroughtwo" android:key="SPUInterpolation" android:title="@string/SoundInterpolation" android:summary="@string/SoundInterpolationDesc"/>
       </PreferenceCategory>  
       
       <PreferenceCategory android:title="@string/Controls">

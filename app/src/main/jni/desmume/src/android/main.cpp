@@ -30,6 +30,7 @@
 
 #include "main.h"
 #include "../OGLES2Render.h"
+#include "../OGLES3Render.h"
 #include "../rasterize.h"
 #include "../SPU.h"
 #include "../debug.h"
@@ -200,7 +201,7 @@ static bool android_opengl_init() {
 
 	const EGLint surfaceAttribs[] = {
             EGL_WIDTH, 256,
-			EGL_HEIGHT, 256,
+			EGL_HEIGHT, 192,
 			EGL_LARGEST_PBUFFER, EGL_FALSE,
 			EGL_NONE
     };
@@ -490,8 +491,8 @@ jint JNI(draw, jobject bitmapMain, jobject bitmapTouch, jboolean rotate)
 	//convert pixel format to 32bpp for compositing
 	//why do we do this over and over? well, we are compositing to
 	//filteredbuffer32bpp, and it needs to get refreshed each frame..
-	const int size = video.size();
-	//const int size = 256*384;
+	//const int size = video.size();
+	const int size = 256*384;
 	u16* src = (u16*)video.srcBuffer;
 	if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_8888)
 	{
@@ -611,7 +612,6 @@ void loadSettings(JNIEnv* env)
 	CommonSettings.cheatsDisable = GetPrivateProfileBool(env,"General", "cheatsDisable", false, IniName);
 	CommonSettings.autodetectBackupMethod = GetPrivateProfileInt(env,"General", "autoDetectMethod", 0, IniName);
 	enableMicrophone = GetPrivateProfileBool(env, "General", "EnableMicrophone", true, IniName);
-	CommonSettings.backupSave = GetPrivateProfileBool(env, "General", "backupSave", true, IniName);
 
 	// This is the video settings
 	video.rotation =  GetPrivateProfileInt(env,"Video","WindowRotate", 0, IniName);
@@ -635,15 +635,16 @@ void loadSettings(JNIEnv* env)
 	// This is the microphone
 	CommonSettings.micMode = (TCommonSettings::MicMode)GetPrivateProfileInt(env,"MicSettings", "MicMode", (int)TCommonSettings::InternalNoise, IniName);
 
-	// This is for sound
-	CommonSettings.spu_advanced = GetPrivateProfileBool(env,"Audio", "Advanced", false, IniName);
-	CommonSettings.spuInterpolationMode = (SPUInterpolationMode)GetPrivateProfileInt(env, "Audio","Interpolation", 1, IniName);
-	snd_synchmode = GetPrivateProfileInt(env, "Audio","SynchMode",0,IniName);
-	snd_synchmethod = GetPrivateProfileInt(env, "Audio","SynchMethod",0,IniName);
+    // This is for the sound.
+	CommonSettings.spu_advanced = GetPrivateProfileBool(env,"Sound", "SpuAdvanced", false, IniName);
+	// 0 for no Interpolation, 1 for Sine, 2 for Cosine. Don't use Cosine or prepare to get some terrible sound.
+	CommonSettings.spuInterpolationMode = (SPUInterpolationMode)GetPrivateProfileInt(env, "Sound","SPUInterpolation", 1, IniName);
+	snd_synchmode = GetPrivateProfileInt(env, "Sound","SynchMode",0,IniName);
+	snd_synchmethod = GetPrivateProfileInt(env, "Sound","SynchMethod",0,IniName);
 
 	// This is about JIT, although it won't EVER work.
 	CommonSettings.advanced_timing = GetPrivateProfileBool(env,"Emulation", "AdvancedTiming", false, IniName);
-	CommonSettings.use_jit = GetPrivateProfileInt(env, "Emulation","CpuMode", 0, IniName);
+	CommonSettings.use_jit = GetPrivateProfileBool(env, "Emulation","CpuMode", 0, IniName);
 	CommonSettings.jit_max_block_size = GetPrivateProfileInt(env, "Emulation", "JitSize", 10, IniName);
 
 	// This is the Graphics settings
@@ -756,7 +757,7 @@ void JNI(init, jobject _inst)
 	LOG("Init sound core\n");
 	sndcoretype = GetPrivateProfileInt(env, "Sound","SoundCore2", SNDCORE_OPENSL, IniName);
     // The original was 8/60. I'm hoping to end the stuttering with a smaller number than that.
-	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize2", DESMUME_SAMPLE_RATE*8/70, IniName);
+	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize2", DESMUME_SAMPLE_RATE*8/120, IniName);
 	SPU_ChangeSoundCore(sndcoretype, sndbuffersize);
 	SPU_SetSynchMode(snd_synchmode,snd_synchmethod);
 	

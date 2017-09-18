@@ -119,6 +119,7 @@ public class Settings extends PreferenceActivity {
 	public static final String RENDERER = "Renderer";
 	public static final String ENABLE_SOUND = "SoundCore2";
 	public static final String SHOW_SOUND_MESSAGE = "ShowSoundMessage";
+	public static final String SOUND_INTERPOLATION = "SPUInterpolation";
 	public static final String INSTALLED_RELEASE = "InstalledRelease";
 	public static final String EDIT_LAYOUT = "Controls.EditLayout";
 	public static final String RESET_LAYOUT = "Controls.ResetLayout";
@@ -284,6 +285,8 @@ public class Settings extends PreferenceActivity {
 				lang = 5;
 			editor.putString(LANGUAGE, String.valueOf(lang));
 		}
+		if(!prefs.contains(SOUND_INTERPOLATION))
+			editor.putString(SOUND_INTERPOLATION, "1");
 		applyLayoutDefaults(prefs, false);
 		applyMappingDefaults(prefs, false);
 		try {

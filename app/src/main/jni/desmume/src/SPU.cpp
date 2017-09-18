@@ -1030,6 +1030,12 @@ template<SPUInterpolationMode INTERPOLATE_MODE> static FORCEINLINE s32 Interpola
 			// sampleI = sampleA * (1 - ratio) + sampleB * ratio
 			return s32floor((ratio * (sampleB - sampleA)) + sampleA);
 			break;
+
+		case SPUInterpolation_Cubic:
+			// Cubic Interpolation Formula:
+			// sampleI = p[1] + 0.5 * x*(p[2] - p[0] + x*(2.0*p[0] - 5.0*p[1] + 4.0*p[2] - p[3] + x*(3.0*(p[1] - p[2]) + p[3] - p[0])))
+			return s32floor(sampleB + 0.5 * (ratio - sampleA + (2*(sampleA) - 5*(sampleB) + 4*(ratio) - ratio + 3*(sampleB - ratio) + ratio - sampleA)));
+		break;
 			
 		default:
 			break;
@@ -1328,6 +1334,7 @@ FORCEINLINE static void _SPU_ChanUpdate(const bool actuallyMix, SPU_struct* cons
 	case SPUInterpolation_None: __SPU_ChanUpdate<SPUInterpolation_None>(actuallyMix, SPU, chan); break;
 	case SPUInterpolation_Linear: __SPU_ChanUpdate<SPUInterpolation_Linear>(actuallyMix, SPU, chan); break;
 	case SPUInterpolation_Cosine: __SPU_ChanUpdate<SPUInterpolation_Cosine>(actuallyMix, SPU, chan); break;
+		case SPUInterpolation_Cubic: __SPU_ChanUpdate<SPUInterpolation_Cubic>(actuallyMix, SPU, chan); break;
 	default: assert(false);
 	}
 }
