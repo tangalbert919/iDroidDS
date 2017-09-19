@@ -118,7 +118,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/android/draw.cpp 
 
 LOCAL_ARM_NEON 			:= false
-#LOCAL_ARM_MODE 			:= thumb
+LOCAL_ARM_MODE 			:= thumb
 LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -march=i686 -mtune=atom -mssse3 -mfpmath=sse -m32 -fno-branch-count-reg
 LOCAL_STATIC_LIBRARIES 	:= sevenzip asmjit
 LOCAL_LDLIBS 			:= -llog -lz -lGLESv2 -lGLESv3 -lEGL -ljnigraphics -lOpenSLES -landroid

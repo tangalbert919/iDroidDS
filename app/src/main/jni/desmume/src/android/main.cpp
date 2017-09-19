@@ -637,7 +637,7 @@ void loadSettings(JNIEnv* env)
 
     // This is for the sound.
 	CommonSettings.spu_advanced = GetPrivateProfileBool(env,"Sound", "SpuAdvanced", false, IniName);
-	// 0 for no Interpolation, 1 for Sine, 2 for Cosine. Don't use Cosine or prepare to get some terrible sound.
+	// 0 for no Interpolation, 1 for Sine, 2 for Cosine.
 	CommonSettings.spuInterpolationMode = (SPUInterpolationMode)GetPrivateProfileInt(env, "Sound","SPUInterpolation", 1, IniName);
 	snd_synchmode = GetPrivateProfileInt(env, "Sound","SynchMode",0,IniName);
 	snd_synchmethod = GetPrivateProfileInt(env, "Sound","SynchMethod",0,IniName);
@@ -756,21 +756,23 @@ void JNI(init, jobject _inst)
 	
 	LOG("Init sound core\n");
 	sndcoretype = GetPrivateProfileInt(env, "Sound","SoundCore2", SNDCORE_OPENSL, IniName);
-    // The original was 8/60. I'm hoping to end the stuttering with a smaller number than that.
+    // The original was 8/60. I'm hoping to get better sound quality by increasing the demoninator.
 	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize2", DESMUME_SAMPLE_RATE*8/120, IniName);
 	SPU_ChangeSoundCore(sndcoretype, sndbuffersize);
 	SPU_SetSynchMode(snd_synchmode,snd_synchmethod);
-	
-	static const char* nickname = "Me";
+
+    // Nobody can guess where this reference is from.
+	static const char* nickname = "I Am Me";
 	fw_config.nickname_len = strlen(nickname);
 	for(int i = 0 ; i < fw_config.nickname_len ; ++i)
 		fw_config.nickname[i] = nickname[i];
 		
-	static const char* message = "One and Only";
+	static const char* message = "The One and Only";
 	fw_config.message_len = strlen(message);
 	for(int i = 0 ; i < fw_config.message_len ; ++i)
 		fw_config.message[i] = message[i];
-	
+    // End of reference
+
 	fw_config.language = GetPrivateProfileInt(env, "Firmware","Language", 1, IniName);
 		
 	video.setfilter(GetPrivateProfileInt(env,"Video", "Filter", video.NONE, IniName));

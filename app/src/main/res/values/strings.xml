@@ -1,10 +1,10 @@
 <resources>
     
 	<!-- Release 1 -->
-    <string name="app_name">nds4droid</string>
+    <string name="app_name">nds4droid Beta</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
-    <string name="title_activity_main">nds4droid</string>
+    <string name="title_activity_main">nds4droid Beta</string>
 	<string-array name="file_options">
 		<!--item>Rename</item--> 
 		<item>Delete</item>

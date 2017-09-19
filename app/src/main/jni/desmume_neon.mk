@@ -121,7 +121,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							
 LOCAL_ARM_NEON 			:= true
 LOCAL_ARM_MODE 			:= arm
-LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -DHAVE_NEON=1 -mfloat-abi=softfp -mfpu=neon-fp16 -marm -march=armv7-a -mtune=cortex-a9 -Wl,--fix-cortex-a8
+LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -DHAVE_NEON=1 -mfloat-abi=softfp -mfpu=neon-fp16 -marm -march=armv7-a -mtune=cortex-a7
 #To increase performance for the Qualcomm Krait CPU
 #LOCAL_CFLAGS            := -DANDROID -DHAVE-LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE-JIT -DHAVE_NEON=1 -mfloat-abi=softfp -mfpu=neon-vfpv4 -marm -march=armv7-a -mcpu=krait2
 LOCAL_STATIC_LIBRARIES 	:= mathneon sevenzip
