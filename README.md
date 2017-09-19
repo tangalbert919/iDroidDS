@@ -8,7 +8,20 @@ All releases from [jquesnelle](https://github.com/jquesnelle) will come from him
 
 This is a development branch of version 48 of nds4droid. It is not recommended for normal use, as it may crash or do something incorrectly.
 
-This emulator uses [DeSmuME](http://desmume.org) 0.9.11 as the core, as opposed to the older 0.9.8-0.9.10 (somewhere around there) core found in most emulators. This means significantly better performance than the other emulators out there.
+### Advantages
+
+* This project is open-sourced. Anyone can contribute to it and make it better.
+* This emulator is free, unlike a few other emulators (that might not even have better performance).
+* No advertisements! You can play this game ad-free!
+* The sound quality has been improved (and Android is notorious for having noticeable audio latency).
+* Other emulators use DeSmuME 0.9.8 as the core. We use 0.9.11. Less bugs for you to run into.
+* There's an OpenGL ES 3.0 Renderer for people to use (but your device has to support it).
+
+### Disadvantages
+
+* You need to be on Android 5.0 or newer to use this version of nds4droid (since it's a development version, and we're using the Material theme).
+* Lightning JIT is gone. However, the normal DeSmuME interpreter has become a lot faster, and every device I've used reported JIT as an illegal instruction, so why bring it back?
+* If you're reading this, you're aware that you're on the development branch of nds4droid. Something will fail, and I am hoping that you will report an issue about it.
 
 ### Issues
 
@@ -19,14 +32,12 @@ If you found an issue, please [make an issue ticket here](https://github.com/tan
 
 ### To-do list
 
-* Increase performance overall.
-* Improve the OpenGL ES 2.0 Renderer.
-* Get the OpenGL ES 3.0 Renderer to start operating.
-* Update libraries to the latest version (if applicable).
+* Make the OpenGL ES 2.0 Renderer to render textures correctly.
+* Start using Qualcomm's Ne10 library instead of math-neon from the Google Code Archive.
 
 ### Known issues
 
-* The rasterizer can fail during emulation, particularly when used with a filter on Pokemon games. Without a filter, some textures do not render.
+* The app crashes when loading a ROM. Just try loading it again and it will work.
 * The OpenGL ES 2.0 Renderer does not support FBOs, resulting in incorrect rendering of some textures.
 * The OpenGL ES 3.0 Renderer does not enable on supported devices for some reason.
 * No file is created when saving the game. This is a major issue.

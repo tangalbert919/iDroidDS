@@ -1,11 +1,9 @@
 <resources>
     
 	<!-- Release 1 -->
-    <string name="app_name">nds4droid</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">설정</string>
-    <string name="title_activity_main">nds4droid</string>
-	<string-array name="file_options">
+    <string-array name="file_options">
 		<!--item>이름변경</item--> 
 		<item>삭제</item>
 		<!--item>잘라내기</item-->
@@ -54,7 +52,8 @@
     <string name="threedrendererdesc">원하시는 3D 렌더링 엔진을 선택합니다.</string>
     <string-array name ="threed_options">
         <item>사용안함</item>
-        <item>OpenGL 렌더링</item>
+        <item>OpenGL ES 2.0</item>
+        <item>OpenGL ES 3.0</item>
         <item>소프트웨어 자체 렌더링</item>
     </string-array>
     <string name="sound">사운드 켜기</string>

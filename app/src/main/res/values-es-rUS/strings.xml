@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Version 48 -->
+<resources>
+    <string name="about2">nds4droid es el resultado de innumerables horas de trabajo de docenas de colaboradores. El núcleo de emulación utilizado por nds4droid es DeSmuME.</string>
+    <string name="hello_world">¡Hola Mundo!</string>
+    <string name="menu_settings">Ajustes</string>
+    <string name="rom_error">Se ha producido un error al cargar esta ROM :(</string>
+    <string name="OK">OK</string>
+</resources>

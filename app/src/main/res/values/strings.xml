@@ -1,10 +1,10 @@
 <resources>
     
 	<!-- Release 1 -->
-    <string name="app_name">nds4droid Beta</string>
+    <string name="app_name" translatable="false">nds4droid Beta</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
-    <string name="title_activity_main">nds4droid Beta</string>
+    <string name="title_activity_main" translatable="false">nds4droid Beta</string>
 	<string-array name="file_options">
 		<!--item>Rename</item--> 
 		<item>Delete</item>
@@ -157,9 +157,8 @@
 	<string name="about1">nds4droid is a free, open source Nintendo DS emulator.</string>
 	<string name="about2">nds4droid is the result of countless hours of work by dozens of contributors. The emulation core used by nds4droid is DeSmuME.</string>
 	<string name="about3">Jeffrey Quesnelle is the primary developer of nds4droid. nds4droid is a product of Sterling Heights, Michigan, United States of America.</string>
-	<string name="about4">Special thanks to gechdcb for his contributions on the threaded interpreter and lightning JIT.</string>
+	<string name="about4">Special thanks to gechdcb for his contributions on the threaded interpreter and lightning JIT (Version 47.1 and below).</string>
 	<string name="about5">nds4droid website: http://nds4droid.com\nDeSmuME website: http://desmume.org</string>
-    <string name="about6">Special thanks to tangalbert919 for the OpenGL ES 3.0 Renderer and upgrading DeSmuME to 0.9.11 for nds4droid.</string>
 	<string name="about">About</string>
 	
 	<!-- Release 30 -->
@@ -191,6 +190,7 @@
     <!-- Release 48 -->
     <string name="SoundInterpolation">Sound Interpolation</string>
     <string name="SoundInterpolationDesc">This setting is responsible for making audio sound better. It is recommended to keep it at "Linear".</string>
+    <string name="about6">Special thanks to tangalbert919 for the OpenGL ES 3.0 Renderer and upgrading DeSmuME to 0.9.11 for nds4droid (version 48 and above).</string>
 	
     <!-- New filters were added in version 48. Translation probably needs to be done. -->
     <string-array name="filternames">

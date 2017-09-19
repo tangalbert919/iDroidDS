@@ -1,10 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
-<string name="app_name">nds4droid</string>
-<string name="hello_world">Hallo Welt!</string>
+    <string name="hello_world">Hallo Welt!</string>
 <string name="menu_settings">Einstellungen</string>
-<string name="title_activity_main">nds4droid</string>
-<string name="rom_error">Es gab einen Fehler beim Laden des ROM. :(</string>
+    <string name="rom_error">Es gab einen Fehler beim Laden des ROM. :(</string>
 <string name="OK">OK</string>
 <string name="location">Ort</string>
 <string name="cant_read_folder">"Der Ordner kann nicht gelesen werden!"</string>

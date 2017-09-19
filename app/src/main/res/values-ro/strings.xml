@@ -1,11 +1,9 @@
 <resources>
     
 	<!-- Release 1 -->
-    <string name="app_name">nds4droid</string>
     <string name="hello_world">Bună ziua lume!</string>
     <string name="menu_settings">Setări</string>
-    <string name="title_activity_main">nds4droid</string>
-	<string-array name="file_options">
+    <string-array name="file_options">
 		<!--item>Rename</item--> 
 		<item>Delete</item>
 		<!--item>Cut</item-->
@@ -54,7 +52,8 @@
     <string name="threedrendererdesc">Care motor de randare 3D să fie folosit.</string>
     <string-array name ="threed_options">
         <item>Nici unul</item>
-        <item>OpenGL</item>
+        <item>OpenGL ES 2.0</item>
+        <item>OpenGL ES 3.0</item>
         <item>Software</item>
     </string-array>
     <string name="sound">Activează sunet</string>
@@ -149,7 +148,9 @@
 	<!-- Release 28 -->
 	<string name="SoundSyncMode">Modul de sincronizare al sunetului</string>
 	<string name="SoundSyncModeDesc">Sincronizarea sunetului. Sync/async dublu este de obicei acceptabil și mai rapid, dar Sync este uneori necesar pentru filme sau voce.</string>
-	
+
+    <!-- Version 48 -->
+
     <!-- Do not translate -->
     
 </resources>

@@ -1,11 +1,9 @@
 <resources>
 
 	<!-- Release 1 -->
-    <string name="app_name">nds4droid</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Configurações</string>
-    <string name="title_activity_main">nds4droid</string>
-	<string-array name="file_options">
+    <string-array name="file_options">
 		<!--item>Renomear</item--> 
 		<item>Deletar</item>
 		<!--item>Cortar</item-->
@@ -54,7 +52,8 @@
     <string name="threedrendererdesc">Qual driver de suporte 3D usar.</string>
     <string-array name ="threed_options">
         <item>Nenhuma</item>
-        <item>OpenGL</item>
+        <item>OpenGL ES 2.0</item>
+        <item>OpenGL ES 3.0</item>
         <item>Sistema</item>
     </string-array>
     <string name="sound">Ativar som</string>
@@ -100,6 +99,8 @@
     <string name="L">L</string>
     <string name="R">R</string>
     <string name="Touch">Touch</string>
+
+    <!-- Version 48 -->
     
     <!-- Do not translate -->
     
