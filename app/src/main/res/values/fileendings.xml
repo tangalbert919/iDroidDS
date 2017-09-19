@@ -18,6 +18,7 @@
         <item>.zip</item>
         <item>.rar</item>
         <item>.gz</item>
+        <item>.7z</item>
     </array>
 	<array name="fileEndingWebText">
         <item>.htm</item>

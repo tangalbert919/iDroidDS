@@ -60,8 +60,8 @@ public class RomCollection {
 		public boolean accept( File file ) {
 			return NDS_FILTER.accept( file )
 					|| ZIP_FILTER.accept( file )
-			    /*|| RAR_FILTER.accept( file )
-			    * || SEVENZ_FILTER.accept( file) */;
+			      /*|| RAR_FILTER.accept( file )
+			        || SEVENZ_FILTER.accept( file) */;
 		}
 	};
 
