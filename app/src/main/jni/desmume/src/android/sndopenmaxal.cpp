@@ -24,3 +24,13 @@
 
 int SNDOpenMXALInit(int buffersize);
 void SNDOpenMXALDeInit();
+void SNDOpenMXALUpdateAudio(s16 *buffer, u32 num_samples);
+u32 SNDOpenMXALGetAudioSpace();
+void SNDOpenMXALMuteAudio();
+void SNDOpenMXALUnmuteAudio();
+void SNDOpenMXALSetVolume(int volume);
+void SNDOpenMXALClearAudioBuffer();
+
+SoundInterface_struct SNDOpenMXAL = {
+
+};
