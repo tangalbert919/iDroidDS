@@ -26,4 +26,4 @@ include $(LOCAL_BUILD_PATH)/desmume_arm64.mk
 endif
 
 include $(LOCAL_BUILD_PATH)/desmume/src/android/7z/7z.mk
-
+include $(LOCAL_BUILD_PATH)/superpowered/Android.mk

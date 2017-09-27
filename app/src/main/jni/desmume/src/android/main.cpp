@@ -45,6 +45,7 @@
 #include "OpenArchive.h"
 #include "sndopensl.h"
 #include "cheatSystem.h"
+#include "sndsuperpowered.h"
 //#include "neontest.h"
 
 #if defined(HAVE_NEON)
@@ -68,6 +69,7 @@ GPU3DInterface *core3DList[] = {
 SoundInterface_struct *SNDCoreList[] = {
 	&SNDDummy,
 	&SNDOpenSL,
+	&SNDSuperpowered,
 	NULL
 };
 

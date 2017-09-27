@@ -43,7 +43,6 @@
 	#define FILE_EXT_DELIMITER_CHAR		'.'
 	#define DIRECTORY_DELIMITER_CHAR	'/'
 	#define ALL_DIRECTORY_DELIMITER_STRING "/"
-	#define ANDROID_DIRECTORY "/storage/emulated/0/nds4droid/"
 #endif
 
 #ifdef HOST_WINDOWS
@@ -274,8 +273,7 @@ public:
 		if(action == GET)
 		{
 			std::string thePath = pathToCopy;
-			std::string relativePath = ANDROID_DIRECTORY;
-			//std::string relativePath = (std::string)"." + DIRECTORY_DELIMITER_CHAR;
+			std::string relativePath = (std::string)"." + DIRECTORY_DELIMITER_CHAR;
 			
 			int len = (int)thePath.size()-1;
 

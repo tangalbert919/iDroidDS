@@ -121,7 +121,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 LOCAL_ARM_NEON 			:= true
 LOCAL_ARM_MODE 			:= arm
 LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -march=armv8-a -mtune=cortex-a53 -fpermissive
-LOCAL_STATIC_LIBRARIES 	:= sevenzip
+LOCAL_STATIC_LIBRARIES 	:= sevenzip superpoweredAndroid
 LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -lGLESv3 -ljnigraphics -lOpenSLES -landroid
 
 #To check for speed improvements

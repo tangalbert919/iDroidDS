@@ -11,6 +11,10 @@ android {
         targetSdkVersion 22
         versionCode 48
         versionName 'v48 Beta 2'
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
+
     }
     buildTypes {
         release {
