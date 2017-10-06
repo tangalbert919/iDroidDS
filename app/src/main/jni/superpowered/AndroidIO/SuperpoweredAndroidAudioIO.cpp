@@ -223,3 +223,7 @@ SuperpoweredAndroidAudioIO::~SuperpoweredAndroidAudioIO() {
     free(internals->silence);
     delete internals;
 }
+SoundInterface_struct SNDSuper = {
+        SNDCORE_SUPER,
+        "Superpowered Sound Interface",
+};

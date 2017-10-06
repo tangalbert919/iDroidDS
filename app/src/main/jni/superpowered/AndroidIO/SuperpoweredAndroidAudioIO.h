@@ -1,6 +1,8 @@
 #ifndef Header_SuperpoweredAndroidAudioIO
 #define Header_SuperpoweredAndroidAudioIO
 
+#include "../../desmume/src/SPU.h"
+
 struct SuperpoweredAndroidAudioIOInternals;
 
 /**
@@ -63,4 +65,7 @@ private:
     SuperpoweredAndroidAudioIO& operator=(const SuperpoweredAndroidAudioIO&);
 };
 
+extern SoundInterface_struct SNDSuper;
+
+#define SNDCORE_SUPER 1
 #endif

@@ -4,7 +4,6 @@ android {
     signingConfigs {
     }
     compileSdkVersion 25
-    buildToolsVersion "26.0.1"
     defaultConfig {
         applicationId 'org.opendoorstudios.ds4droid'
         minSdkVersion 21
