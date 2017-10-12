@@ -32,7 +32,7 @@
     <!-- Release 2 -->
     <string name="touchnotify">על מנת להחליף בין מצב מגע ל-מצב מקשים, לחץ על כפתור מגע שלמעלה</string>
     <string name="frameskip">דילוג פריימים</string>
-    <string name="frameskipdesc">על כמה פריימים לדלג בשעת האימולציה. מסייע בהתאמת האימולציה האיטית לזמן האמת</string>
+    <string name="frameskipdesc">זה מאפשר הדמיה להתאים בזמן אמת מהר יותר. שימושי על התקנים איטיים.</string>
     <string name="vsync">VSync</string>
     <string name="vsyncdesc">העבר התמונות למסך בין הפריימים בלבד. יכול להאט את האימולציה, אך כיבויו עשוי לגרום לשיבושים חזותיים</string>
     <string name="fps">פריימים לשניה</string>
@@ -45,11 +45,11 @@
     
     <!-- Release 4 -->
     <string name="filter">פילטר מסך</string>
-    <string name="filterdesc">הפילטר בו משתמשים בעת העלה הרזולוציה מזו של הנינטנדו די.אס לזו של המכשיר. בחירה בפילטרים באיכות גבוהה עשויה לפגוע בביצועים</string>
+    <string name="filterdesc">מסננים אלה ישפרו את הגרפיקה במכשיר שלך. עם זאת, משמעות הדבר היא להקריב ביצועים.</string>
     
     <!-- Release 5 -->
     <string name="threedrenderer">3D Renderer</string>
-    <string name="threedrendererdesc">באיזה מנוע רנדור בתלת מימד להשתמש</string>
+    <string name="threedrendererdesc">כאן, אתה יכול לבחור איזה מפיק אתה רוצה להשתמש. אחד יהיה טוב יותר מאשר אחרים.</string>
     <string-array name ="threed_options">
         <item>שום מנוע</item>
         <item>OpenGL ES 2.0</item>
@@ -143,22 +143,36 @@
 	
 	<!-- Release 22 -->
 	<string name="ExecutionEngine">מנוע ביצוע</string>
-	<string name="ExecutionEngineDesc">המנוע המשמש לאימולציה של מעבדי הדי.אס</string>
-	
-	<!-- Release 28 -->
+
+    <!-- Release 28 -->
 	<string name="SoundSyncMode">מצב סינכרון קול</string>
 	<string name="SoundSyncModeDesc">סינכרון הקול.האפשרות הראשונה טובה בדרך כלל, אבל השנייה דרושה לעיתים עבור סרטונים או קול</string>
 	
 	<!-- Release 29 -->
 	<string name="JitSize">JIT block size</string>
-	<string name="JitSizeDesc">For the threaded interpreter/tinycc JIT execution engines, how big each JIT block should be. 1 is most accurate, while 100 is fastest</string>
+	<string name="JitSizeDesc">עבור מנוע מהדר JIT, כמה גדול כל JIT לחסום צריך להיות. 1 הוא מדויק ביותר, בעוד 100 הוא המהיר ביותר.</string>
 	<string name="about1">הוא אימולטור חינמי לנינטנדו .די.אס המבוסס על קוד פתוח nds4droid</string>
 	<string name="about2">האימולטור הוא תוצר של אינספור שעות של מאמץ של תורמים רבים</string>
 	<string name="about3">גפרי קווסנל הוא המפתח העיקרי של האימולטור. האימולטור פותח בסטרלינג הייטס, מישיגן, ארצות הברית של אמריקה</string>
-	<string name="about4">Special thanks to gechdcb for his contribution of the threaded interpreter and tinycc JIT.</string>
+	<string name="about4">תודה מיוחדת gechdcb על התרומות שלו על המתורגמן מושחל וברקים JIT (גרסה 47.1 ומטה).</string>
 	<string name="about5">nds4droid website: http://nds4droid.com\nDeSmuME website: http://desmume.org</string>
 	<string name="about">אודות</string>
-	
+    <string name="ExecutionEngineDesc">אתה יכול לבחור איזה מנוע אתה רוצה להשתמש. רק מכשירים הפועלים במעבד Intel חייבים לשנות הגדרה זו!</string>
+    <string name="EnableFog">אפשר ערפל</string>
+    <string name="EnableFogDesc">בעת שימוש בתוכנה מפיק, לאפשר עיבוד של אפקט ערפל.</string>
+    <string name="EnableAutosave">אפשר שמירה אוטומטית</string>
+    <string name="EnableAutosaveDesc">שמור באופן אוטומטי את מצב המשחק במרווח קבוע.</string>
+    <string name="AutosaveFrequency">תדירות השמירה האוטומטית</string>
+    <string name="AutosaveFrequencyDesc">באיזו תדירות התכונה \'שמירה אוטומטית\' חוסכת את מצב המשחק.</string>
+    <string name="Rescan">סרוק מחדש</string>
+    <string name="FileBrowser">סייר קבצים</string>
+    <string name="ScanningForROMs">סורק אחסון חיצוני ...</string>
+    <string name="DisableROMBrowser">השבת דפדפן ROM</string>
+    <string name="DisableROMBrowserDesc">השבת את דפדפן ה- ROM של הסריקה האוטומטית. כל שעליך לעשות הוא להציג את דפדפן הקובץ על ההשקה.</string>
+    <string name="SoundInterpolation">קול אינטרפולציה</string>
+    <string name="SoundInterpolationDesc">הגדרה זו אחראית להשמעת צליל שמע. מומלץ לשמור אותו בליניארי.</string>
+    <string name="about6">תודה מיוחדת tangalbert919 עבור OpenGL ES 3.0 מפיק ושדרוג DeSmuME ל 0.9.11 עבור nds4droid (גרסה 48 ומעלה).</string>
+
     <!-- Do not translate -->
     
 </resources>

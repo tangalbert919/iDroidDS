@@ -105,6 +105,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/saves.cpp \
 							desmume/src/slot1.cpp \
 							desmume/src/slot2.cpp \
+							desmume/src/sndsdl.cpp \
 							desmume/src/SPU.cpp \
 							desmume/src/texcache.cpp \
 							desmume/src/thumb_instructions.cpp \
@@ -120,8 +121,8 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							
 LOCAL_ARM_NEON 			:= true
 LOCAL_ARM_MODE 			:= arm
-LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -march=armv8-a -mtune=cortex-a53 -fpermissive
-LOCAL_STATIC_LIBRARIES 	:= sevenzip superpoweredAndroid
+LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -march=armv8-a -mtune=cortex-a53 -fpermissive
+LOCAL_STATIC_LIBRARIES 	:= sevenzip SDL2
 LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -lGLESv3 -ljnigraphics -lOpenSLES -landroid
 
 #To check for speed improvements

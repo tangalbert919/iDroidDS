@@ -104,6 +104,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/saves.cpp \
 							desmume/src/slot1.cpp \
 							desmume/src/slot2.cpp \
+							desmume/src/sndsdl.cpp \
 							desmume/src/SPU.cpp \
 							desmume/src/texcache.cpp \
 							desmume/src/thumb_instructions.cpp \
@@ -120,7 +121,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 LOCAL_ARM_NEON 			:= false
 LOCAL_ARM_MODE 			:= thumb
 LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_JIT -mtune=atom -mssse3 -mfpmath=sse -m64 -fno-branch-count-reg
-LOCAL_STATIC_LIBRARIES 	:= sevenzip asmjit
+LOCAL_STATIC_LIBRARIES 	:= sevenzip asmjit SDL2
 LOCAL_LDLIBS 			:= -llog -lz -lGLESv2 -lGLESv3 -lEGL -ljnigraphics -lOpenSLES -landroid
 
 #To check for speed improvements

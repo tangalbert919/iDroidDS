@@ -27,6 +27,7 @@
 #include <android/bitmap.h>
 #include <GPU.h>
 #include <armcpu.h>
+#include <arm_jit.h>
 
 #include "main.h"
 #include "../OGLES2Render.h"
@@ -44,8 +45,8 @@
 #include "video.h"
 #include "OpenArchive.h"
 #include "sndopensl.h"
+#include "../sndsdl.h"
 #include "cheatSystem.h"
-#include "sndsuperpowered.h"
 //#include "neontest.h"
 
 #if defined(HAVE_NEON)
@@ -69,7 +70,7 @@ GPU3DInterface *core3DList[] = {
 SoundInterface_struct *SNDCoreList[] = {
 	&SNDDummy,
 	&SNDOpenSL,
-	&SNDSuperpowered,
+	&SNDSDL,
 	NULL
 };
 
@@ -643,8 +644,11 @@ void loadSettings(JNIEnv* env)
 	CommonSettings.spuInterpolationMode = (SPUInterpolationMode)GetPrivateProfileInt(env, "Sound","SPUInterpolation", 1, IniName);
 	snd_synchmode = GetPrivateProfileInt(env, "Sound","SynchMode",0,IniName);
 	snd_synchmethod = GetPrivateProfileInt(env, "Sound","SynchMethod",0,IniName);
+	sndcoretype = GetPrivateProfileInt(env, "Sound","SoundCore", SNDCORE_OPENSL, IniName);
+	// The original was 8/60. By decreasing the buffer sample rate, we seem to be getting much better sound.
+	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize", DESMUME_SAMPLE_RATE*8/120, IniName);
 
-	// This is about JIT, although it won't EVER work.
+	// This is for JIT. It only works on x86 and x86_64 devices right now.
 	CommonSettings.advanced_timing = GetPrivateProfileBool(env,"Emulation", "AdvancedTiming", false, IniName);
 	CommonSettings.use_jit = GetPrivateProfileBool(env, "Emulation","CpuMode", 0, IniName);
 	CommonSettings.jit_max_block_size = GetPrivateProfileInt(env, "Emulation", "JitSize", 10, IniName);
@@ -752,14 +756,12 @@ void JNI(init, jobject _inst)
 	
 	NDS_Init();
 
-    // This is for the renderer used. By default, we have to use OpenGL ES 2.0 now.
+    // This is for the renderer used. By default, we use OpenGL ES 2.0 because of rasterizer problems.
 	cur3DCore = GetPrivateProfileInt(env, "3D", "Renderer", 1, IniName);
 	NDS_3D_ChangeCore(cur3DCore);
 	
 	LOG("Init sound core\n");
-	sndcoretype = GetPrivateProfileInt(env, "Sound","SoundCore2", SNDCORE_OPENSL, IniName);
-    // The original was 8/60. I'm hoping to get better sound quality by increasing the demoninator.
-	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize2", DESMUME_SAMPLE_RATE*8/120, IniName);
+
 	SPU_ChangeSoundCore(sndcoretype, sndbuffersize);
 	SPU_SetSynchMode(snd_synchmode,snd_synchmethod);
 
@@ -786,12 +788,12 @@ void JNI(init, jobject _inst)
 	mainLoopData.freq = 1000;
 	mainLoopData.lastticks = GetTickCount();
 }
-
+#if defined(__x86_64__) || defined(__x86__)
 void JNI(changeCpuMode, int type)
 {
 	arm_jit_reset(type);
 }
-
+#endif
 void JNI(change3D, int type)
 {
 	NDS_3D_ChangeCore(cur3DCore = type);

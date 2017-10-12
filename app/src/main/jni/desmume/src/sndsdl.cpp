@@ -18,12 +18,13 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "../../sdl/src/include/SDL_audio.h"
 
-#include <SDL.h>
 #include "types.h"
 #include "SPU.h"
 #include "sndsdl.h"
 #include "debug.h"
+#include "../../sdl/src/include/SDL.h"
 
 #ifdef _XBOX
 #include <xtl.h>
@@ -128,7 +129,6 @@ int SNDSDLInit(int buffersize)
    memset(stereodata16, 0, soundbufsize);
 
    soundpos = 0;
-
    SDL_PauseAudio(0);
 
 #ifdef _XBOX
