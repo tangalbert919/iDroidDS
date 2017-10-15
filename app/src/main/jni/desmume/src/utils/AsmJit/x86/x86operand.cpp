@@ -1,176 +1,385 @@
 // [AsmJit]
-// Complete x86/x64 JIT and Remote Assembler for C++.
+// Complete JIT Assembler for C++ Language.
 //
 // [License]
-// Zlib - See LICENSE.md file in the package.
+// Zlib - See COPYING file in this package.
 
-// [Export]
 #define ASMJIT_EXPORTS
 
-// [Guard]
-#include "../asmjit_build.h"
-#if defined(ASMJIT_BUILD_X86)
-
-// [Dependencies]
+// [Dependencies - AsmJit]
+#include "../x86/x86defs.h"
 #include "../x86/x86operand.h"
 
 // [Api-Begin]
-#include "../asmjit_apibegin.h"
+#include "../core/apibegin.h"
 
-namespace asmjit {
+namespace AsmJit {
 
 // ============================================================================
-// [asmjit::X86Operand - Test]
+// [AsmJit::Registers - no_reg]
 // ============================================================================
 
-#if defined(ASMJIT_TEST)
-UNIT(x86_operand) {
-  Label L;
+const GpReg no_reg(_Initialize(), kInvalidValue);
 
-  INFO("Checking basic properties of built-in X86 registers");
-  EXPECT(x86::gpb(X86Gp::kIdAx) == x86::al);
-  EXPECT(x86::gpb(X86Gp::kIdBx) == x86::bl);
-  EXPECT(x86::gpb(X86Gp::kIdCx) == x86::cl);
-  EXPECT(x86::gpb(X86Gp::kIdDx) == x86::dl);
+// ============================================================================
+// [AsmJit::Registers - 8-bit]
+// ============================================================================
 
-  EXPECT(x86::gpb_lo(X86Gp::kIdAx) == x86::al);
-  EXPECT(x86::gpb_lo(X86Gp::kIdBx) == x86::bl);
-  EXPECT(x86::gpb_lo(X86Gp::kIdCx) == x86::cl);
-  EXPECT(x86::gpb_lo(X86Gp::kIdDx) == x86::dl);
+const GpReg al(_Initialize(), kX86RegAl);
+const GpReg cl(_Initialize(), kX86RegCl);
+const GpReg dl(_Initialize(), kX86RegDl);
+const GpReg bl(_Initialize(), kX86RegBl);
 
-  EXPECT(x86::gpb_hi(X86Gp::kIdAx) == x86::ah);
-  EXPECT(x86::gpb_hi(X86Gp::kIdBx) == x86::bh);
-  EXPECT(x86::gpb_hi(X86Gp::kIdCx) == x86::ch);
-  EXPECT(x86::gpb_hi(X86Gp::kIdDx) == x86::dh);
+#if defined(ASMJIT_X64)
+const GpReg spl(_Initialize(), kX86RegSpl);
+const GpReg bpl(_Initialize(), kX86RegBpl);
+const GpReg sil(_Initialize(), kX86RegSil);
+const GpReg dil(_Initialize(), kX86RegDil);
 
-  EXPECT(x86::gpw(X86Gp::kIdAx) == x86::ax);
-  EXPECT(x86::gpw(X86Gp::kIdBx) == x86::bx);
-  EXPECT(x86::gpw(X86Gp::kIdCx) == x86::cx);
-  EXPECT(x86::gpw(X86Gp::kIdDx) == x86::dx);
+const GpReg r8b(_Initialize(), kX86RegR8b);
+const GpReg r9b(_Initialize(), kX86RegR9b);
+const GpReg r10b(_Initialize(), kX86RegR10b);
+const GpReg r11b(_Initialize(), kX86RegR11b);
+const GpReg r12b(_Initialize(), kX86RegR12b);
+const GpReg r13b(_Initialize(), kX86RegR13b);
+const GpReg r14b(_Initialize(), kX86RegR14b);
+const GpReg r15b(_Initialize(), kX86RegR15b);
+#endif // ASMJIT_X64
 
-  EXPECT(x86::gpd(X86Gp::kIdAx) == x86::eax);
-  EXPECT(x86::gpd(X86Gp::kIdBx) == x86::ebx);
-  EXPECT(x86::gpd(X86Gp::kIdCx) == x86::ecx);
-  EXPECT(x86::gpd(X86Gp::kIdDx) == x86::edx);
+const GpReg ah(_Initialize(), kX86RegAh);
+const GpReg ch(_Initialize(), kX86RegCh);
+const GpReg dh(_Initialize(), kX86RegDh);
+const GpReg bh(_Initialize(), kX86RegBh);
 
-  EXPECT(x86::gpq(X86Gp::kIdAx) == x86::rax);
-  EXPECT(x86::gpq(X86Gp::kIdBx) == x86::rbx);
-  EXPECT(x86::gpq(X86Gp::kIdCx) == x86::rcx);
-  EXPECT(x86::gpq(X86Gp::kIdDx) == x86::rdx);
+// ============================================================================
+// [AsmJit::Registers - 16-bit]
+// ============================================================================
 
-  EXPECT(x86::gpb(X86Gp::kIdAx) != x86::dl);
-  EXPECT(x86::gpw(X86Gp::kIdBx) != x86::cx);
-  EXPECT(x86::gpd(X86Gp::kIdCx) != x86::ebx);
-  EXPECT(x86::gpq(X86Gp::kIdDx) != x86::rax);
+const GpReg ax(_Initialize(), kX86RegAx);
+const GpReg cx(_Initialize(), kX86RegCx);
+const GpReg dx(_Initialize(), kX86RegDx);
+const GpReg bx(_Initialize(), kX86RegBx);
+const GpReg sp(_Initialize(), kX86RegSp);
+const GpReg bp(_Initialize(), kX86RegBp);
+const GpReg si(_Initialize(), kX86RegSi);
+const GpReg di(_Initialize(), kX86RegDi);
 
-  INFO("Checking if x86::reg(...) matches built-in IDs");
-  EXPECT(x86::fp(5)  == x86::fp5);
-  EXPECT(x86::mm(5)  == x86::mm5);
-  EXPECT(x86::k(5)   == x86::k5);
-  EXPECT(x86::cr(5)  == x86::cr5);
-  EXPECT(x86::dr(5)  == x86::dr5);
-  EXPECT(x86::xmm(5) == x86::xmm5);
-  EXPECT(x86::ymm(5) == x86::ymm5);
-  EXPECT(x86::zmm(5) == x86::zmm5);
+#if defined(ASMJIT_X64)
+const GpReg r8w(_Initialize(), kX86RegR8w);
+const GpReg r9w(_Initialize(), kX86RegR9w);
+const GpReg r10w(_Initialize(), kX86RegR10w);
+const GpReg r11w(_Initialize(), kX86RegR11w);
+const GpReg r12w(_Initialize(), kX86RegR12w);
+const GpReg r13w(_Initialize(), kX86RegR13w);
+const GpReg r14w(_Initialize(), kX86RegR14w);
+const GpReg r15w(_Initialize(), kX86RegR15w);
+#endif // ASMJIT_X64
 
-  INFO("Checking GP register properties");
-  EXPECT(X86Gp().isReg() == false);
-  EXPECT(x86::eax.isReg() == true);
-  EXPECT(x86::eax.getId() == 0);
-  EXPECT(x86::eax.getSize() == 4);
-  EXPECT(x86::eax.getType() == X86Reg::kRegGpd);
-  EXPECT(x86::eax.getKind() == X86Reg::kKindGp);
+// ============================================================================
+// [AsmJit::Registers - 32-bit]
+// ============================================================================
 
-  INFO("Checking FP register properties");
-  EXPECT(X86Fp().isReg() == false);
-  EXPECT(x86::fp1.isReg() == true);
-  EXPECT(x86::fp1.getId() == 1);
-  EXPECT(x86::fp1.getSize() == 10);
-  EXPECT(x86::fp1.getType() == X86Reg::kRegFp);
-  EXPECT(x86::fp1.getKind() == X86Reg::kKindFp);
+const GpReg eax(_Initialize(), kX86RegEax);
+const GpReg ecx(_Initialize(), kX86RegEcx);
+const GpReg edx(_Initialize(), kX86RegEdx);
+const GpReg ebx(_Initialize(), kX86RegEbx);
+const GpReg esp(_Initialize(), kX86RegEsp);
+const GpReg ebp(_Initialize(), kX86RegEbp);
+const GpReg esi(_Initialize(), kX86RegEsi);
+const GpReg edi(_Initialize(), kX86RegEdi);
 
-  INFO("Checking MM register properties");
-  EXPECT(X86Mm().isReg() == false);
-  EXPECT(x86::mm2.isReg() == true);
-  EXPECT(x86::mm2.getId() == 2);
-  EXPECT(x86::mm2.getSize() == 8);
-  EXPECT(x86::mm2.getType() == X86Reg::kRegMm);
-  EXPECT(x86::mm2.getKind() == X86Reg::kKindMm);
+#if defined(ASMJIT_X64)
+const GpReg r8d(_Initialize(), kX86RegR8d);
+const GpReg r9d(_Initialize(), kX86RegR9d);
+const GpReg r10d(_Initialize(), kX86RegR10d);
+const GpReg r11d(_Initialize(), kX86RegR11d);
+const GpReg r12d(_Initialize(), kX86RegR12d);
+const GpReg r13d(_Initialize(), kX86RegR13d);
+const GpReg r14d(_Initialize(), kX86RegR14d);
+const GpReg r15d(_Initialize(), kX86RegR15d);
+#endif // ASMJIT_X64
 
-  INFO("Checking K register properties");
-  EXPECT(X86KReg().isReg() == false);
-  EXPECT(x86::k3.isReg() == true);
-  EXPECT(x86::k3.getId() == 3);
-  EXPECT(x86::k3.getSize() == 0);
-  EXPECT(x86::k3.getType() == X86Reg::kRegK);
-  EXPECT(x86::k3.getKind() == X86Reg::kKindK);
+// ============================================================================
+// [AsmJit::Registers - 64-bit]
+// ============================================================================
 
-  INFO("Checking XMM register properties");
-  EXPECT(X86Xmm().isReg() == false);
-  EXPECT(x86::xmm4.isReg() == true);
-  EXPECT(x86::xmm4.getId() == 4);
-  EXPECT(x86::xmm4.getSize() == 16);
-  EXPECT(x86::xmm4.getType() == X86Reg::kRegXmm);
-  EXPECT(x86::xmm4.getKind() == X86Reg::kKindVec);
-  EXPECT(x86::xmm4.isVec());
+#if defined(ASMJIT_X64)
+const GpReg rax(_Initialize(), kX86RegRax);
+const GpReg rcx(_Initialize(), kX86RegRcx);
+const GpReg rdx(_Initialize(), kX86RegRdx);
+const GpReg rbx(_Initialize(), kX86RegRbx);
+const GpReg rsp(_Initialize(), kX86RegRsp);
+const GpReg rbp(_Initialize(), kX86RegRbp);
+const GpReg rsi(_Initialize(), kX86RegRsi);
+const GpReg rdi(_Initialize(), kX86RegRdi);
 
-  INFO("Checking YMM register properties");
-  EXPECT(X86Ymm().isReg() == false);
-  EXPECT(x86::ymm5.isReg() == true);
-  EXPECT(x86::ymm5.getId() == 5);
-  EXPECT(x86::ymm5.getSize() == 32);
-  EXPECT(x86::ymm5.getType() == X86Reg::kRegYmm);
-  EXPECT(x86::ymm5.getKind() == X86Reg::kKindVec);
-  EXPECT(x86::ymm5.isVec());
+const GpReg r8(_Initialize(), kX86RegR8);
+const GpReg r9(_Initialize(), kX86RegR9);
+const GpReg r10(_Initialize(), kX86RegR10);
+const GpReg r11(_Initialize(), kX86RegR11);
+const GpReg r12(_Initialize(), kX86RegR12);
+const GpReg r13(_Initialize(), kX86RegR13);
+const GpReg r14(_Initialize(), kX86RegR14);
+const GpReg r15(_Initialize(), kX86RegR15);
+#endif // ASMJIT_X64
 
-  INFO("Checking ZMM register properties");
-  EXPECT(X86Zmm().isReg() == false);
-  EXPECT(x86::zmm6.isReg() == true);
-  EXPECT(x86::zmm6.getId() == 6);
-  EXPECT(x86::zmm6.getSize() == 64);
-  EXPECT(x86::zmm6.getType() == X86Reg::kRegZmm);
-  EXPECT(x86::zmm6.getKind() == X86Reg::kKindVec);
-  EXPECT(x86::zmm6.isVec());
+// ============================================================================
+// [AsmJit::Registers - Native (AsmJit extension)]
+// ============================================================================
 
-  INFO("Checking XYZ register properties");
-  EXPECT(X86Vec().isReg() == false);
-  // Converts a XYZ register to a type of the passed register, but keeps the ID.
-  EXPECT(x86::xmm4.cloneAs(x86::ymm10) == x86::ymm4);
-  EXPECT(x86::xmm4.cloneAs(x86::zmm11) == x86::zmm4);
-  EXPECT(x86::ymm5.cloneAs(x86::xmm12) == x86::xmm5);
-  EXPECT(x86::ymm5.cloneAs(x86::zmm13) == x86::zmm5);
-  EXPECT(x86::zmm6.cloneAs(x86::xmm14) == x86::xmm6);
-  EXPECT(x86::zmm6.cloneAs(x86::ymm15) == x86::ymm6);
+const GpReg zax(_Initialize(), kX86RegZax);
+const GpReg zcx(_Initialize(), kX86RegZcx);
+const GpReg zdx(_Initialize(), kX86RegZdx);
+const GpReg zbx(_Initialize(), kX86RegZbx);
+const GpReg zsp(_Initialize(), kX86RegZsp);
+const GpReg zbp(_Initialize(), kX86RegZbp);
+const GpReg zsi(_Initialize(), kX86RegZsi);
+const GpReg zdi(_Initialize(), kX86RegZdi);
 
-  INFO("Checking if default constructed regs behave as expected");
-  EXPECT(X86Reg().isValid() == false);
-  EXPECT(X86Gp().isValid() == false);
-  EXPECT(X86Fp().isValid() == false);
-  EXPECT(X86Mm().isValid() == false);
-  EXPECT(X86Xmm().isValid() == false);
-  EXPECT(X86Ymm().isValid() == false);
-  EXPECT(X86Zmm().isValid() == false);
-  EXPECT(X86KReg().isValid() == false);
+// ============================================================================
+// [AsmJit::Registers - MM]
+// ============================================================================
 
-  INFO("Checking X86Mem operand");
-  X86Mem m;
-  EXPECT(m == X86Mem(),
-    "Two default constructed X86Mem operands must be equal");
+const MmReg mm0(_Initialize(), kX86RegMm0);
+const MmReg mm1(_Initialize(), kX86RegMm1);
+const MmReg mm2(_Initialize(), kX86RegMm2);
+const MmReg mm3(_Initialize(), kX86RegMm3);
+const MmReg mm4(_Initialize(), kX86RegMm4);
+const MmReg mm5(_Initialize(), kX86RegMm5);
+const MmReg mm6(_Initialize(), kX86RegMm6);
+const MmReg mm7(_Initialize(), kX86RegMm7);
 
-  X86Mem mL = x86::ptr(L);
-  EXPECT(mL.hasBase() == true,
-    "Memory constructed from Label must hasBase()");
-  EXPECT(mL.hasBaseReg() == false,
-    "Memory constructed from Label must not report hasBaseReg()");
-  EXPECT(mL.hasBaseLabel() == true,
-    "Memory constructed from Label must report hasBaseLabel()");
+// ============================================================================
+// [AsmJit::Registers - XMM]
+// ============================================================================
+
+const XmmReg xmm0(_Initialize(), kX86RegXmm0);
+const XmmReg xmm1(_Initialize(), kX86RegXmm1);
+const XmmReg xmm2(_Initialize(), kX86RegXmm2);
+const XmmReg xmm3(_Initialize(), kX86RegXmm3);
+const XmmReg xmm4(_Initialize(), kX86RegXmm4);
+const XmmReg xmm5(_Initialize(), kX86RegXmm5);
+const XmmReg xmm6(_Initialize(), kX86RegXmm6);
+const XmmReg xmm7(_Initialize(), kX86RegXmm7);
+
+#if defined(ASMJIT_X64)
+const XmmReg xmm8(_Initialize(), kX86RegXmm8);
+const XmmReg xmm9(_Initialize(), kX86RegXmm9);
+const XmmReg xmm10(_Initialize(), kX86RegXmm10);
+const XmmReg xmm11(_Initialize(), kX86RegXmm11);
+const XmmReg xmm12(_Initialize(), kX86RegXmm12);
+const XmmReg xmm13(_Initialize(), kX86RegXmm13);
+const XmmReg xmm14(_Initialize(), kX86RegXmm14);
+const XmmReg xmm15(_Initialize(), kX86RegXmm15);
+#endif // ASMJIT_X64
+
+// ============================================================================
+// [AsmJit::Registers - Segment]
+// ============================================================================
+
+const SegmentReg cs(_Initialize(), kX86RegCs);
+const SegmentReg ss(_Initialize(), kX86RegSs);
+const SegmentReg ds(_Initialize(), kX86RegDs);
+const SegmentReg es(_Initialize(), kX86RegEs);
+const SegmentReg fs(_Initialize(), kX86RegFs);
+const SegmentReg gs(_Initialize(), kX86RegGs);
+
+// ============================================================================
+// [AsmJit::Var]
+// ============================================================================
+
+Mem _BaseVarMem(const Var& var, uint32_t size)
+{
+  Mem m; //(_DontInitialize());
+
+  m._mem.op = kOperandMem;
+  m._mem.size = static_cast<uint8_t>(size == kInvalidValue ? var.getSize() : size);
+  m._mem.type = kOperandMemNative;
+  m._mem.segment = kX86SegNone;
+  m._mem.sizePrefix = 0;
+  m._mem.shift = 0;
+
+  m._mem.id = var.getId();
+  m._mem.base = kInvalidValue;
+  m._mem.index = kInvalidValue;
+
+  m._mem.target = NULL;
+  m._mem.displacement = 0;
+
+  return m;
 }
-#endif // ASMJIT_TEST
 
-} // asmjit namespace
+
+Mem _BaseVarMem(const Var& var, uint32_t size, sysint_t disp)
+{
+  Mem m; //(_DontInitialize());
+
+  m._mem.op = kOperandMem;
+  m._mem.size = static_cast<uint8_t>(size == kInvalidValue ? var.getSize() : size);
+  m._mem.type = kOperandMemNative;
+  m._mem.segment = kX86SegNone;
+  m._mem.sizePrefix = 0;
+  m._mem.shift = 0;
+
+  m._mem.id = var.getId();
+
+  m._mem.base = kInvalidValue;
+  m._mem.index = kInvalidValue;
+
+  m._mem.target = NULL;
+  m._mem.displacement = disp;
+
+  return m;
+}
+
+Mem _BaseVarMem(const Var& var, uint32_t size, const GpVar& index, uint32_t shift, sysint_t disp)
+{
+  Mem m; //(_DontInitialize());
+
+  m._mem.op = kOperandMem;
+  m._mem.size = static_cast<uint8_t>(size == kInvalidValue ? var.getSize() : size);
+  m._mem.type = kOperandMemNative;
+  m._mem.segment = kX86SegNone;
+  m._mem.sizePrefix = 0;
+  m._mem.shift = shift;
+
+  m._mem.id = var.getId();
+
+  m._mem.base = kInvalidValue;
+  m._mem.index = index.getId();
+
+  m._mem.target = NULL;
+  m._mem.displacement = disp;
+
+  return m;
+}
+
+// ============================================================================
+// [AsmJit::Mem - ptr[]]
+// ============================================================================
+
+Mem ptr(const Label& label, sysint_t disp, uint32_t size)
+{
+  return Mem(label, disp, size);
+}
+
+Mem ptr(const Label& label, const GpReg& index, uint32_t shift, sysint_t disp, uint32_t size)
+{
+  Mem m(label, disp, size);
+
+  m._mem.index = index.getRegIndex();
+  m._mem.shift = shift;
+
+  return m;
+}
+
+Mem ptr(const Label& label, const GpVar& index, uint32_t shift, sysint_t disp, uint32_t size)
+{
+  Mem m(label, disp, size);
+
+  m._mem.index = index.getId();
+  m._mem.shift = shift;
+
+  return m;
+}
+
+// ============================================================================
+// [AsmJit::Mem - ptr[] - Absolute Addressing]
+// ============================================================================
+
+ASMJIT_API Mem ptr_abs(void* target, sysint_t disp, uint32_t size)
+{
+  Mem m;
+
+  m._mem.size = size;
+  m._mem.type = kOperandMemAbsolute;
+  m._mem.segment = kX86SegNone;
+
+  m._mem.target = target;
+  m._mem.displacement = disp;
+
+  return m;
+}
+
+ASMJIT_API Mem ptr_abs(void* target, const GpReg& index, uint32_t shift, sysint_t disp, uint32_t size)
+{
+  Mem m;// (_DontInitialize());
+
+  m._mem.op = kOperandMem;
+  m._mem.size = size;
+  m._mem.type = kOperandMemAbsolute;
+  m._mem.segment = kX86SegNone;
+
+#if defined(ASMJIT_X86)
+  m._mem.sizePrefix = index.getSize() != 4;
+#else
+  m._mem.sizePrefix = index.getSize() != 8;
+#endif
+
+  m._mem.shift = shift;
+
+  m._mem.id = kInvalidValue;
+  m._mem.base = kInvalidValue;
+  m._mem.index = index.getRegIndex();
+
+  m._mem.target = target;
+  m._mem.displacement = disp;
+
+  return m;
+}
+
+ASMJIT_API Mem ptr_abs(void* target, const GpVar& index, uint32_t shift, sysint_t disp, uint32_t size)
+{
+  Mem m;// (_DontInitialize());
+
+  m._mem.op = kOperandMem;
+  m._mem.size = size;
+  m._mem.type = kOperandMemAbsolute;
+  m._mem.segment = kX86SegNone;
+
+#if defined(ASMJIT_X86)
+  m._mem.sizePrefix = index.getSize() != 4;
+#else
+  m._mem.sizePrefix = index.getSize() != 8;
+#endif
+
+  m._mem.shift = shift;
+
+  m._mem.id = kInvalidValue;
+  m._mem.base = kInvalidValue;
+  m._mem.index = index.getId();
+
+  m._mem.target = target;
+  m._mem.displacement = disp;
+
+  return m;
+}
+
+// ============================================================================
+// [AsmJit::Mem - ptr[base + displacement]]
+// ============================================================================
+
+Mem ptr(const GpReg& base, sysint_t disp, uint32_t size)
+{
+  return Mem(base, disp, size);
+}
+
+Mem ptr(const GpReg& base, const GpReg& index, uint32_t shift, sysint_t disp, uint32_t size)
+{
+  return Mem(base, index, shift, disp, size);
+}
+
+Mem ptr(const GpVar& base, sysint_t disp, uint32_t size)
+{
+  return Mem(base, disp, size);
+}
+
+Mem ptr(const GpVar& base, const GpVar& index, uint32_t shift, sysint_t disp, uint32_t size)
+{
+  return Mem(base, index, shift, disp, size);
+}
+
+} // AsmJit namespace
 
 // [Api-End]
-#include "../asmjit_apiend.h"
-
-// [Guard]
-#endif // ASMJIT_BUILD_X86
+#include "../core/apiend.h"
