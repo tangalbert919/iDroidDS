@@ -35,7 +35,7 @@
 #include "Disassembler.h"
 #include "MMU.h"
 #include "MMU_timing.h"
-#include "utils/AsmJit/AsmJit.h"
+#include "utils/AsmJit/asmjit.h"
 #include "arm_jit.h"
 #include "bios.h"
 
@@ -46,7 +46,7 @@
 #include <algorithm>
 #endif
 
-using namespace AsmJit;
+using namespace asmjit;
 
 #if (LOG_JIT_LEVEL > 0)
 #define LOG_JIT 1

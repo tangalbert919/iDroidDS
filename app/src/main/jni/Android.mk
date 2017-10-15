@@ -6,10 +6,23 @@ include $(CLEAR_VARS)
 
 include $(LOCAL_BUILD_PATH)/cpudetect/cpudetect.mk
 
+ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
+include $(LOCAL_BUILD_PATH)/desmume_v8.mk
+include $(LOCAL_BUILD_PATH)/desmume/src/android/math-neon/Android.mk
+include $(LOCAL_BUILD_PATH)/desmume/src/utils/lightning/lightning_aarch64.mk
+endif
+
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+include $(LOCAL_BUILD_PATH)/desmume_a9.mk
 include $(LOCAL_BUILD_PATH)/desmume_a15.mk
-include $(LOCAL_BUILD_PATH)/desmume_neon.mk
 include $(LOCAL_BUILD_PATH)/desmume_v7.mk
+include $(LOCAL_BUILD_PATH)/desmume/src/android/math-neon/Android.mk
+include $(LOCAL_BUILD_PATH)/desmume/src/utils/tinycc/Android_arm.mk
+include $(LOCAL_BUILD_PATH)/desmume/src/utils/lightning/lightning_arm.mk
+endif
+
+ifeq ($(TARGET_ARCH_ABI),x86_64)
+include $(LOCAL_BUILD_PATH)/desmume_x86_64.mk
 endif
 
 ifeq ($(TARGET_ARCH_ABI),x86)

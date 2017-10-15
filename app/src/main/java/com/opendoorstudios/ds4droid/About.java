@@ -24,19 +24,20 @@ public class About extends Activity {
 		switch(DeSmuME.getCPUFamily()) {
 		case 1: family = "ARM"; break;
 		case 2: family = "x86"; break;
+		case 4: family = "ARM64"; break;
+		case 5: family = "x86-64"; break;
 		default: family = "unknown"; break;
 		}
 		
 		switch(DeSmuME.getCPUType()) {
 		case DeSmuME.CPUTYPE_COMPAT: library = "compat"; break;
 		case DeSmuME.CPUTYPE_V7: library = "v7"; break;
-		case DeSmuME.CPUTYPE_NEON: library = "neon"; break;
-		case DeSmuME.CPUTYPE_A15: library = "a15"; break;
+		case DeSmuME.CPUTYPE_V8: library = "v8"; break;
+		case DeSmuME.CPUTYPE_A9: library = "cortex-a9"; break;
+		case DeSmuME.CPUTYPE_A15: library = "cortex-a15"; break;
 		case DeSmuME.CPUTYPE_X86: library = "x86"; break;
-<<<<<<< HEAD
-=======
 		case DeSmuME.CPUTYPE_X86_64: library = "x86-64"; break;
->>>>>>> parent of a89a859... Merge branch 'master' into dev2
+
 		default: library = "unknown";
 		}
 		
