@@ -23,8 +23,6 @@
 #define CPUTYPE_COMPAT 0
 #define CPUTYPE_V7 1
 #define CPUTYPE_NEON 2
-#define CPUTYPE_A15 3
-#define CPUTYPE_X86 4
 
 extern "C"
 {
@@ -33,24 +31,15 @@ jint JNI_NOARGS(getCPUType)
 {
 	AndroidCpuFamily cpuFamily = android_getCpuFamily();
 	uint64_t cpuFeatures = android_getCpuFeatures();
-	if (cpuFamily == ANDROID_CPU_FAMILY_ARM)
+	if (cpuFamily == ANDROID_CPU_FAMILY_ARM &&
+        (cpuFeatures & ANDROID_CPU_ARM_FEATURE_NEON) != 0)
+    {
+		return CPUTYPE_NEON;
+    }
+	else if (cpuFamily == ANDROID_CPU_FAMILY_ARM &&
+        (cpuFeatures & ANDROID_CPU_ARM_FEATURE_ARMv7) != 0)
 	{
-		if ((cpuFeatures & ANDROID_CPU_ARM_FEATURE_IDIV_ARM) != 0)
-		{
-			return CPUTYPE_A15; // Should only bounce back to cortex-a15
-		}
-		else if ((cpuFeatures & ANDROID_CPU_ARM_FEATURE_NEON) != 0)
-		{
-			return CPUTYPE_NEON;
-		}
-		else if ((cpuFeatures & ANDROID_CPU_ARM_FEATURE_ARMv7) != 0)
-		{
-			return CPUTYPE_V7;
-		}
-	}
-	else if (cpuFamily == ANDROID_CPU_FAMILY_X86)
-	{
-		return CPUTYPE_X86;
+		return CPUTYPE_V7;
 	}
     else
     {
