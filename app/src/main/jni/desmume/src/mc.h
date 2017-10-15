@@ -26,7 +26,7 @@
 #include "types.h"
 #include "emufile.h"
 #include "common.h"
-#include "utils/tinyxml/tinyxml2.h"
+#include "utils/tinyxml/tinyxml.h"
 
 #define MAX_SAVE_TYPES 13
 #define MC_TYPE_AUTODETECT      0x0

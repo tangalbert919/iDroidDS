@@ -26,7 +26,7 @@
 #include "readwrite.h"
 #include "NDSSystem.h"
 #define TIXML_USE_STL
-#include "utils/tinyxml/tinyxml2.h"
+#include "utils/tinyxml/tinyxml.h"
 
 //temporary hack until we have better error reporting facilities
 #ifdef _WINDOWS
@@ -1399,12 +1399,12 @@ u8 ADVANsCEne::checkDB(const char *serial, u32 crc)
 
 bool ADVANsCEne::getXMLConfig(const char *in_filaname)
 {
-	tinyxml2::XMLDocument	*xml = NULL;
-	tinyxml2::XMLElement	*el = NULL;
-	tinyxml2::XMLElement	*el_configuration = NULL;
-	tinyxml2::XMLElement	*el_newDat = NULL;
+	TiXmlDocument	*xml = NULL;
+	TiXmlElement	*el = NULL;
+	TiXmlElement	*el_configuration = NULL;
+	TiXmlElement	*el_newDat = NULL;
 	
-	xml = new tinyxml2::XMLDocument();
+	xml = new TiXmlDocument();
 	if (!xml) return false;
 	if (!xml->LoadFile(in_filaname)) return false;
 	el = xml->FirstChildElement("dat");
@@ -1443,12 +1443,12 @@ u32 ADVANsCEne::convertDB(const char *in_filaname)
 		"Flash - 512 mbit"		// FLASH 512Mbit !
 	};
 
-	tinyxml2::XMLDocument	*xml = NULL;
-	tinyxml2::XMLElement	*el = NULL;
-	tinyxml2::XMLElement	*el_serial = NULL;
-	tinyxml2::XMLElement	*el_games = NULL;
-	tinyxml2::XMLElement	*el_crc32 = NULL;
-	tinyxml2::XMLElement	*el_saveType = NULL;
+	TiXmlDocument	*xml = NULL;
+	TiXmlElement	*el = NULL;
+	TiXmlElement	*el_serial = NULL;
+	TiXmlElement	*el_games = NULL;
+	TiXmlElement	*el_crc32 = NULL;
+	TiXmlElement	*el_saveType = NULL;
 	FILE			*fp;
 	u32				crc32 = 0;
 	u32				reserved = 0;
@@ -1476,7 +1476,7 @@ u32 ADVANsCEne::convertDB(const char *in_filaname)
 	time_t __time = time(NULL);
 	fwrite(&__time, 1, sizeof(time_t), fp);
 
-	xml = new tinyxml2::XMLDocument();
+	xml = new TiXmlDocument();
 	if (!xml) { fclose(fp); return 0; }
 	if (!xml->LoadFile(in_filaname)) { fclose(fp); return 0; }
 	el = xml->FirstChildElement("dat");
@@ -1488,7 +1488,7 @@ u32 ADVANsCEne::convertDB(const char *in_filaname)
 	u32 count = 0;
 	while (el)
 	{
-		tinyxml2::XMLElement* title = el->FirstChildElement("title");
+		TiXmlElement* title = el->FirstChildElement("title");
 		if(title)
 		{
 			//just a little diagnostic
