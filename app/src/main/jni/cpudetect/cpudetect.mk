@@ -16,4 +16,4 @@ LOCAL_STATIC_LIBRARIES := cpufeatures
 
 include $(BUILD_SHARED_LIBRARY)
 
-$(call import-module,android/cpufeatures)
+$(call import-module,cpufeatures)

@@ -7,7 +7,7 @@ MY_LOCAL_PATH := $(LOCAL_PATH)
 include $(CLEAR_VARS)
 
 
-LOCAL_MODULE    		:= 	libdesmume-x86
+LOCAL_MODULE    		:= 	libdesmumex86
 LOCAL_C_INCLUDES		:= 	$(LOCAL_PATH)/desmume/src \
 							$(LOCAL_PATH)/desmume/src/android \
 							$(LOCAL_PATH)/desmume/src/android/7z/CPP \
@@ -129,3 +129,4 @@ LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -ljnigraphics -lOpenSLES -landroid
 include $(BUILD_SHARED_LIBRARY)
 
 #include $(MY_LOCAL_PATH)/android-ndk-profiler/Android.mk
+#include $(MY_LOCAL_PATH)/desmume/src/android/math-neon/Android.mk
