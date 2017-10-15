@@ -5,6 +5,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE 		:= 	libmathneon
+LOCAL_C_INCLUDES    :=  $(LOCAL_PATH)
 LOCAL_SRC_FILES		:=  math_acosf.c \
 						math_ceilf.c \
 						math_expf.c \
@@ -41,5 +42,5 @@ LOCAL_SRC_FILES		:=  math_acosf.c \
 						math_vec2.c
 LOCAL_ARM_NEON 			:= true
 LOCAL_ARM_MODE 			:= arm
-LOCAL_CFLAGS			:= -std=gnu99 -DHAVE_NEON=1 -march=armv7-a -marm -mfloat-abi=softfp -mfpu=neon
+LOCAL_CFLAGS			:= -std=gnu11 -DHAVE_NEON=1 -march=armv7-a -marm -mfloat-abi=softfp -mfpu=neon
 include $(BUILD_STATIC_LIBRARY)

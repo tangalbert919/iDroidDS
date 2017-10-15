@@ -119,6 +119,7 @@ public class Settings extends PreferenceActivity {
 	public static final String RENDERER = "Renderer";
 	public static final String ENABLE_SOUND = "SoundCore2";
 	public static final String SHOW_SOUND_MESSAGE = "ShowSoundMessage";
+	public static final String SOUND_INTERPOLATION = "SPUInterpolation";
 	public static final String INSTALLED_RELEASE = "InstalledRelease";
 	public static final String EDIT_LAYOUT = "Controls.EditLayout";
 	public static final String RESET_LAYOUT = "Controls.ResetLayout";
@@ -206,7 +207,6 @@ public class Settings extends PreferenceActivity {
 				editor.putBoolean(ENABLE_SOUND, true);
 				editor.putBoolean(ENABLE_MICROPHONE, false);
 				editor.putBoolean(SHOW_SOUND_MESSAGE, false);
-				
 				editor.apply();
 				
 			}
@@ -221,26 +221,27 @@ public class Settings extends PreferenceActivity {
 					editor.putString(FRAME_SKIP, "3");
 			}
 			if(prefs.contains(CPU_MODE)) {
-				//the new default cpu engine in 35 is "lightning jit"
+				//Version 35 made Lightning JIT the default. Version 48 reverted this as
+				//lightning JIT was removed.
 				if(currentInstall <= 34)
-					editor.putString(CPU_MODE, "2");
+					editor.putString(CPU_MODE, "0");
 			}
 		}
 		
 		if(!prefs.contains(SHOW_TOUCH_MESSAGE))
 			editor.putBoolean(SHOW_TOUCH_MESSAGE, true);
 		if(!prefs.contains(SHOW_FPS))
-			editor.putBoolean(SHOW_FPS, false);
+			editor.putBoolean(SHOW_FPS, true);
 		if(!prefs.contains(FRAME_SKIP))
 			editor.putString(FRAME_SKIP, "3");
 		if(!prefs.contains(SCREEN_FILTER))
 			editor.putString(SCREEN_FILTER, "0");
 		if(!prefs.contains(RENDERER))
-			editor.putString(RENDERER, "2");
+			editor.putString(RENDERER, "1");
 		if(!prefs.contains(ENABLE_SOUND))
-			editor.putBoolean(ENABLE_SOUND, false);
+			editor.putBoolean(ENABLE_SOUND, true);
 		if(!prefs.contains(SHOW_SOUND_MESSAGE))
-			editor.putBoolean(SHOW_SOUND_MESSAGE, true);
+			editor.putBoolean(SHOW_SOUND_MESSAGE, false);
 		if(!prefs.contains(LCD_SWAP))
 			editor.putBoolean(LCD_SWAP, false);
 		if(!prefs.contains(DONT_ROTATE_LCDS))
@@ -256,7 +257,7 @@ public class Settings extends PreferenceActivity {
 		if(!prefs.contains(LAST_ROM_DIR))
 			editor.putString(LAST_ROM_DIR, Environment.getExternalStorageDirectory().getPath() );
 		if(!prefs.contains(CPU_MODE))
-			editor.putString(CPU_MODE, "2");
+			editor.putString(CPU_MODE, "0");
 		if(!prefs.contains(SOUND_SYNC_MODE))
 			editor.putString(SOUND_SYNC_MODE, "0");
 		if(!prefs.contains(ENABLE_FOG))
@@ -284,6 +285,8 @@ public class Settings extends PreferenceActivity {
 				lang = 5;
 			editor.putString(LANGUAGE, String.valueOf(lang));
 		}
+		if(!prefs.contains(SOUND_INTERPOLATION))
+			editor.putString(SOUND_INTERPOLATION, "1");
 		applyLayoutDefaults(prefs, false);
 		applyMappingDefaults(prefs, false);
 		try {

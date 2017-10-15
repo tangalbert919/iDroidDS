@@ -1,10 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
-<string name="app_name">nds4droid</string>
-<string name="hello_world">Hallo Welt!</string>
+    <string name="hello_world">Hallo Welt!</string>
 <string name="menu_settings">Einstellungen</string>
-<string name="title_activity_main">nds4droid</string>
-<string name="rom_error">Es gab einen Fehler beim Laden des ROM. :(</string>
+    <string name="rom_error">Es gab einen Fehler beim Laden des ROM. :(</string>
 <string name="OK">OK</string>
 <string name="location">Ort</string>
 <string name="cant_read_folder">"Der Ordner kann nicht gelesen werden!"</string>
@@ -23,7 +21,7 @@
 <string name="Settings">Einstellungen</string>
 <string name="touchnotify">Um zwischen Tastatur und Touch-Modus umzuschalten, tippen Sie oben auf die Touch-Schaltfl&#228;che.</string>
 <string name="frameskip">Bilder &#252;berspringen</string>
-<string name="frameskipdesc">Legt fest, wieviele Bilder &#252;berprungen werden sollen. Dies ist hilfreich bei langsamen CPU-Prozessoren bzw. wenn Sie Spiele in Echtzeit (Einstellung: 0) spielen wollen.</string>
+<string name="frameskipdesc">Dies ermöglicht es, Emulationen schneller in Echtzeit zu bringen. Nützlich bei langsamen Geräten.</string>
 <string name="vsync">Vertikale Synchronisation</string>
 <string name="vsyncdesc">Es werden Zwischenbilder berechnet. Dies kann die Emulation verlangsamen, ein Ausschalten dieser Funktion kann allerdings zu Grafikfehlern f&#252;hren.</string>
 <string name="fps">Bildrate anzeigen</string>
@@ -32,9 +30,9 @@
 <string name="showtouchmsgdesc">Zeigt eine Nachricht an, wenn der Benutzer zwischen Touch-Bildschirm und Tastaturmodus umschalten soll.</string>
 <string name="loading">L&#228;dt</string>
 <string name="filter">Bildschirmfilter</string>
-<string name="filterdesc">Legt den Filter fest, mit der die Nitendo DS Aufl&#246;sung auf dem Bildschirm skaliert werden soll. Filter mit h&#246;herer Qualit&#228;t k&#246;nnen die Leistung beeintr&#228;chtigen.</string>
+<string name="filterdesc">Diese Filter werden die Grafik auf Ihrem Gerät verbessern. Das bedeutet aber, die Leistung zu opfern.</string>
 <string name="threedrenderer">3D-Grafik-Renderer</string>
-<string name="threedrendererdesc">Legt fest, welcher 3D-Grafik-Renderer verwendet werden soll.</string>
+<string name="threedrendererdesc">Hier können Sie auswählen, welcher Renderer Sie verwenden möchten. Einer wird besser als der andere.</string>
 <string name="sound">Soundausgabe aktivieren</string>
 <string name="sounddesc">Aktivieret die Verarbeitung und Wiedergabe von Audiodaten. Die Deaktivierung dieser Funktion kann die Leistung erh&#246;hen.</string>
 <string name="showsoundmsg">Meldung vor Sound-Aktivierung anzeigen</string>
@@ -101,7 +99,7 @@
 <string name="SelectScreensDesc">W&#228;hlen Sie aus, welche DS-Bildschirme auf Ihrem Bildschirm angezeigt werden sollen.</string>
 <string name="Options">Optionen</string>
 <string name="ExecutionEngine">Ausf&#252;hrungs-Engine</string>
-<string name="ExecutionEngineDesc">Legt die Engine fest, welche bei der Emulation des ARM Prozessors des DS verwendet werden soll.</string>
+<string name="ExecutionEngineDesc">Sie können wählen, welche Engine Sie verwenden möchten. Nur Geräte, die eine Intel-CPU betreiben, sollten diese Einstellung ändern!</string>
 <string name="SoundSyncMode">Soundsynchronisationsmodus</string>
 <string name="SoundSyncModeDesc">"Legt die Synchronisation des Spielesounds fest. Dual-Sync/Async ist die Standard-Einstellung, da diese schneller ist. Aber die Einstellung Sync wird manchmal auch f&#252;r Filme und Sprache verwendet.."</string>
 <string name="JitSize">JIT-Blockgr&#246;&#223;e</string>
@@ -124,4 +122,9 @@ DeSmuME-Webseite: http://desmume.org"</string>
 <string name="ScanningForROMs">Durchsuche externen Speicher...</string>
 <string name="DisableROMBrowser">ROM-Dateibrowser deaktivieren</string>
 <string name="DisableROMBrowserDesc">Deaktiviert die automatische Suche nach ROMs im Dateibrowser, welcher beim Start geladen wird.</string>
+
+    <!-- Version 48 -->
+    <string name="SoundInterpolation">Klanginterpolation</string>
+    <string name="SoundInterpolationDesc">Diese Einstellung ist dafür verantwortlich, Audio-Sound besser zu machen. Es wird empfohlen, es bei Linear zu behalten.</string>
+    <string name="about6">Besten Dank an tangalbert919 für den OpenGL ES 3.0 Renderer und Upgrade von DeSmuME auf 0.9.11 für nds4droid (Version 48 und höher).</string>
 </resources>

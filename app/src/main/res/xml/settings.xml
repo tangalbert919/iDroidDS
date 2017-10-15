@@ -2,7 +2,8 @@
     
       <PreferenceCategory android:title="@string/Gameplay">
           <ListPreference android:entries="@array/languages" android:summary="@string/LanguageDesc" android:title="@string/Language" android:key="Language" android:entryValues="@array/zerothroughfive"/>
-          <ListPreference android:entries="@array/executionengines" android:summary="@string/ExecutionEngineDesc" android:title="@string/ExecutionEngine" android:key="CpuMode" android:entryValues="@array/zerothroughthree" />
+          <ListPreference android:entries="@array/executionengines" android:summary="@string/ExecutionEngineDesc" android:title="@string/ExecutionEngine" android:key="CpuMode" android:entryValues="@array/zerothroughone" />
+		  <!--<CheckBoxPreference android:title="@string/ExecutionEngine" android:summary="@string/ExecutionEngineDesc" android:key="CpuMode"/>-->
       	  <com.opendoorstudios.ds4droid.SliderPreference
       	      android:key="JitSize"
       	      android:title="@string/JitSize"
@@ -16,8 +17,8 @@
     
       <PreferenceCategory android:title="@string/Display">
 	      <ListPreference android:entries="@array/zerothroughnine" android:entryValues="@array/zerothroughnine" android:key="FrameSkip" android:title="@string/frameskip" android:summary="@string/frameskipdesc"/>
-	      <ListPreference android:title="@string/filter" android:summary="@string/filterdesc" android:key="Filter" android:entryValues="@array/zerothroughseventeen" android:entries="@array/filternames"/>Filter
-	      <ListPreference android:key="Renderer" android:title="@string/threedrenderer" android:summary="@string/threedrendererdesc" android:entries="@array/threed_options" android:entryValues="@array/zerothroughtwo"/>
+	      <ListPreference android:title="@string/filter" android:summary="@string/filterdesc" android:key="Filter" android:entryValues="@array/zerothroughtwentytwo" android:entries="@array/filternames"/>Filter
+	      <ListPreference android:key="Renderer" android:title="@string/threedrenderer" android:summary="@string/threedrendererdesc" android:entries="@array/threed_options" android:entryValues="@array/zerothroughthree"/>
 	      <CheckBoxPreference android:title="@string/fps" android:summary="@string/fpsdesc" android:key="DisplayFps"/>
 	      <CheckBoxPreference android:title="@string/LCDSwap" android:key="LCDsSwap" android:summary="@string/LCDSwapDesc"/>
 		  <CheckBoxPreference android:title="@string/DontRotateLCDs" android:key="WindowRotate" android:summary="@string/DontRotateLCDsDesc"/>
@@ -27,9 +28,10 @@
 		</PreferenceCategory>
       
       <PreferenceCategory android:title="@string/Sound">
-          <CheckBoxPreference android:summary="@string/sounddesc" android:key="SoundCore2" android:title="@string/sound"/>
+          <ListPreference android:summary="@string/sounddesc" android:entries="@array/soundcores" android:entryValues="@array/zerothroughtwo" android:key="SoundCore" android:title="@string/sound"/>
           <CheckBoxPreference android:summary="@string/EnableMicrophoneDesc" android:key="EnableMicrophone" android:title="@string/EnableMicrophone" />
           <ListPreference android:entries="@array/soundsyncmodes" android:entryValues="@array/zerothroughone" android:key="SynchMode" android:title="@string/SoundSyncMode" android:summary="@string/SoundSyncModeDesc" />
+		  <ListPreference android:entries="@array/soundinterpolationmodes" android:entryValues="@array/zerothroughtwo" android:key="SPUInterpolation" android:title="@string/SoundInterpolation" android:summary="@string/SoundInterpolationDesc"/>
       </PreferenceCategory>  
       
       <PreferenceCategory android:title="@string/Controls">

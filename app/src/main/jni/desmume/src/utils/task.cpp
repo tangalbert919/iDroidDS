@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2009-2011 DeSmuME team
+	Copyright (C) 2009-2013 DeSmuME team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,16 +19,38 @@
 #include "task.h"
 #include <stdio.h>
 
-#ifdef _WINDOWS
+#ifdef HOST_WINDOWS
 #include <windows.h>
 #else
 #include <pthread.h>
-#include <sched.h>
-#include <android/log.h>
+#if defined HOST_LINUX || defined ANDROID
 #include <unistd.h>
+#elif defined HOST_BSD || defined HOST_DARWIN
+#include <sys/sysctl.h>
 #endif
+#endif // HOST_WINDOWS
 
-#ifdef _MSC_VER
+// http://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
+int getOnlineCores (void)
+{
+#ifdef HOST_WINDOWS
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo(&sysinfo);
+	return sysinfo.dwNumberOfProcessors;
+#elif defined HOST_LINUX || defined ANDROID
+	return sysconf(_SC_NPROCESSORS_ONLN);
+#elif defined HOST_BSD || defined HOST_DARWIN
+	int cores;
+	int mib[4] = { CTL_HW, HW_NCPU, 0, 0 };
+	size_t len = sizeof(cores); //don't make this const, i guess sysctl can't take a const *
+	sysctl(mib, 2, &cores, &len, NULL, 0);
+	return (cores < 1) ? 1 : cores;
+#else
+	return 1;
+#endif
+}
+
+#ifdef HOST_WINDOWS
 class Task::Impl {
 public:
 	Impl();
@@ -50,8 +72,8 @@ public:
 	void init();
 
 	//the work function that shall be executed
-	TWork work;
-	void* param;
+	TWork workFunc;
+	void* workFuncParam;
 
 	HANDLE incomingWork, workDone, hThread;
 	volatile bool bIncomingWork, bWorkDone, bKill;
@@ -70,7 +92,7 @@ Task::Impl::~Impl()
 }
 
 Task::Impl::Impl()
-	: work(NULL)
+	: workFunc(NULL)
 	, bIncomingWork(false)
 	, bWorkDone(true)
 	, bKill(false)
@@ -94,21 +116,15 @@ void Task::Impl::taskProc()
 		if(bKill) break;
 		
 		//wait for a chunk of work
-		if(spinlock) 
-		{
-			while(!bIncomingWork) Sleep(0); 
-		}
-		else 
-			WaitForSingleObject(incomingWork,INFINITE); 
+		if(spinlock) while(!bIncomingWork) Sleep(0); 
+		else WaitForSingleObject(incomingWork,INFINITE); 
 		
 		bIncomingWork = false; 
 		//execute the work
-		ResetEvent(workDone);
-		param = work(param);
-		ResetEvent(incomingWork);
+		workFuncParam = workFunc(workFuncParam);
 		//signal completion
-		if(!spinlock) SetEvent(workDone); 
 		bWorkDone = true;
+		if(!spinlock) SetEvent(workDone);
 	}
 }
 
@@ -143,8 +159,8 @@ void Task::Impl::shutdown()
 void Task::Impl::execute(const TWork &work, void* param) 
 {
 	//setup the work
-	this->work = work;
-	this->param = param;
+	this->workFunc = work;
+	this->workFuncParam = param;
 	bWorkDone = false;
 	//signal it to start
 	if(!spinlock) SetEvent(incomingWork); 
@@ -154,11 +170,18 @@ void Task::Impl::execute(const TWork &work, void* param)
 void* Task::Impl::finish()
 {
 	//just wait for the work to be done
-	if(spinlock) 
-		while(!bWorkDone) 
+	if(spinlock)
+	{
+		while(!bWorkDone)
 			Sleep(0);
-	else WaitForSingleObject(workDone,INFINITE); 
-	return param;
+	}
+	else
+	{
+		while(!bWorkDone)
+			WaitForSingleObject(workDone, INFINITE);
+	}
+	
+	return workFuncParam;
 }
 
 #else
@@ -167,7 +190,7 @@ class Task::Impl {
 private:
 	pthread_t _thread;
 	bool _isThreadRunning;
-
+	
 public:
 	Impl();
 	~Impl();
@@ -179,11 +202,11 @@ public:
 
 	pthread_mutex_t mutex;
 	pthread_cond_t condWork;
-	TWork work;
-	void *param;
+	TWork workFunc;
+	void *workFuncParam;
 	void *ret;
 	bool exitThread;
-	
+
 	volatile bool spinlock, bIncomingWork, bWorkDone;
 };
 
@@ -193,38 +216,38 @@ static void* taskProc(void *arg)
 	//if(ctx->spinlock)
 	//	__android_log_print(ANDROID_LOG_INFO,"nds4droid","Started spinlock task");
 	do {
-		
+
 		//wait for a chunk of work
-		if(ctx->spinlock) 
+		if(ctx->spinlock)
 		{
 			while(!ctx->bIncomingWork) usleep(0);
 			ctx->bIncomingWork = false;
-			if (ctx->work != NULL) {
+			if (ctx->workFunc != NULL) {
 				//__android_log_print(ANDROID_LOG_INFO,"nds4droid","Got spinlock work");
-				ctx->ret = ctx->work(ctx->param);
+				ctx->ret = ctx->workFunc(ctx->workFuncParam);
 				ctx->bWorkDone = true;
 			} else {
 				ctx->ret = NULL;
 			}
-			
-			ctx->work = NULL;
+
+			ctx->workFunc = NULL;
 		}
 		else
 		{
 			pthread_mutex_lock(&ctx->mutex);
 
-			while (ctx->work == NULL && !ctx->exitThread) {
-				pthread_cond_wait(&ctx->condWork, &ctx->mutex);
-			}
+		    while (ctx->workFunc == NULL && !ctx->exitThread) {
+			pthread_cond_wait(&ctx->condWork, &ctx->mutex);
+		    }
 
-			if (ctx->work != NULL) {
-				ctx->ret = ctx->work(ctx->param);
-			} else {
-				ctx->ret = NULL;
-			}
+		    if (ctx->workFunc != NULL) {
+			ctx->ret = ctx->workFunc(ctx->workFuncParam);
+		    } else {
+			ctx->ret = NULL;
+		    }
 
-			ctx->work = NULL;
-			pthread_cond_signal(&ctx->condWork);
+		    ctx->workFunc = NULL;
+		    pthread_cond_signal(&ctx->condWork);
 
 			pthread_mutex_unlock(&ctx->mutex);
 		}
@@ -237,8 +260,8 @@ static void* taskProc(void *arg)
 Task::Impl::Impl()
 {
 	_isThreadRunning = false;
-	work = NULL;
-	param = NULL;
+	workFunc = NULL;
+	workFuncParam = NULL;
 	ret = NULL;
 	exitThread = false;
 
@@ -256,14 +279,14 @@ Task::Impl::~Impl()
 void Task::Impl::start(bool spinlock)
 {
 	pthread_mutex_lock(&this->mutex);
-	
+
 	if (this->_isThreadRunning) {
 		pthread_mutex_unlock(&this->mutex);
 		return;
 	}
 
-	this->work = NULL;
-	this->param = NULL;
+	this->workFunc = NULL;
+	this->workFuncParam = NULL;
 	this->ret = NULL;
 	this->exitThread = false;
 	this->spinlock = spinlock;
@@ -278,20 +301,20 @@ void Task::Impl::execute(const TWork &work, void *param)
 	if(!spinlock) {
 		pthread_mutex_lock(&this->mutex);
 
-		if (work == NULL || !this->_isThreadRunning) {
-			pthread_mutex_unlock(&this->mutex);
-			return;
-		}
-		this->work = work;
-		this->param = param;
+	    if (work == NULL || !this->_isThreadRunning) {
+	    	pthread_mutex_unlock(&this->mutex);
+	    	return;
+	    }
+	    this->workFunc = work;
+		this->workFuncParam = param;
 		this->bIncomingWork = true;
-		pthread_cond_signal(&this->condWork);
+	    pthread_cond_signal(&this->condWork);
 
 		pthread_mutex_unlock(&this->mutex);
 	}
 	else {
-		this->work = work;
-		this->param = param;
+		this->workFunc = work;
+		this->workFuncParam = param;
 		this->bWorkDone = false;
 		this->bIncomingWork = true;
 	}
@@ -309,11 +332,11 @@ void* Task::Impl::finish()
 			return returnValue;
 		}
 
-		while (this->work != NULL) {
-			pthread_cond_wait(&this->condWork, &this->mutex);
-		}
+	    while (this->workFunc != NULL) {
+		    pthread_cond_wait(&this->condWork, &this->mutex);
+	    }
 
-		returnValue = this->ret;
+	    returnValue = this->ret;
 
 		pthread_mutex_unlock(&this->mutex);
 	}
@@ -335,7 +358,7 @@ void Task::Impl::shutdown()
 		return;
 	}
 
-	this->work = NULL;
+	this->workFunc = NULL;
 	this->exitThread = true;
 	pthread_cond_signal(&this->condWork);
 

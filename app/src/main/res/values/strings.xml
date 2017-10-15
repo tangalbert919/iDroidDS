@@ -1,16 +1,16 @@
 <resources>
     
 	<!-- Release 1 -->
-    <string name="app_name">nds4droid</string>
+    <string name="app_name" translatable="false">nds4droid Beta</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
-    <string name="title_activity_main">nds4droid</string>
+    <string name="title_activity_main" translatable="false">nds4droid Beta</string>
 	<string-array name="file_options">
 		<!--item>Rename</item--> 
 		<item>Delete</item>
 		<!--item>Cut</item-->
 		<!--item>Copy</item-->
-		<item>Send To...</item>
+		<item>Send To…</item>
 	</string-array>
 	<string name="rom_error">There was an error loading this ROM :(</string>
 	<string name="OK">OK</string>
@@ -32,30 +32,31 @@
     <string name="Settings">Settings</string>
     
     <!-- Release 2 -->
-    <string name="touchnotify">To toggle between touch mode and keypad mode, tap the "touch" button at the top</string>
+    <string name="touchnotify">To toggle between touch mode and keypad mode, tap the "touch" button on the center of the screen.</string>
     <string name="frameskip">Frame skip</string>
-    <string name="frameskipdesc">How many frames to skip when emulating. Helps make slow emulation match real time.</string>
-    <string name="vsync">VSync</string>
+    <string name="frameskipdesc">This allows emulating to match real time faster. Useful on slow devices.</string>
+    <string name="vsync">V-Sync</string>
     <string name="vsyncdesc">Only draw to the screen in-between frames. Can slow down emulation but turning off may cause graphical glitches.</string>
     <string name="fps">Show FPS</string>
-    <string name="fpsdesc">Draw FPS onto screen.</string>
+    <string name="fpsdesc">Display the FPS on the top of the screen.</string>
     <string name="showtouchmsg">Show touch message</string>
     <string name="showtouchmsgdesc">Display a message to the user explaining touch/keypad mode switching.</string>
     
     <!-- Release 3 -->
-    <string name="loading">Loading</string>    
+    <string name="loading">Loading ROM…</string>
     
     <!-- Release 4 -->
     <string name="filter">Screen filter</string>
-    <string name="filterdesc">Filter to use when upscaling from Nintendo DS resolution to your screen. Higher quality filters may degrade performance.</string>
+    <string name="filterdesc">These filters will enhance the graphics on your device. However, this means sacrificing performance.</string>
     
     <!-- Release 5 -->
     <string name="threedrenderer">3D Renderer</string>
-    <string name="threedrendererdesc">Which 3D rendering engine to use.</string>
+    <string name="threedrendererdesc">Here, you can select which renderer you want to use. One will be better than the other.</string>
     <string-array name ="threed_options">
         <item>None</item>
-        <item>OpenGL</item>
-        <item>Software</item>
+        <item>OpenGL ES 2</item>
+        <item>OpenGL ES 3</item>
+        <item>Rasterizer</item>
     </string-array>
     <string name="sound">Enable sound</string>
     <string name="sounddesc">Enable processing and playback of audio. Disabling can increase performance.</string>
@@ -143,8 +144,8 @@
 	<string name="Options">Options</string>
 	
 	<!-- Release 22 -->
-	<string name="ExecutionEngine">Execution engine</string>
-	<string name="ExecutionEngineDesc">The engine used to emulate the ARM processors of the DS.</string>
+	<string name="ExecutionEngine">CPU Engine</string>
+	<string name="ExecutionEngineDesc">You can select what engine you want to use. Only devices running an Intel CPU should change this setting!</string>
 	
 	<!-- Release 28 -->
 	<string name="SoundSyncMode">Sound sync mode</string>
@@ -152,11 +153,11 @@
 	
 	<!-- Release 29 -->
 	<string name="JitSize">JIT block size</string>
-	<string name="JitSizeDesc">For the threaded interpreter/tinycc JIT execution engines, how big each JIT block should be. 1 is most accurate, while 100 is fastest</string>
+	<string name="JitSizeDesc">For the JIT compiler engine, how big each JIT block should be. 1 is most accurate, while 100 is fastest.</string>
 	<string name="about1">nds4droid is a free, open source Nintendo DS emulator.</string>
-	<string name="about2">nds4droid is the result of countless hours of work by dozens of contributators. The emulation core used by nds4droid is DeSmuME.</string>
+	<string name="about2">nds4droid is the result of countless hours of work by dozens of contributors. The emulation core used by nds4droid is DeSmuME.</string>
 	<string name="about3">Jeffrey Quesnelle is the primary developer of nds4droid. nds4droid is a product of Sterling Heights, Michigan, United States of America.</string>
-	<string name="about4">Special thanks to gechdcb for his contribution of the threaded interpreter and lightning JIT.</string>
+	<string name="about4">Special thanks to gechdcb for his contributions on the threaded interpreter and lightning JIT (Version 47.1 and below).</string>
 	<string name="about5">nds4droid website: http://nds4droid.com\nDeSmuME website: http://desmume.org</string>
 	<string name="about">About</string>
 	
@@ -180,32 +181,42 @@
 	<string name="FileBrowser">File browser</string>
 	
 	<!-- Release 39 -->
-	<string name="ScanningForROMs">Scanning external storage...</string>
+	<string name="ScanningForROMs">Scanning external storage…</string>
 	
 	<!-- Release 43 -->
 	<string name="DisableROMBrowser">Disable ROM browser</string>
 	<string name="DisableROMBrowserDesc">Disable the auto-scanning ROM browser. Simply show the file browser on launch.</string>
+
+    <!-- Release 48 -->
+    <string name="SoundInterpolation">Sound Interpolation</string>
+    <string name="SoundInterpolationDesc">This setting is responsible for making audio sound better. It is recommended to keep it at "Linear".</string>
+    <string name="about6">Special thanks to tangalbert919 for the OpenGL ES 3.0 Renderer and upgrading DeSmuME to 0.9.11 for nds4droid (version 48 and above).</string>
 	
-    <!-- Do not translate -->
+    <!-- New filters were added in version 48. Translation probably needs to be done. -->
     <string-array name="filternames">
         <item>Normal</item>
-		<item>HQ2x</item>
-		<item>2XSaI</item>
-		<item>Super2XSaI</item>
-		<item>SuperEagle</item>
-		<item>Scanline</item>
-		<item>Bilinear</item>
-		<item>Nearest 2X</item>
-		<item>HQ2xS</item>
-		<item>LQ2x</item>
-		<item>LQ2xS</item>
+        <item>LQ2X</item>
+        <item>LQ2XS</item>
+        <item>HQ2X</item>
+        <item>HQ2XS</item>
+        <item>HQ4X</item>
+        <item>HQ4XS</item>
+        <item>2xSAI</item>
+        <item>Super2xSAI</item>
+        <item>SuperEagle</item>
+        <item>Scanline</item>
+        <item>Bilinear</item>
+        <item>Nearest 2x</item>
+        <item>Nearest 1.5x</item>
+        <item>Nearest+ 1.5x</item>
         <item>EPX</item>
-        <item>Nearest+ 1.5X</item>
-        <item>Nearest 1.5X</item>
         <item>EPX+</item>
-        <item>EPX 1.5X</item>
-        <item>EPX+ 1.5X</item>
-        <item>HQ4x</item>
+        <item>EPX 1.5x</item>
+        <item>EPX+ 1.5x</item>
+        <item>2xBRZ</item>
+        <item>3xBRZ</item>
+        <item>4xBRZ</item>
+        <item>5xBRZ</item>
     </string-array>
         <string-array name="zerothroughnine">
         <item>0</item>
@@ -219,7 +230,7 @@
         <item>8</item>
         <item>9</item>
     </string-array>
-    <string-array name="zerothroughseventeen">
+    <string-array name="zerothroughtwentytwo">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -238,6 +249,11 @@
         <item>15</item>
         <item>16</item>
         <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
     </string-array>
    	<string-array name="zerothroughtwo">
         <item>0</item>
@@ -261,9 +277,8 @@
         <item>5</item>
     </string-array>
     <string-array name="executionengines">
-        <item>Interpreter</item>
-        <item>Threaded interpreter</item>
-        <item>lightning JIT</item>
+        <item>DeSmuME Interpreter</item>
+        <item>DeSmuME JIT engine</item>
     </string-array>
     <string-array name="zerothroughthree">
         <item>0</item>
@@ -279,11 +294,21 @@
         <item>Dual sync/async</item>
         <item>Sync</item>
     </string-array>
+    <string-array name="soundinterpolationmodes">
+        <item>None</item>
+        <item>Linear</item>
+        <item>Cosine</item>
+    </string-array>
     <string-array name="zerothroughfour">
         <item>0</item>
         <item>1</item>
         <item>2</item>
         <item>3</item>
         <item>4</item>
+    </string-array>
+    <string-array name="soundcores">
+        <item>Disabled</item>
+        <item>OpenSL ES</item>
+        <item>SDL2</item>
     </string-array>
 </resources>

@@ -1,11 +1,9 @@
 <resources>
     
 	<!-- Release 1 -->
-    <string name="app_name">nds4droid</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">設定</string>
-    <string name="title_activity_main">nds4droid</string>
-	<string-array name="file_options">
+    <string-array name="file_options">
 		<!--item>Rename</item--> 
 		<item>Delete</item>
 		<!--item>Cut</item-->
@@ -54,7 +52,8 @@
     <string name="threedrendererdesc">３Dレンダリングエンジンを選択します。</string>
     <string-array name ="threed_options">
         <item>なし</item>
-        <item>OpenGL</item>
+        <item>OpenGL ES 2.0</item>
+        <item>OpenGL ES 3.0</item>
         <item>ソフトウェア処理</item>
     </string-array>
     <string name="sound">サウンド有効化</string>

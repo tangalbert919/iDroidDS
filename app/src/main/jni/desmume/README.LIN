@@ -14,7 +14,7 @@
 
 DeSmuME is written in C using the gtk+ and SDL libraries.
 So you need a working C compiler, such as gcc and
-the above libraries runtime and development packages:
+the following libraries runtime and development packages:
 
   * http://www.gtk.org
 
@@ -48,7 +48,10 @@ done by typing "make uninstall".
 Move to the toplevel directory (the one that contains the
 configure.ac file). Type "./autogen.sh" to generate the
 configure/install scripts and needed Makefiles. Then you can follow the
-same procedure as in 1.1 .
+same procedure as in 1.1 . intltoolize is required for the
+autogen stage:
+
+  * http://freedesktop.org/wiki/Software/intltool/
 
 2 How to use DeSmuME__________________________________________
 
@@ -159,19 +162,18 @@ having trouble with it, please feel free to email.
 
 4 Disclaimer__________________________________________________
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License as 
-published by the Free Software Foundation; either version 2 of 
-the License, or (at your option) any later version.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
 
-This program is distributed in the hope that it will be
-useful,but WITHOUT ANY WARRANTY; without even the implied
-warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-PURPOSE.  See the GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public
-License along with this program; if not, write to the Free
-Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-MA  02111-1307  USA
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 See the GNU General Public License details in COPYING.

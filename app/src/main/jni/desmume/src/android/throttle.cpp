@@ -59,6 +59,8 @@ static u64 desiredFpsScalers [] = {
 #include <sys/time.h>
 #include <time.h>
 #include <android/log.h>
+#include <unistd.h>
+
 unsigned int GetTickCount()
 {
 	timeval timer;

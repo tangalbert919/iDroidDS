@@ -18,12 +18,13 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "../../sdl/src/include/SDL_audio.h"
 
-#include <SDL.h>
 #include "types.h"
 #include "SPU.h"
 #include "sndsdl.h"
 #include "debug.h"
+#include "../../sdl/src/include/SDL.h"
 
 #ifdef _XBOX
 #include <xtl.h>
@@ -99,7 +100,7 @@ int SNDSDLInit(int buffersize)
    if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
       return -1;
 
-   audiofmt.freq = 44100;
+   audiofmt.freq = DESMUME_SAMPLE_RATE;
    audiofmt.format = AUDIO_S16SYS;
    audiofmt.channels = 2;
    audiofmt.samples = (audiofmt.freq / 60) * 2;
@@ -128,7 +129,6 @@ int SNDSDLInit(int buffersize)
    memset(stereodata16, 0, soundbufsize);
 
    soundpos = 0;
-
    SDL_PauseAudio(0);
 
 #ifdef _XBOX

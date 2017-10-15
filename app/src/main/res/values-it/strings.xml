@@ -1,11 +1,9 @@
 <resources>
     
 	<!-- Release 1 -->
-    <string name="app_name">nds4droid</string>
     <string name="hello_world">Ciao mondo!</string>
     <string name="menu_settings">Impostazioni</string>
-    <string name="title_activity_main">nds4droid</string>
-	<string-array name="file_options">
+    <string-array name="file_options">
 		<!--item>Rename</item--> 
 		<item>Cancella</item>
 		<!--item>Cut</item-->
@@ -54,7 +52,8 @@
     <string name="threedrendererdesc">Quale motore usare per il rendering 3D.</string>
     <string-array name ="threed_options">
         <item>Nessuno</item>
-        <item>OpenGL</item>
+        <item>OpenGL ES 2.0</item>
+        <item>OpenGL ES 3.0</item>
         <item>Software</item>
     </string-array>
     <string name="sound">Abilita i suoni</string>

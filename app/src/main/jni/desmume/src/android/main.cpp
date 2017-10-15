@@ -1,5 +1,6 @@
 /*
 	Copyright (C) 2012 Jeffrey Quesnelle
+    Copyright (C) 2017 The nds4droid Team
 
 	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -24,26 +25,32 @@
 #include <GLES/gl.h>
 #include <android/sensor.h>
 #include <android/bitmap.h>
-
+#include <GPU.h>
+#include <armcpu.h>
+#include <arm_jit.h>
 
 #include "main.h"
 #include "../OGLES2Render.h"
+#include "../OGLES3Render.h"
 #include "../rasterize.h"
 #include "../SPU.h"
 #include "../debug.h"
 #include "../NDSSystem.h"
 #include "../path.h"
-#include "../GPU_OSD.h"
-#include "../addons.h"
+#include "../GPU_osd.h"
 #include "../slot1.h"
+#include "../slot2.h"
 #include "../saves.h"
 #include "throttle.h"
 #include "video.h"
 #include "OpenArchive.h"
 #include "sndopensl.h"
+#include "../sndsdl.h"
 #include "cheatSystem.h"
-#ifdef HAVE_NEON
-#include "neontest.h"
+//#include "neontest.h"
+
+#if defined(HAVE_NEON)
+#include <android/math-neon/math_neon.h>
 #endif
 
 #define JNI(X,...) Java_com_opendoorstudios_ds4droid_DeSmuME_##X(JNIEnv* env, jclass* clazz, __VA_ARGS__)
@@ -55,6 +62,7 @@ unsigned int frameCount = 0;
 GPU3DInterface *core3DList[] = {
 	&gpu3DNull,
 	&gpu3Dgles2,
+    &gpu3Dgles3,
 	&gpu3DRasterize,
 	NULL
 };
@@ -62,6 +70,7 @@ GPU3DInterface *core3DList[] = {
 SoundInterface_struct *SNDCoreList[] = {
 	&SNDDummy,
 	&SNDOpenSL,
+	&SNDSDL,
 	NULL
 };
 
@@ -85,8 +94,8 @@ EGLSurface surface;
 EGLContext context;
 const char* IniName = NULL;
 char androidTempPath[1024];
-bool useMmapForRomLoading;
 extern bool enableMicrophone;
+PathInfo pathInfo;
 
 #ifdef USE_PROFILER
 bool profiler_start = false;
@@ -195,7 +204,7 @@ static bool android_opengl_init() {
 
 	const EGLint surfaceAttribs[] = {
             EGL_WIDTH, 256,
-			EGL_HEIGHT, 256,
+			EGL_HEIGHT, 192,
 			EGL_LARGEST_PBUFFER, EGL_FALSE,
 			EGL_NONE
     };
@@ -214,7 +223,7 @@ static bool android_opengl_init() {
         return false;
     }
 	
-	INFO("EGL(%u.%u): Created OpenGLES\n", major ,minor);
+	INFO("EGL(%u.%u): Created OpenGL ES\n", major ,minor);
     return true;
 }
 
@@ -401,6 +410,7 @@ void nds4droid_core()
 	NDS_endProcessingInput();
 	NDS_exec<false>();
 	SPU_Emulate_user();
+    backup_setManualBackupType(0);
 #ifdef MEASURE_FIRST_FRAMES
 	unsigned int end = GetTickCount();
 	if(mff_do)
@@ -491,16 +501,26 @@ jint JNI(draw, jobject bitmapMain, jobject bitmapTouch, jboolean rotate)
 	{
 		u32* dest = video.buffer;
 		for(int i=0;i<size;++i)
-			*dest++ = 0xFF000000ul | RGB15TO32_NOALPHA(*src++);
+			*dest++ = (u32) (0xFF000000ul | RGB15TO32_NOALPHA(*src++));
 
 		video.filter();
 	}
 	else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGB_565)
 	{
-		u16* dest = (u16*)video.buffer;
+		u16* dest = (u16 *) video.buffer;
 		for(int i=0;i<size;++i)
 			*dest++ = RGB15TO16_REVERSE(*src++);
+
+		video.filter();
 	}
+    else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_4444)
+    {
+        u16* dest = (u16*)video.buffer;
+        for(int i=0;i<size;++i)
+            *dest++ = (u16) RGB15TO24_REVERSE(*src++);
+
+		video.filter();
+    }
 
 	//here the magic happens
 	void* pixels = NULL;
@@ -526,6 +546,8 @@ void JNI(resize, jobject bitmap)
 		LOGI("bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_8888");
 	else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGB_565)
 		LOGI("bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGB_565");
+    else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_4444)
+        LOGI("bitMapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_4444");
 }
 
 int JNI_NOARGS(getNativeWidth)
@@ -594,12 +616,14 @@ void loadSettings(JNIEnv* env)
 	CommonSettings.autodetectBackupMethod = GetPrivateProfileInt(env,"General", "autoDetectMethod", 0, IniName);
 	enableMicrophone = GetPrivateProfileBool(env, "General", "EnableMicrophone", true, IniName);
 
+	// This is the video settings
 	video.rotation =  GetPrivateProfileInt(env,"Video","WindowRotate", 0, IniName);
 	video.rotation_userset =  GetPrivateProfileInt(env,"Video","WindowRotateSet", video.rotation, IniName);
 	video.layout_old = video.layout = GetPrivateProfileInt(env,"Video", "LCDsLayout", 0, IniName);
 	video.swap = GetPrivateProfileInt(env,"Video", "LCDsSwap", 0, IniName);
 
-	CommonSettings.hud.FpsDisplay = GetPrivateProfileBool(env,"Display","DisplayFps", false, IniName);
+	// This is for the HUD
+	CommonSettings.hud.FpsDisplay = GetPrivateProfileBool(env,"Display","DisplayFps", true, IniName);
 	CommonSettings.hud.FrameCounterDisplay = GetPrivateProfileBool(env,"Display","FrameCounter", false, IniName);
 	CommonSettings.hud.ShowInputDisplay = GetPrivateProfileBool(env,"Display","DisplayInput", false, IniName);
 	CommonSettings.hud.ShowGraphicalInputDisplay = GetPrivateProfileBool(env,"Display","DisplayGraphicalInput", false, IniName);
@@ -611,28 +635,38 @@ void loadSettings(JNIEnv* env)
 	CommonSettings.showGpu.sub = GetPrivateProfileInt(env,"Display", "SubGpu", 1, IniName) != 0;
 	frameskiprate = GetPrivateProfileInt(env,"Display", "FrameSkip", 1, IniName);
 
+	// This is the microphone
 	CommonSettings.micMode = (TCommonSettings::MicMode)GetPrivateProfileInt(env,"MicSettings", "MicMode", (int)TCommonSettings::InternalNoise, IniName);
 
+    // This is for the sound.
 	CommonSettings.spu_advanced = GetPrivateProfileBool(env,"Sound", "SpuAdvanced", false, IniName);
+	// 0 for no Interpolation, 1 for Sine, 2 for Cosine.
 	CommonSettings.spuInterpolationMode = (SPUInterpolationMode)GetPrivateProfileInt(env, "Sound","SPUInterpolation", 1, IniName);
 	snd_synchmode = GetPrivateProfileInt(env, "Sound","SynchMode",0,IniName);
 	snd_synchmethod = GetPrivateProfileInt(env, "Sound","SynchMethod",0,IniName);
+	sndcoretype = GetPrivateProfileInt(env, "Sound","SoundCore", SNDCORE_OPENSL, IniName);
+	// The original was 8/60. By decreasing the buffer sample rate, we seem to be getting much better sound.
+	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize", DESMUME_SAMPLE_RATE*8/120, IniName);
 
+	// This is for JIT. It only works on x86 and x86_64 devices right now.
 	CommonSettings.advanced_timing = GetPrivateProfileBool(env,"Emulation", "AdvancedTiming", false, IniName);
-	CommonSettings.CpuMode = GetPrivateProfileInt(env, "Emulation","CpuMode", 2, IniName);
+	CommonSettings.use_jit = GetPrivateProfileBool(env, "Emulation","CpuMode", 0, IniName);
 	CommonSettings.jit_max_block_size = GetPrivateProfileInt(env, "Emulation", "JitSize", 10, IniName);
-	
+
+	// This is the Graphics settings
 	CommonSettings.GFX3D_Zelda_Shadow_Depth_Hack = GetPrivateProfileInt(env,"3D", "ZeldaShadowDepthHack", 0, IniName);
 	CommonSettings.GFX3D_HighResolutionInterpolateColor = GetPrivateProfileBool(env, "3D", "HighResolutionInterpolateColor", 0, IniName);
 	CommonSettings.GFX3D_EdgeMark = GetPrivateProfileBool(env, "3D", "EnableEdgeMark", 0, IniName);
 	CommonSettings.GFX3D_Fog = GetPrivateProfileBool(env, "3D", "EnableFog", 1, IniName);
 	CommonSettings.GFX3D_Texture = GetPrivateProfileBool(env, "3D", "EnableTexture", 1, IniName);
 	CommonSettings.GFX3D_LineHack = GetPrivateProfileBool(env, "3D", "EnableLineHack", 0, IniName);
-	useMmapForRomLoading = GetPrivateProfileBool(env, "General", "UseMmap", true, IniName);
+	CommonSettings.GFX3D_TXTHack = GetPrivateProfileBool(env, "3D", "EnableTXTHack", 0, IniName);
 	fw_config.language = GetPrivateProfileInt(env, "Firmware","Language", 1, IniName);
 
+	// This is the wifi
 	CommonSettings.wifi.mode = GetPrivateProfileInt(env,"Wifi", "Mode", 0, IniName);
 	CommonSettings.wifi.infraBridgeAdapter = GetPrivateProfileInt(env,"Wifi", "BridgeAdapter", 0, IniName);
+
 }
 
 void JNI_NOARGS(reloadFirmware)
@@ -648,9 +682,9 @@ void JNI_NOARGS(loadSettings)
 
 void JNI(init, jobject _inst)
 {
-#ifdef HAVE_NEON
+#if defined(HAVE_NEON)
 	//neontest();
-	enable_runfast();
+	//enable_runfast();
 #endif
 	INFO("");
 
@@ -674,73 +708,75 @@ void JNI(init, jobject _inst)
 	
 	INFO("Init NDS");
 	
-	int slot1_device_type = NDS_SLOT1_RETAIL;
+	int slot1_device_type = NDS_SLOT1_RETAIL_AUTO;
 	switch (slot1_device_type)
 	{
 		case NDS_SLOT1_NONE:
-		case NDS_SLOT1_RETAIL:
+			break;
+		case NDS_SLOT1_RETAIL_MCROM:
+			break;
 		case NDS_SLOT1_R4:
+			break;
 		case NDS_SLOT1_RETAIL_NAND:
 			break;
 		default:
-			slot1_device_type = NDS_SLOT1_RETAIL;
+			slot1_device_type = NDS_SLOT1_RETAIL_AUTO;
 			break;
-	}
-	
-	switch (addon_type)
-	{
-	case NDS_ADDON_NONE:
-		break;
-	case NDS_ADDON_CFLASH:
-		break;
-	case NDS_ADDON_RUMBLEPAK:
-		break;
-	case NDS_ADDON_GBAGAME:
-		if (!strlen(GBAgameName))
-		{
-			addon_type = NDS_ADDON_NONE;
-			break;
-		}
-		// TODO: check for file exist
-		break;
-	case NDS_ADDON_GUITARGRIP:
-		break;
-	case NDS_ADDON_EXPMEMORY:
-		break;
-	case NDS_ADDON_PIANO:
-		break;
-	case NDS_ADDON_PADDLE:
-		break;
-	default:
-		addon_type = NDS_ADDON_NONE;
-		break;
 	}
 
-	slot1Change((NDS_SLOT1_TYPE)slot1_device_type);
-	addonsChangePak(addon_type);
+	int slot2_device_type = NDS_SLOT2_AUTO;
+	switch (slot2_device_type)
+	{
+		case NDS_SLOT2_NONE:
+			break;
+		case NDS_SLOT2_CFLASH:
+			break;
+		case NDS_SLOT2_RUMBLEPAK:
+			break;
+		case NDS_SLOT2_GBACART:
+			break;
+		case NDS_SLOT2_GUITARGRIP:
+			break;
+		case NDS_SLOT2_EXPMEMORY:
+			break;
+		case NDS_SLOT2_EASYPIANO:
+			break;
+		case NDS_SLOT2_PADDLE:
+			break;
+		case NDS_SLOT2_PASSME:
+			break;
+		default:
+			slot2_device_type = NDS_SLOT2_AUTO;
+			break;
+	}
+
+	slot1_Change((NDS_SLOT1_TYPE)slot1_device_type);
+	slot2_Change((NDS_SLOT2_TYPE)slot2_device_type);
 
 	
 	NDS_Init();
-	
-	cur3DCore = GetPrivateProfileInt(env, "3D", "Renderer", 2, IniName);
+
+    // This is for the renderer used. By default, we use OpenGL ES 2.0 because of rasterizer problems.
+	cur3DCore = GetPrivateProfileInt(env, "3D", "Renderer", 1, IniName);
 	NDS_3D_ChangeCore(cur3DCore);
 	
 	LOG("Init sound core\n");
-	sndcoretype = GetPrivateProfileInt(env, "Sound","SoundCore2", SNDCORE_OPENSL, IniName);
-	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize2", DESMUME_SAMPLE_RATE*8/60, IniName);
+
 	SPU_ChangeSoundCore(sndcoretype, sndbuffersize);
 	SPU_SetSynchMode(snd_synchmode,snd_synchmethod);
-	
-	static const char* nickname = "emozilla";
+
+    // Nobody can guess where this reference is from.
+	static const char* nickname = "I Am Me";
 	fw_config.nickname_len = strlen(nickname);
 	for(int i = 0 ; i < fw_config.nickname_len ; ++i)
 		fw_config.nickname[i] = nickname[i];
 		
-	static const char* message = "desmume makes you happy!";
+	static const char* message = "The One and Only";
 	fw_config.message_len = strlen(message);
 	for(int i = 0 ; i < fw_config.message_len ; ++i)
 		fw_config.message[i] = message[i];
-	
+    // End of reference
+
 	fw_config.language = GetPrivateProfileInt(env, "Firmware","Language", 1, IniName);
 		
 	video.setfilter(GetPrivateProfileInt(env,"Video", "Filter", video.NONE, IniName));
@@ -752,12 +788,12 @@ void JNI(init, jobject _inst)
 	mainLoopData.freq = 1000;
 	mainLoopData.lastticks = GetTickCount();
 }
-
+#if defined(__x86_64__) || defined(__x86__)
 void JNI(changeCpuMode, int type)
 {
-	armcpu_setjitmode(type);
+	arm_jit_reset(type);
 }
-
+#endif
 void JNI(change3D, int type)
 {
 	NDS_3D_ChangeCore(cur3DCore = type);
@@ -789,13 +825,13 @@ jboolean JNI(loadRom, jstring path)
 
 void JNI(setWorkingDir, jstring path, jstring temp)
 {
-	jboolean isCopy; 
+	jboolean isCopy;
 	const char* szPath = env->GetStringUTFChars(path, &isCopy);
-	strncpy(PathInfo::pathToModule, szPath, MAX_PATH);
+	strncpy(pathInfo.pathToModule, szPath, MAX_PATH);
 	env->ReleaseStringUTFChars(path, szPath);
 	
 	szPath = env->GetStringUTFChars(temp, &isCopy);
-	strncpy(androidTempPath, szPath, 1024);
+	strncpy(androidTempPath, szPath, MAX_PATH);
 	env->ReleaseStringUTFChars(temp, szPath);
 }
 
@@ -857,8 +893,8 @@ void JNI(addCheat, jstring description, jstring code)
 	if(cheats == NULL)
 		return;
 	jboolean isCopy;
-	const char* descBuff = env->GetStringUTFChars(description, &isCopy);
-	const char* codeBuff = env->GetStringUTFChars(code, &isCopy);
+	char* descBuff = (char *) env->GetStringUTFChars(description, &isCopy);
+	char* codeBuff = (char *) env->GetStringUTFChars(code, &isCopy);
 	cheats->add_AR(codeBuff, descBuff, TRUE);
 	env->ReleaseStringUTFChars(description, descBuff);
 	env->ReleaseStringUTFChars(code, codeBuff);
@@ -871,7 +907,7 @@ void JNI(updateCheat, jstring description, jstring code, jint pos)
 	jboolean isCopy;
 	const char* descBuff = env->GetStringUTFChars(description, &isCopy);
 	const char* codeBuff = env->GetStringUTFChars(code, &isCopy);
-	cheats->update_AR(codeBuff, descBuff, TRUE, pos);
+	cheats->update_AR((char *) codeBuff, (char *) descBuff, TRUE, pos);
 	env->ReleaseStringUTFChars(description, descBuff);
 	env->ReleaseStringUTFChars(code, codeBuff);
 }
@@ -931,5 +967,11 @@ unsigned int GetPrivateProfileInt(JNIEnv* env, const char* lpAppName, const char
 
 bool GetPrivateProfileBool(JNIEnv* env, const char* lpAppName, const char* lpKeyName, bool bDefault, const char* lpFileName)
 {
+	/*jclass javaClass = env->FindClass("com/opendoorstudios/ds4droid/DeSmuME");
+	if (!javaClass)
+		return bDefault;
+	jmethodID getSettingBool = env->GetStaticMethodID(javaClass, "getSettingBool", "(Ljava/lang/Boolean;I)I");
+	jstring key = env->NewStringUTF(lpKeyName);
+	bool ret = env->CallStaticBooleanMethod(javaClass, getSettingBool, key, bDefault);*/
 	return GetPrivateProfileInt(env, lpAppName, lpKeyName, bDefault ? 1 : 0, lpFileName);
 }

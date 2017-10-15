@@ -27,46 +27,46 @@ import android.preference.PreferenceManager;
 
 class EmulatorThread extends Thread {
 	
-	public EmulatorThread(MainActivity activity) {
-		super("EmulatorThread");
+	EmulatorThread(MainActivity activity) {
+		super("DeSmuME Thread");
 		this.activity = activity;
 	}
 	
-	public void setCurrentActivity(MainActivity activity) {
+	void setCurrentActivity(MainActivity activity) {
 		this.activity = activity;
 	}
 	
-	boolean soundPaused = true;
+	private boolean soundPaused = true;
 	boolean frameFinished = false;
 	long lastDraw = 0;
-	final AtomicBoolean finished = new AtomicBoolean(false);
+	private final AtomicBoolean finished = new AtomicBoolean(false);
 	final AtomicBoolean paused = new AtomicBoolean(false);
-	String pendingRomLoad = null;
-	Integer pending3DChange = null;
-	Integer pendingSoundChange = null;
-	Integer pendingCPUChange = null;
-	Integer pendingSoundSyncModeChange = null;
+	private String pendingRomLoad = null;
+	private Integer pending3DChange = null;
+	private Integer pendingSoundChange = null;
+	private Integer pendingCPUChange = null;
+	private Integer pendingSoundSyncModeChange = null;
 	
-	public void loadRom(String path) {
+	void loadRom(String path) {
 		pendingRomLoad = path;
 		synchronized(dormant) {
 			dormant.notifyAll();
 		}
 	}
 	
-	public void change3D(int set) {
+	void change3D(int set) {
 		pending3DChange = set;
 	}
 	
-	public void changeSound(int set) {
+	void changeSound(int set) {
 		pendingSoundChange = set;
 	}
 	
-	public void changeCPUMode(int set) {
+	void changeCPUMode(int set) {
 		pendingCPUChange = set;
 	}
 	
-	public void changeSoundSyncMode(int set) {
+	void changeSoundSyncMode(int set) {
 		pendingSoundSyncModeChange = set;
 	}
 	
@@ -89,11 +89,11 @@ class EmulatorThread extends Thread {
 		}
 	}
 	
-	Object dormant = new Object();
+	private final Object dormant = new Object();
 	
-	public Lock inFrameLock = new ReentrantLock();
+	Lock inFrameLock = new ReentrantLock();
 	int fps = 1;
-	MainActivity activity = null;
+	private MainActivity activity = null;
 	long frameCounter = 0;
 	
 	@Override
@@ -147,19 +147,19 @@ class EmulatorThread extends Thread {
 				pendingRomLoad = null;
 			}
 			if(pending3DChange != null) {
-				DeSmuME.change3D(pending3DChange.intValue());
+				DeSmuME.change3D(pending3DChange);
 				pending3DChange = null;
 			}
 			if(pendingSoundChange != null) {
-				DeSmuME.changeSound(pendingSoundChange.intValue());
+				DeSmuME.changeSound(pendingSoundChange);
 				pendingSoundChange = null;
 			}
 			if(pendingCPUChange != null) {
-				DeSmuME.changeCpuMode(pendingCPUChange.intValue());
+				DeSmuME.changeCpuMode(pendingCPUChange);
 				pendingCPUChange = null;
 			}
 			if(pendingSoundSyncModeChange != null) {
-				DeSmuME.changeSoundSynchMode(pendingSoundSyncModeChange.intValue());
+				DeSmuME.changeSoundSynchMode(pendingSoundSyncModeChange);
 				pendingSoundSyncModeChange = null;
 			}
 			
@@ -174,7 +174,7 @@ class EmulatorThread extends Thread {
 				inFrameLock.lock();
 				do {
 					DeSmuME.runCore();
-				} while(DeSmuME.fastForwardMode); 
+				} while(DeSmuME.fastForwardMode);
 				inFrameLock.unlock();
 				frameFinished = true;
 
@@ -187,7 +187,7 @@ class EmulatorThread extends Thread {
 					}
 				} 
 				catch (InterruptedException e) {
-				} 
+				}
 			}
 		}
 	}

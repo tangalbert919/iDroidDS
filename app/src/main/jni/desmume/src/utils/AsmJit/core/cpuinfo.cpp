@@ -23,7 +23,7 @@
 // [Dependencies - Posix]
 #if defined(ASMJIT_POSIX)
 # include <errno.h>
-//# include <sys/statvfs.h>
+# include <sys/statvfs.h>
 # include <sys/utsname.h>
 # include <unistd.h>
 #endif // ASMJIT_POSIX

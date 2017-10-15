@@ -20,7 +20,6 @@
 #include "path.h"
 #include <stdio.h>
 
-char PathInfo::pathToModule[MAX_PATH];
 
 //-----------------------------------
 //This is taken from mono Path.cs
@@ -29,6 +28,10 @@ static const char InvalidPathChars[] = {
 	'\x08', '\x09', '\x0A', '\x0B', '\x0C', '\x0D', '\x0E', '\x0F', '\x10', '\x11', '\x12', 
 	'\x13', '\x14', '\x15', '\x16', '\x17', '\x18', '\x19', '\x1A', '\x1B', '\x1C', '\x1D', 
 	'\x1E', '\x1F'
+	//but I added this
+	#ifdef HOST_WINDOWS
+	,'\x2F'
+	#endif
 };
 
 //but it is sort of windows-specific. Does it work in linux? Maybe we'll have to make it smarter
@@ -59,7 +62,7 @@ std::string Path::GetFileDirectoryPath(std::string filePath)
 		return "";
 	}
 	
-	size_t i = filePath.find_last_of(DIRECTORY_DELIMITER_CHAR);
+	size_t i = filePath.find_last_of(ALL_DIRECTORY_DELIMITER_STRING);
 	if (i == std::string::npos) {
 		return filePath;
 	}
@@ -73,7 +76,7 @@ std::string Path::GetFileNameFromPath(std::string filePath)
 		return "";
 	}
 	
-	size_t i = filePath.find_last_of(DIRECTORY_DELIMITER_CHAR);
+	size_t i = filePath.find_last_of(ALL_DIRECTORY_DELIMITER_STRING);
 	if (i == std::string::npos) {
 		return filePath;
 	}
@@ -93,6 +96,27 @@ std::string Path::GetFileNameWithoutExt(std::string fileName)
 	}
 	
 	return fileName.substr(0, i);
+}
+
+std::string Path::ScrubInvalid(std::string str)
+{
+	for (std::string::iterator it(str.begin()); it != str.end(); ++it)
+	{
+		bool ok = true;
+		for(int i=0;i<ARRAY_SIZE(InvalidPathChars);i++)
+		{
+			if(InvalidPathChars[i] == *it)
+			{
+				ok = false;
+				break;
+			}
+		}
+
+		if(!ok)
+			*it = '*';
+	}
+
+	return str;
 }
 
 std::string Path::GetFileNameFromPathWithoutExt(std::string filePath)
@@ -121,7 +145,7 @@ std::string Path::GetFileExt(std::string fileName)
 }
 
 //-----------------------------------
-#ifdef _WINDOWS
+#ifdef HOST_WINDOWS
 void FCEUD_MakePathDirs(const char *fname)
 {
 	char path[MAX_PATH];

@@ -21,8 +21,8 @@ class VideoInfo
 {
 public:
 
-	int width;
-	int height;
+	unsigned int width;
+	unsigned int height;
 
 	int rotation;
 	int rotation_userset;
@@ -34,28 +34,33 @@ public:
 	int currentfilter;
 
 	CACHE_ALIGN u8* srcBuffer;
-	CACHE_ALIGN u32 buffer[16*256*192*2];
-	CACHE_ALIGN u32 filteredbuffer[16*256*192*2];
+	CACHE_ALIGN u32 buffer[5*5*256*192*2];
+	CACHE_ALIGN u32 filteredbuffer[5*5*256*192*2];
 
 	enum {
 		NONE,
+		LQ2X,
+		LQ2XS,
 		HQ2X,
-		_2XSAI,
+		HQ2XS,
+		HQ4X,
+		HQ4XS,
+		_2xSAI,
 		SUPER2XSAI,
 		SUPEREAGLE,
 		SCANLINE,
 		BILINEAR,
 		NEAREST2X,
-		HQ2XS,
-		LQ2X,
-		LQ2XS,
-        EPX,
-        NEARESTPLUS1POINT5,
-        NEAREST1POINT5,
-        EPXPLUS,
-        EPX1POINT5,
-        EPXPLUS1POINT5,
-    HQ4X,
+		NEAREST1_5X,
+		NEARESTPLUS1_5X,
+		EPX,
+		EPXPLUS,
+		EPX1_5X,
+		EPXPLUS1_5X,
+		_2XBRZ,
+		_3XBRZ,
+		_4XBRZ,
+		_5XBRZ,
 
 		NUM_FILTERS,
 	};
@@ -79,17 +84,27 @@ public:
 				width = 256;
 				height = 384;
 				break;
-			case EPX1POINT5:
-			case EPXPLUS1POINT5:
-			case NEAREST1POINT5:
-			case NEARESTPLUS1POINT5:
+			case EPX1_5X:
+			case EPXPLUS1_5X:
+			case NEAREST1_5X:
+			case NEARESTPLUS1_5X:
 				width = 256*3/2;
 				height = 384*3/2;
 				break;
-      case HQ4X:
+      		case HQ4X:
+			case HQ4XS:
+			case _4XBRZ:
 				width = 256*4;
 				height = 384*4;
-        break;
+        	break;
+			case _3XBRZ:
+				width = 256*3;
+				height = 384*3;
+				break;
+			case _5XBRZ:
+				width = 256*5;
+				height = 384*5;
+				break;
 			default:
 				width = 256*2;
 				height = 384*2;
@@ -138,7 +153,10 @@ public:
 			case HQ2XS:
 				RenderHQ2XS(src, dst);
 				break;
-			case _2XSAI:
+			case HQ4XS:
+				RenderHQ4XS(src, dst);
+				break;
+			case _2xSAI:
 				Render2xSaI (src, dst);
 				break;
 			case SUPER2XSAI:
@@ -162,17 +180,31 @@ public:
 			case EPXPLUS:
 				RenderEPXPlus(src,dst);
 				break;
-			case EPX1POINT5:
+			case EPX1_5X:
 				RenderEPX_1Point5x(src,dst);
 				break;
-			case EPXPLUS1POINT5:
+			case EPXPLUS1_5X:
 				RenderEPXPlus_1Point5x(src,dst);
 				break;
-			case NEAREST1POINT5:
+			case NEAREST1_5X:
 				RenderNearest_1Point5x(src,dst);
 				break;
-			case NEARESTPLUS1POINT5:
+			case NEARESTPLUS1_5X:
 				RenderNearestPlus_1Point5x(src,dst);
+				break;
+			case _2XBRZ:
+				Render2xBRZ(src, dst);
+				break;
+			case _3XBRZ:
+				Render3xBRZ(src, dst);
+				break;
+			case _4XBRZ:
+				Render4xBRZ(src, dst);
+				break;
+			case _5XBRZ:
+				Render5xBRZ(src, dst);
+				break;
+			default:
 				break;
 		}
 	}

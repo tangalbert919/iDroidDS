@@ -1,39 +1,33 @@
 /*
 	Copyright (C) 2006 yopyop
 	Copyright (C) 2006 Mic
-	Copyright (C) 2009-2011 DeSmuME team
+	Copyright (C) 2009-2015 DeSmuME team
 
-	This file is part of DeSmuME
-
-	DeSmuME is free software; you can redistribute it and/or modify
+	This file is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
+	the Free Software Foundation, either version 2 of the License, or
 	(at your option) any later version.
 
-	DeSmuME is distributed in the hope that it will be useful,
+	This file is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with DeSmuME; if not, write to the Free Software
-	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../addons.h"
 #include <string>
 #include <string.h>
-#include "debug.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "types.h"
-#include "../utils/vfat.h"
+#include "../slot2.h"
+#include "../debug.h"
+#include "../emufile.h"
 #include "../path.h"
-
-#include "MMU.h"
-#include "NDSSystem.h"
+#include "../utils/vfat.h"
 
 // Set up addresses for GBAMP
 #define CF_REG_DATA 0x9000000
@@ -91,6 +85,17 @@ static BOOL cflash_init()
 		sFlashPath = CFlash_Path;
 		INFO("Using CFlash directory: %s\n", sFlashPath.c_str());
 	}
+	else if(CFlash_Mode == ADDON_CFLASH_MODE_File)
+	{
+		sFlashPath = CFlash_Path;
+		INFO("Using CFlash disk image file %s\n", sFlashPath.c_str());
+	}
+	else
+	{
+		return FALSE;
+	}
+
+	if (sFlashPath == "") return FALSE;
 
 	if(CFlash_IsUsingPath())
 	{
@@ -117,8 +122,6 @@ static BOOL cflash_init()
 	}
 	else
 	{
-		sFlashPath = CFlash_Path;
-		INFO("Using CFlash disk image file %s\n", sFlashPath.c_str());
 		file = new EMUFILE_FILE(sFlashPath.c_str(),"rb+");
 		if(file->fail())
 		{
@@ -266,73 +269,33 @@ static void cflash_close( void)
 	inited = FALSE;
 }
 
-static BOOL init(void)
+class Slot2_CFlash : public ISlot2Interface
 {
-	return TRUE;
-}
+public:
+	virtual Slot2Info const* info()
+	{
+		static Slot2InfoSimple info("MPCF Flash Card Device", "MPCF Flash Card Device", 0x01);
+		return &info;
+	}
 
-static void reset(void)
-{
-	cflash_close();
-	cflash_init();
-}
+	virtual void connect()
+	{
+		cflash_close();
+		cflash_init();
+	}
+	virtual void disconnect()
+	{
+		cflash_close();
+	}
 
-static void close(void)
-{
-	cflash_close();
-}
+	virtual void writeByte(u8 PROCNUM, u32 addr, u8 val) { cflash_write(addr, val); }
+	virtual void writeWord(u8 PROCNUM, u32 addr, u16 val) { cflash_write(addr, val); }
+	virtual void writeLong(u8 PROCNUM, u32 addr, u32 val) { cflash_write(addr, val); }
 
-static void config(void)
-{
-}
+	virtual u8	readByte(u8 PROCNUM, u32 addr) { return (cflash_read(addr)); }
+	virtual u16	readWord(u8 PROCNUM, u32 addr) { return (cflash_read(addr)); }
+	virtual u32	readLong(u8 PROCNUM, u32 addr) { return (cflash_read(addr)); }
 
-static void write08(u32 procnum, u32 adr, u8 val)
-{
-	cflash_write(adr, val);
-}
+};
 
-static void write16(u32 procnum, u32 adr, u16 val)
-{
-	cflash_write(adr, val);
-}
-
-static void write32(u32 procnum, u32 adr, u32 val)
-{
-	cflash_write(adr, val);
-}
-
-static u8 read08(u32 procnum, u32 adr)
-{
-	return (cflash_read(adr));
-}
-
-static u16 read16(u32 procnum, u32 adr)
-{
-	return (cflash_read(adr));
-}
-
-static u32 read32(u32 procnum, u32 adr)
-{
-	return (cflash_read(adr));
-}
-
-static void info(char *info)
-{
-	strcpy(info, "MPCF Flash Card Device");
-}
-
-ADDONINTERFACE addonCFlash = {
-				"MPCF Flash Card Device",
-				init,
-				reset,
-				close,
-				config,
-				write08,
-				write16,
-				write32,
-				read08,
-				read16,
-				read32,
-				info};
-
-#undef CFLASHDEBUG
+ISlot2Interface* construct_Slot2_CFlash() { return new Slot2_CFlash(); }

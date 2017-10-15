@@ -632,7 +632,7 @@ namespace UtfConverter
             if (res != conversionOK)
             {
                 delete [] widestringnative;
-                return L"";
+                throw std::exception();
             }
             *targetstart = 0;
             std::wstring resultstring(widestringnative);
@@ -645,12 +645,12 @@ namespace UtfConverter
             const UTF8* sourcestart = reinterpret_cast<const UTF8*>(utf8string.c_str());
             const UTF8* sourceend = sourcestart + widesize;
             UTF32* targetstart = reinterpret_cast<UTF32*>(widestringnative);
-            UTF32* targetend = targetstart + widesize;
+            UTF32* targetend = targetstart + widesize+1;
             ConversionResult res = ConvertUTF8toUTF32(&sourcestart, sourceend, &targetstart, targetend, strictConversion);
             if (res != conversionOK)
             {
                 delete [] widestringnative;
-                return L"";
+                throw std::exception();
             }
             *targetstart = 0;
             std::wstring resultstring(widestringnative);
@@ -659,7 +659,7 @@ namespace UtfConverter
         }
         else
         {
-            return L"";
+            throw std::exception();
         }
         return L"";
     }
@@ -680,7 +680,7 @@ namespace UtfConverter
             if (res != conversionOK)
             {
                 delete [] utf8stringnative;
-                return "";
+                throw std::exception();
             }
             *targetstart = 0;
             std::string resultstring(utf8stringnative);
@@ -699,7 +699,7 @@ namespace UtfConverter
             if (res != conversionOK)
             {
                 delete [] utf8stringnative;
-                return "";
+                throw std::exception();
             }
             *targetstart = 0;
             std::string resultstring(utf8stringnative);
@@ -708,7 +708,7 @@ namespace UtfConverter
         }
         else
         {
-            return "";
+            throw std::exception();
         }
         return "";
     }
@@ -717,7 +717,11 @@ namespace UtfConverter
 //convert a std::string to std::wstring
 std::wstring mbstowcs(std::string str)
 {
-	return UtfConverter::FromUtf8(str);
+	try {
+		return UtfConverter::FromUtf8(str);
+	} catch(std::exception) {
+		return L"(failed UTF-8 conversion)";
+	}
 }
 
 std::string wcstombs(std::wstring str)

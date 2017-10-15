@@ -1,11 +1,9 @@
 <resources>
     
 	<!-- Release 1 -->
-    <string name="app_name">nds4droid</string>
     <string name="hello_world">Bonjour tout le monde!</string>
     <string name="menu_settings">Réglages</string>
-    <string name="title_activity_main">nds4droid</string>
-	<string-array name="file_options">
+    <string-array name="file_options">
 		<!--item>Rename</item--> 
 		<item>Delete</item>
 		<!--item>Cut</item-->
@@ -34,7 +32,7 @@
     <!-- Release 2 -->
     <string name="touchnotify">Pour basculer entre le mode tactile et le mode clavier, appuyez sur le bouton "toucher" dessus</string>
     <string name="frameskip">Sauter cadre</string>
-    <string name="frameskipdesc">Combien des cadres à sauter pendant l\'émulation. Pour faire l\'émulation lente correspond à l\'affichage en temps réel.</string>
+    <string name="frameskipdesc">Cela permet d\'émuler pour correspondre en temps réel plus rapidement. Utile pour les appareils lents.</string>
     <string name="vsync">VSync</string>
     <string name="vsyncdesc">Peindre à l\'écran seulement entre les cadres. Peut ralentir l\'émulation mais l\'éteignant peut causer des anomalies graphiques.</string>
     <string name="fps">Afficher FPS</string>
@@ -47,15 +45,16 @@
     
     <!-- Release 4 -->
     <string name="filter">Filtre d\'écran</string>
-    <string name="filterdesc">Filtre à utiliser durant le changement d\'échelle de la résolution Nintendo DS à celle de votre écran. Des filtres de qualité supérieure peuvent dégrader la performance.</string>
+    <string name="filterdesc">Ces filtres amélioreront les graphiques sur votre appareil. Cependant, cela signifie sacrifier les performances.</string>
     
     <!-- Release 5 -->
     <string name="threedrenderer">Moteur de rendu 3D</string>
-    <string name="threedrendererdesc">Quel moteur de rendu 3D à utiliser.</string>
+    <string name="threedrendererdesc">Ici, vous pouvez sélectionner quel représentant vous souhaitez utiliser. L\'un sera meilleur que l\'autre.</string>
     <string-array name ="threed_options">
         <item>Aucun</item>
-        <item>OpenGL</item>
-        <item>Software</item>
+        <item>OpenGL ES 2.0</item>
+        <item>OpenGL ES 3.0</item>
+        <item>Rasterizer</item>
     </string-array>
     <string name="sound">Activer le son</string>
     <string name="sounddesc">Activer le traitement et la lecture audio. La désactivation de cette fonctionnalité peut améliorer la performance.</string>
@@ -144,12 +143,34 @@
 	
 	<!-- Release 22 -->
 	<string name="ExecutionEngine">Le moteur d\'exécution</string>
-	<string name="ExecutionEngineDesc">Le moteur utilisé pour émuler les processeurs ARM du DS.</string>
+	<string name="ExecutionEngineDesc">Vous pouvez sélectionner le moteur que vous souhaitez utiliser. Seuls les périphériques utilisant une CPU Intel doivent changer ce paramètre!</string>
 	
 	<!-- Release 28 -->
 	<string name="SoundSyncMode">Mode de synchronisation du son</string>
 	<string name="SoundSyncModeDesc">Synchronisation du son du jeu. Le mode double sync/async est généralement acceptable et le plus rapide, mais Sync est parfois nécessaire pour les films ou la voix.</string>
-	
+    <string name="JitSize">Taille du bloc JIT</string>
+    <string name="JitSizeDesc">Pour le moteur de compilation JIT, quelle est la taille de chaque bloc JIT. 1 est le plus précis, tandis que 100 est le plus rapide.</string>
+    <string name="about1">nds4droid est un émulateur Nintendo DS gratuit.</string>
+    <string name="about2">nds4droid est le résultat d\'innombrables heures de travail par des dizaines de contributeurs. Le noyau d\'émulation utilisé par nds4droid est DeSmuME.</string>
+    <string name="about3">Jeffrey Quesnelle est le principal développeur de nds4droid. nds4droid est un produit de Sterling Heights, Michigan, États-Unis d\'Amérique.</string>
+    <string name="about4">Un grand merci à gechdcb pour ses contributions sur l\'interprète enfilé et la foudre JIT (Version 47.1 et suivantes).</string>
+    <string name="about5">nds4droid website: http://nds4droid.com DeSmuME website: http://desmume.org</string>
+    <string name="about">Sur</string>
+    <string name="EnableFog">Activer le brouillard</string>
+    <string name="EnableFogDesc">Lorsque vous utilisez le logiciel de rendu, activez le traitement des effets de brouillard.</string>
+    <string name="EnableAutosave">Activer le sauvegarde automatique</string>
+    <string name="EnableAutosaveDesc">Enregistrez automatiquement l\'état du jeu à un intervalle régulier.</string>
+    <string name="AutosaveFrequency">Fréquence automatique</string>
+    <string name="AutosaveFrequencyDesc">À quelle fréquence la fonction de sauvegarde automatique enregistre l\'état du jeu.</string>
+    <string name="Rescan">réanalyser</string>
+    <string name="FileBrowser">Navigateur de fichiers</string>
+    <string name="ScanningForROMs">Numérisation de stockage externe …</string>
+    <string name="DisableROMBrowser">Désactiver le navigateur ROM</string>
+    <string name="DisableROMBrowserDesc">Désactivez le navigateur de ROM à balayage automatique. Il suffit de montrer le navigateur de fichiers lors du lancement.</string>
+    <string name="SoundInterpolation">Interpolation sonore</string>
+    <string name="SoundInterpolationDesc">Ce paramètre est responsable de rendre le son audio mieux. Il est recommandé de le garder à Linear.</string>
+    <string name="about6">Un merci spécial à tangalbert919 pour le rendu OpenGL ES 3.0 et la mise à niveau de DeSmuME vers 0.9.11 pour nds4droid (version 48 et supérieure).</string>
+
     <!-- Do not translate -->
     
 </resources>

@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -66,6 +67,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 	static final String TAG = "nds4droid";
 	Dialog loadingDialog = null;
 	
+	@SuppressLint("HandlerLeak")
 	Handler msgHandler = new Handler() {
 		
 		@Override
@@ -444,7 +446,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 						coreThread.changeSound(newSound);
 				}
 				else if(key.equals(Settings.CPU_MODE) || key.equals(Settings.JIT_SIZE)) {
-					int newCpuMode = DeSmuME.getSettingInt(Settings.CPU_MODE, 1);
+					int newCpuMode = DeSmuME.getSettingInt(Settings.CPU_MODE, 0);
 					if(coreThread != null)
 						coreThread.changeCPUMode(newCpuMode);
 				}
@@ -478,9 +480,9 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 		cancelAutosave();
 		if(prefs.getBoolean(Settings.ENABLE_AUTOSAVE, true)) {
 			final int freqSel = Integer.valueOf(prefs.getString(Settings.AUTOSVAE_FREQUENCY, "1"));
-			long autosaveDelay = 0;
+			long autosaveDelay;
 			switch(freqSel) {
-			case 0: autosaveDelay = 1 * 60 * 1000; break; //1 minute
+			case 0: autosaveDelay = 60 * 1000; break; //1 minute
 			case 2: autosaveDelay = 15 * 60 * 1000; break; //15 minutes
 			case 3: autosaveDelay = 30 * 60 * 1000; break; //30 minutes
 			case 4: autosaveDelay = 60 * 60 * 1000; break; //1 hour

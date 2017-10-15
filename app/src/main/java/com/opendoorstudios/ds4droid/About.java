@@ -17,35 +17,30 @@ public class About extends Activity {
 		
 		final StringBuilder build = new StringBuilder();
 		
-		String family, library;
+		String library;
 		
 		DeSmuME.load();
 		
-		switch(DeSmuME.getCPUFamily()) {
-		case 1: family = "ARM"; break;
-		case 2: family = "x86"; break;
-		default: family = "unknown"; break;
-		}
-		
 		switch(DeSmuME.getCPUType()) {
-		case DeSmuME.CPUTYPE_COMPAT: library = "compat"; break;
-		case DeSmuME.CPUTYPE_V7: library = "v7"; break;
-		case DeSmuME.CPUTYPE_NEON: library = "neon"; break;
+		case DeSmuME.CPUTYPE_V7: library = "ARMv7-A legacy edition"; break;
+		case DeSmuME.CPUTYPE_NEON: library = "ARMv7-A + NEON edition"; break;
+		case DeSmuME.CPUTYPE_X86: library = "x86 edition"; break;
+		case DeSmuME.CPUTYPE_X64: library = "x64 edition"; break;
+		case DeSmuME.CPUTYPE_ARM64: library = "ARMv8-A edition"; break;
 		default: library = "unknown";
 		}
 		
-		String version = null;
+		String version;
 		try {
 			version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
 		} catch (NameNotFoundException e) {
 			// TODO Auto-generated catch block
+			version = "unknown";
 			e.printStackTrace();
 		}
-		if(version == null)
-			version = "unknown";
-		
-		build.append(getString(R.string.app_name)).append(" ").append(version).append(
-						" ").append(family).append("/").append(library);
+	
+		build.append("You are using ").append(getString(R.string.app_name)).append(" ").append(version).append(
+						"/").append(library);
 		
 		textVersion.setText(build.toString());
 	}

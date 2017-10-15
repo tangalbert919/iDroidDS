@@ -26,6 +26,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <unistd.h>
 #include "7zip.h"
 //#include "G_main.h"
 //#include "G_dsound.h"

@@ -31,6 +31,7 @@
 #include "../types.h"
 #include "../emufile.h"
 
+
 //definitions for str_strip() flags
 #define STRIP_SP	0x01 // space
 #define STRIP_TAB	0x02 // tab
@@ -129,6 +130,7 @@ std::string mass_replace(const std::string &source, const std::string &victim, c
 
 std::wstring mbstowcs(std::string str);
 std::string wcstombs(std::wstring str);
+
 
 
 //TODO - dont we already have another  function that can do this
