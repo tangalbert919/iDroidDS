@@ -12,7 +12,7 @@ There are many advantages and disadvantages to this project, and against other D
 
 * This project is free and open-source. Anyone can contribute to this project and make it better.
 * There are no advertisements in nds4droid. You should not be interrupted by ads for any reason.
-* Other emulators use DeSmuME 0.9.9 as the core. We use 0.9.11 (and some stuff from 0.9.12, which is in active development [here](https://github.com/TASVideos/desmume).
+* Other emulators use DeSmuME 0.9.9 as the core. We use 0.9.11 (and some stuff from 0.9.12, which is in active development [here](https://github.com/TASVideos/desmume)).
 * Some emulators do not have binaries built for the x86, ARM64, or x86_64 architectures. This emulator does, and will always have it.
 
 ### Disadvantages
