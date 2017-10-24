@@ -239,7 +239,7 @@ public class Settings extends PreferenceActivity {
 		if(!prefs.contains(RENDERER))
 			editor.putString(RENDERER, "1");
 		if(!prefs.contains(ENABLE_SOUND))
-			editor.putBoolean(ENABLE_SOUND, true);
+			editor.putString(ENABLE_SOUND, "1");
 		if(!prefs.contains(SHOW_SOUND_MESSAGE))
 			editor.putBoolean(SHOW_SOUND_MESSAGE, false);
 		if(!prefs.contains(LCD_SWAP))
