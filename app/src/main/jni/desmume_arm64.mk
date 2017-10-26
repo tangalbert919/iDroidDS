@@ -71,8 +71,6 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/filter/scanline.cpp \
 							desmume/src/filter/xbrz.cpp \
 							desmume/src/arm_instructions.cpp \
-							desmume/src/utils/arm_arm/arm_gen.cpp \
-							desmume/src/utils/arm_arm/arm_jit.cpp \
 							desmume/src/armcpu.cpp \
 							desmume/src/bios.cpp \
 							desmume/src/cheatSystem.cpp \
@@ -122,7 +120,7 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 LOCAL_ARM_NEON 			:= true
 LOCAL_ARM_MODE 			:= arm
 LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -march=armv8-a -mtune=cortex-a53 -fpermissive
-LOCAL_STATIC_LIBRARIES 	:= sevenzip SDL2
+LOCAL_STATIC_LIBRARIES 	:= sevenzip SDL2 lightning
 LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -lGLESv3 -ljnigraphics -lOpenSLES -landroid
 
 #To check for speed improvements

@@ -32,8 +32,6 @@
     <output-test url="file://$MODULE_DIR$/build/intermediates/classes/test/debug" />
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/AsmJit/core" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/AsmJit/x86" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/android/7z/C" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/android/7z/CPP/7zip/Archive/7z" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/android/7z/CPP/7zip/Archive" isTestSource="false" />
@@ -47,15 +45,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/android/7z/CPP/Common" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/android/7z/CPP/Windows" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/android/7z/CPP/myWindows" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/addons" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/android" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/filter" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/metaspu" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/decrypt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/libfat" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/tinyxml" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/atomic" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/audio" isTestSource="false" />
@@ -91,8 +80,19 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/video" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/video/android" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/cpudetect" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/addons" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/android" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/filter" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/metaspu" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/decrypt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/libfat" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/tinyxml" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/lightning-2.1.2/lib" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/AsmJit/core" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/AsmJit/x86" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/android/math-neon" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/arm_arm" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/apt/debug" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/debug" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/debug" isTestSource="false" generated="true" />
