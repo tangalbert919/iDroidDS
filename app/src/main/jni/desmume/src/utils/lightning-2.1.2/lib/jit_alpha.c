@@ -17,6 +17,10 @@
  *	Paulo Cesar Pereira de Andrade
  */
 
+#include <lightning.h>
+#include <lightning/jit_private.h>
+#include <lightning/jit_alpha.h>
+
 #define jit_arg_reg_p(i)		((i) >= 0 && (i) < 6)
 #define jit_arg_f_reg_p(i)		((i) >= 0 && (i) < 6)
 #if __BYTE_ORDER == __LITTLE_ENDIAN
