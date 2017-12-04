@@ -34,9 +34,8 @@ Any device with over 512 MB of RAM and uses Android 5.0 or above should be able 
 
 ### To-do list
 
-* Make the OpenGL ES 2.0 Renderer to render textures correctly.
+* Make the OpenGL ES 2.0 Renderer render textures correctly.
 * Start using Qualcomm's Ne10 library instead of math-neon from the Google Code Archive.
-* Fix the bug that causes the application to crash when loading a ROM.
 * Fix the bug that causes the emulator to not write save files (Android sets the file path correctly, but the emulator writes files using a path that starts with "./", which is problematic).
 
 **DISCLAIMER:** nds4droid is licensed under the GNU General Public License, which means the software is provided as-is. The Nintendo DS, and the Nintendo DS logo are trademarks of Nintendo, Inc. Games that support the Nintendo DS are trademarks of Nintendo, Inc., and their respective companies and affiliates.

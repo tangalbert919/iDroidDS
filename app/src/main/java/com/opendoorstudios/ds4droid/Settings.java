@@ -117,7 +117,7 @@ public class Settings extends PreferenceActivity {
 	public static final String FRAME_SKIP = "FrameSkip";
 	public static final String SCREEN_FILTER = "Filter";
 	public static final String RENDERER = "Renderer";
-	public static final String ENABLE_SOUND = "SoundCore2";
+	public static final String ENABLE_SOUND = "SoundCore";
 	public static final String SHOW_SOUND_MESSAGE = "ShowSoundMessage";
 	public static final String SOUND_INTERPOLATION = "SPUInterpolation";
 	public static final String INSTALLED_RELEASE = "InstalledRelease";
@@ -204,7 +204,7 @@ public class Settings extends PreferenceActivity {
 				editor.putBoolean("Controls.Portrait.Draw", false);
 				editor.putBoolean(SHOW_TOUCH_MESSAGE, false);
 				editor.putBoolean(ALWAYS_TOUCH, true);
-				editor.putBoolean(ENABLE_SOUND, true);
+				editor.putString(ENABLE_SOUND, "1");
 				editor.putBoolean(ENABLE_MICROPHONE, false);
 				editor.putBoolean(SHOW_SOUND_MESSAGE, false);
 				editor.apply();
