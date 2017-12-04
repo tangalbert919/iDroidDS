@@ -234,6 +234,10 @@ public class NdsRom {
 	}
 	*/
 	//--------------------------------------------------------------------------
+
+	// 7-zip isRomArchive() method goes here.
+
+	//--------------------------------------------------------------------------
 	
 	private static InputStream getRomStream( File file ) {
 		if ( file.getName().matches( ROM_PATTERN )) {

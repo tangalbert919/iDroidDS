@@ -19,6 +19,8 @@
 
 #if defined(__linux__)
 #  include <stdio.h>
+#include "../include/lightning.h"
+
 #endif
 
 #define jit_arg_reg_p(i)		((i) >= 0 && (i) < 4)
@@ -90,6 +92,8 @@ extern void __clear_cache(void *, void *);
 #  include "jit_arm-cpu.c"
 #  include "jit_arm-swf.c"
 #  include "jit_arm-vfp.c"
+#include "../include/lightning/jit_private.h"
+
 #undef PROTO
 
 /*
