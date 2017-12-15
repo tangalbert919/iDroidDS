@@ -13,4 +13,5 @@ android:
     # We need a specific version of BuildTools to get this working.
     - build-tools-26.0.2
 
-    - ndk-bundle
+    # iDroidDS requires the NDK for it to operate.
+    - ndk
