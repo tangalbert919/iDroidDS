@@ -14,4 +14,4 @@ android:
     - build-tools-26.0.2
 
     # iDroidDS requires the NDK for it to operate.
-    - ndk
+    - android-ndk
