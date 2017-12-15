@@ -1,4 +1,4 @@
-# iDroidDS (nds4droid)
+# iDroidDS (nds4droid) ![Travis-CI](https://travis-ci.org/tangalbert919/iDroidDS.svg?branch=master)
 
 >**WARNING! This is not the official repository, and lots of things are going on here. Use this at your own risk.**
 

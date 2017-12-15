@@ -11,6 +11,6 @@ android:
     - android-25
 
     # We need a specific version of BuildTools to get this working.
-    - build-tools-25.0.0
+    - build-tools-26.0.2
 
     - ndk-bundle
