@@ -1,4 +1,9 @@
 language: android
+
+before_install:
+  - wget http://dl.google.com/android/repository/android-ndk-r16b-linux-x86_64.zip
+  - unzip android-ndk-r16b-linux-x86_64.zip -d /usr/local/android-sdk
+  - mv /usr/local/android-sdk/android-ndk-r16b /usr/local/android-sdk/ndk-bundle
 android:
   components:
 
@@ -8,10 +13,7 @@ android:
     - tools
 
     # The SDK version used to compile this program. This is NOT the minimum requirement.
-    - android-25
+    - android-26
 
     # We need a specific version of BuildTools to get this working.
     - build-tools-26.0.2
-
-    # iDroidDS requires the NDK for it to operate.
-    - android-ndk

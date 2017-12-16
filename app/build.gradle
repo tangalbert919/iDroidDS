@@ -26,13 +26,14 @@ def getVersionName = {
     }
 }
 android {
+
     signingConfigs {
     }
-    compileSdkVersion 25
+    compileSdkVersion 26
     defaultConfig {
         applicationId 'org.opendoorstudios.ds4droid'
         minSdkVersion 21
-        targetSdkVersion 22
+        targetSdkVersion 26
         versionCode getVersionCode()
         versionName getVersionName()
         ndk {
