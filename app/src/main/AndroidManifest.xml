@@ -4,10 +4,7 @@
 	<uses-permission
 		android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <!-- Really? Come on! -->
 	<uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-    <!-- This requires Android API 21 now (and ~75% of devices have it). -->
-    <uses-feature android:glEsVersion="0x00030000" android:required="true"/>
     <uses-feature android:glEsVersion="0x00020000" android:required="true"/>
 		    
     <application
@@ -16,7 +13,6 @@
         android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen"
         android:configChanges="keyboardHidden|orientation"
         android:name="ds4droidApplication">
-        <!-- This is where you see your game get emulated. -->
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main" >

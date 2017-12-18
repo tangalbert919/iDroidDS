@@ -44,7 +44,8 @@ captures/
 *.jks
 
 # External native build folder generated in Android Studio 2.2 and later
-.externalNativeBuild
+app/.externalNativeBuild
+app/build
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json

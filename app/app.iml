@@ -59,41 +59,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/decrypt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/libfat" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/tinyxml" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/atomic" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/audio" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/audio/android" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/audio/dummy" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/core/android" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/cpuinfo" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/dynapi" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/events" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/file" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/filesystem/android" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/haptic" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/haptic/android" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/joystick" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/joystick/android" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/loadso/dlopen" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/power" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/power/android" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/render" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/render/direct3d" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/render/direct3d11" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/render/opengl" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/render/opengles" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/render/opengles2" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/render/psp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/render/software" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/stdlib" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/test" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/thread" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/thread/pthread" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/timer" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/timer/unix" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/video" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/sdl/src/video/android" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/cpudetect" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/utils/lightning-2.1.2/lib" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/jni/desmume/src/android/math-neon" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/apt/debug" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/debug" isTestSource="false" generated="true" />
@@ -187,7 +154,7 @@
       <excludeFolder url="file://$MODULE_DIR$/build/outputs" />
       <excludeFolder url="file://$MODULE_DIR$/build/tmp" />
     </content>
-    <orderEntry type="jdk" jdkName="Android API 25 Platform" jdkType="Android SDK" />
+    <orderEntry type="jdk" jdkName="Android API 26 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="__local_aars__:/home/albert/Documents/iDroidDS/app/libs/ouya-sdk.jar:unspecified@jar" level="project" />
   </component>

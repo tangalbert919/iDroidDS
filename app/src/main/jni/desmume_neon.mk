@@ -103,7 +103,6 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/saves.cpp \
 							desmume/src/slot1.cpp \
 							desmume/src/slot2.cpp \
-							desmume/src/sndsdl.cpp \
 							desmume/src/SPU.cpp \
 							desmume/src/texcache.cpp \
 							desmume/src/thumb_instructions.cpp \
@@ -123,7 +122,7 @@ LOCAL_ARM_MODE 			:= arm
 LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_NEON=1 -mfloat-abi=softfp -mfpu=neon-fp16 -marm -march=armv7-a -mtune=cortex-a7
 #To increase performance for the Qualcomm Krait CPU
 #LOCAL_CFLAGS            := -DANDROID -DHAVE-LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_NEON=1 -mfloat-abi=softfp -mfpu=neon-vfpv4 -marm -march=armv7-a -mcpu=krait2
-LOCAL_STATIC_LIBRARIES 	:= mathneon sevenzip SDL2 lightningarm
+LOCAL_STATIC_LIBRARIES 	:= mathneon sevenzip lightningarm
 LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -lGLESv3 -ljnigraphics -lOpenSLES -landroid
 
 #To check for speed improvements

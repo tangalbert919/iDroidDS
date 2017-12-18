@@ -45,7 +45,6 @@
 #include "video.h"
 #include "OpenArchive.h"
 #include "sndopensl.h"
-#include "../sndsdl.h"
 #include "cheatSystem.h"
 //#include "neontest.h"
 
@@ -70,7 +69,6 @@ GPU3DInterface *core3DList[] = {
 SoundInterface_struct *SNDCoreList[] = {
 	&SNDDummy,
 	&SNDOpenSL,
-	&SNDSDL,
 	NULL
 };
 
@@ -546,8 +544,6 @@ void JNI(resize, jobject bitmap)
 		LOGI("bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_8888");
 	else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGB_565)
 		LOGI("bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGB_565");
-    else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_4444)
-        LOGI("bitMapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_4444");
 }
 
 int JNI_NOARGS(getNativeWidth)
