@@ -449,12 +449,9 @@ public:
 		if (i != std::string::npos) {
 			fileName = fileName.substr(i - 2);
 		}
-		
-		if(fileName == "ds.gba") {
-			return true;
-		}
-		
-		return false;
+
+		return fileName == "ds.gba";
+
 	}
 };
 
