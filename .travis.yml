@@ -14,7 +14,7 @@ android:
     - tools
 
     # The SDK version used to compile this program. This is NOT the minimum requirement.
-    - android-26
+    - android-27
 
     # We need a specific version of BuildTools to get this working.
     - build-tools-26.0.2
