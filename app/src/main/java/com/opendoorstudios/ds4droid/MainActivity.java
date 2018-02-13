@@ -19,6 +19,7 @@ package com.opendoorstudios.ds4droid;
 
 import java.io.File;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -291,7 +292,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 					if(i == 10)
 						newTitle = "Autosave - " + date;
 					else
-						newTitle = String.format("%d - %s", i, date);
+						newTitle = String.format(Locale.getDefault(),"%d - %s", i, date);
 				}
 			}
 			
@@ -352,6 +353,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 		case R.id.exit:
 			DeSmuME.exit();
 			finish();
+			System.exit(0);
 			break;
 		case R.id.lid:
 			if(coreThread != null) {
@@ -628,7 +630,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 						int cpuload0 = (data >> 8) & 0xFF;
 						int cpuload1 = data & 0xFF;
 						
-						fpsText = "Fps:"+fps+"/"+fps3d+"("+cpuload0+"%/"+cpuload1+"%)";
+						fpsText = "FPS: "+fps+"/"+fps3d+"("+cpuload0+"%/"+cpuload1+"%)";
 						fpsData = data;
 					}
 					canvas.drawText(fpsText, 10, curhudsize, hudPaint);

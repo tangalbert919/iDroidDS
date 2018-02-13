@@ -156,6 +156,7 @@ public:
 
 		strncpy(pathToModule, pathStr.c_str(), MAX_PATH);
 #elif defined(ANDROID)
+        strncpy(pathToModule, "/storage/emulated/0/nds4droid", MAX_PATH); // Not good practice.
         return; // set from java
 #else
 		char *cwd = g_build_filename(g_get_user_config_dir(), "desmume", NULL);

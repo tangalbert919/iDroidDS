@@ -492,8 +492,8 @@ jint JNI(draw, jobject bitmapMain, jobject bitmapTouch, jboolean rotate)
 	//convert pixel format to 32bpp for compositing
 	//why do we do this over and over? well, we are compositing to
 	//filteredbuffer32bpp, and it needs to get refreshed each frame..
-	//const int size = video.size();
-	const int size = 256*384;
+	const int size = video.size();
+	//const int size = 256*384;
 	u16* src = (u16*)video.srcBuffer;
 	if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_8888)
 	{
