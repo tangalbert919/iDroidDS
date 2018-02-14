@@ -17,4 +17,4 @@ android:
     - android-27
 
     # We need a specific version of BuildTools to get this working.
-    - build-tools-26.0.2
+    - build-tools-27.0.3
