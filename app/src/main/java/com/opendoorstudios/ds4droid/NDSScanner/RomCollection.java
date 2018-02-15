@@ -46,6 +46,7 @@ public class RomCollection {
 			return false;
 		}
 	},
+	// TODO: Add RAR and 7z file support.
 	/*
 	RAR_FILTER = new FileFilter() { @Override public boolean accept( File file ) {
 		if ( file.getName().matches( "^.*\\.(RAR|rar)$" )) {
@@ -54,7 +55,17 @@ public class RomCollection {
 		}
 		return false;
 	}},
-	*/
+	SEVENZ_FILTER = new FileFilter() {
+		@Override
+		public boolean accept(File file) {
+			if (file.getName().matches(NdsRom.SEVENZ_PATTERN)) {
+				try {
+					return NdsRom.isRomArchive(new ZipFile(file));
+				} catch (IOException e) {return false;}
+			}
+			return false;
+		}
+	},*/
 	ALL_ROMS_FILTER = new FileFilter() {
 		@Override
 		public boolean accept( File file ) {

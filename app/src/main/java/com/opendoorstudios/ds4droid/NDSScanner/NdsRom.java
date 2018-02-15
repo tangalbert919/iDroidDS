@@ -223,7 +223,8 @@ public class NdsRom {
 		}
 		return false;
 	}
-	
+
+	// TODO: Add RAR support.
 	//--------------------------------------------------------------------------
 	/*
 	private static boolean isRomArchive( RARFile file ) {
@@ -235,7 +236,10 @@ public class NdsRom {
 	*/
 	//--------------------------------------------------------------------------
 
-	// 7-zip isRomArchive() method goes here.
+	// TODO: Add 7z support.
+	private static boolean isRomArchive() {
+		return false;
+	}
 
 	//--------------------------------------------------------------------------
 	
@@ -255,6 +259,10 @@ public class NdsRom {
 			try { return getRomStream( new RARFile( file )); }
 			catch ( IOException e ) { return null; }
 		}
+		if ( file.getName().matches( SEVENZ_PATTERN )) {
+			Log.d("NDS", "\nLoading 7z file " + file.getName());
+			try {return get RomStram(new SevenZFile(file)); }
+			catch (IOException e) {return null;}
 		*/
 		return null;
 	}

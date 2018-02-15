@@ -25,14 +25,13 @@
     <color name="gray">#ffff0000</color>
     <string name="err">Error</string>
     <string name="Load">Load</string>
-    <string name="QuickSave">Quick Save</string>
     <string name="QuickRestore">Quick Restore</string>
     <string name="SaveState">Save State</string>
     <string name="RestoreState">Restore State</string>
     <string name="Settings">Settings</string>
     
     <!-- Release 2 -->
-    <string name="touchnotify">To toggle between touch mode and keypad mode, tap the "touch" button on the center of the screen.</string>
+    <string name="touchnotify">To toggle between touch mode and keypad mode, tap the touch button on the center of the screen.</string>
     <string name="frameskip">Frame skip</string>
     <string name="frameskipdesc">This allows emulating to match real time faster. Useful on slow devices.</string>
     <string name="vsync">V-Sync</string>
@@ -306,9 +305,5 @@
         <item>3</item>
         <item>4</item>
     </string-array>
-    <string-array name="soundcores">
-        <item>Disabled</item>
-        <item>OpenSL ES</item>
-        <item>SDL2</item>
-    </string-array>
+    <string name="QuickSave">Quick Save</string>
 </resources>
