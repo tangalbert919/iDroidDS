@@ -293,7 +293,7 @@ extern CACHE_ALIGN GLuint dsDepthToD24S8_LUT[32768];
 extern const GLfloat divide5bitBy31_LUT[32];
 
 extern void (*OGLES3LoadEntryPoints_Func)();
-extern void (*OGLES3CreateRenderers_Func)(OpenGLESRenderer **pGLESRenderer);
+extern void (*OGLES3CreateRenderer_Func)(OpenGLESRenderer **pGLESRenderer);
 
 //FORCEINLINE u32 BGRA8888_32_To_RGBA6665_32(const u32 srcPix);
 //FORCEINLINE u32 BGRA8888_32Rev_To_RGBA6665_32Rev(const u32 srcPix);

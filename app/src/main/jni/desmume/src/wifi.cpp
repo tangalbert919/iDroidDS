@@ -308,7 +308,7 @@ WifiComInterface* wifiCom;
 // 3: medium logging, for debugging, shows lots of stuff
 // 4: high logging, for debugging, shows almost everything, may slow down
 // 5: highest logging, for debugging, shows everything, may slow down a lot
-#define WIFI_LOGGING_LEVEL 3
+#define WIFI_LOGGING_LEVEL 0
 
 #define WIFI_LOG_USE_LOGC 0
 
@@ -329,7 +329,7 @@ WifiComInterface* wifiCom;
  *******************************************************************************/
 
 // TODO: find the right value
-// GBAtek says it is 10µs, however that value seems too small
+// GBAtek says it is 10ï¿½s, however that value seems too small
 // (MP host sends floods of data frames, clients can't keep up)
 // 100 would make more sense since CMDCOUNT is set to 166
 // that would be 16.6ms ~= 1 frame
@@ -1283,7 +1283,7 @@ void WIFI_write16(u32 address, u16 val)
 			wifiMac.eCountEnable = BIT0(val);
 			break;
 		case REG_WIFI_EXTRACOUNT:
-			WIFI_LOG(3, "EXTRACOUNT=%i (%i µs)\n", val, val*WIFI_CMDCOUNT_SLICE);
+			WIFI_LOG(3, "EXTRACOUNT=%i (%i ï¿½s)\n", val, val*WIFI_CMDCOUNT_SLICE);
 			wifiMac.eCount = (u32)val * WIFI_CMDCOUNT_SLICE;
 			break;
 		case REG_WIFI_LISTENINT:

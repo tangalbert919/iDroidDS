@@ -35,11 +35,16 @@ Any device with over 512 MB of RAM and uses Android 5.0 or above should be able 
 * Handle problems other users have reported.
 * Add Dropbox support.
 * Improve the OpenGL ES 2.0 Renderer.
-* Convert the OpenGL ES 3.0 Renderer into a separate renderer.
-* Get rid of Google's math-neon and replace it with Qualcomm's Ne10.
-* Fix the bug that causes the emulator to not write save files.
+* Get the OpenGL ES 3.0 Renderer working.
+* Replace Google's math-neon with Qualcomm's Ne10.
+* Switch to libc++ (NDK requirements).
+* ~~Fix the bug that causes the emulator to not write save files~~ This has been fixed.
 * Improve the UI.
+* Add Vulkan renderer.
+* Build JIT for ARM (x86 already has it).
 
-**DISCLAIMER:** nds4droid is licensed under the GNU General Public License, which means the software is provided as-is. The Nintendo DS, and the Nintendo DS logo are trademarks of Nintendo, Inc. Games that support the Nintendo DS are trademarks of Nintendo, Inc., and their respective companies and affiliates.
+**DISCLAIMER:** nds4droid is licensed under the GNU General Public License, which means the software is provided as-is. Absolutely no warranty is provided with this software.
 
-**We do not support piracy in any way. All ROMs that are found online have copyrights that last 75 years. Only use the games you physically own. Don't be a pirate. Have a nice day.**
+The Nintendo DS, and the Nintendo DS logo are trademarks of Nintendo, Inc. Games that support the Nintendo DS are trademarks of Nintendo, Inc., and their respective companies and affiliates.
+
+**We do not support piracy in any way. Only use the games you physically own. Don't be a pirate. Have a nice day.**

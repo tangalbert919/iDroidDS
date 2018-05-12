@@ -66,7 +66,7 @@ bool (*oglrender_init)() = NULL;
 bool (*oglrender_beginOpenGL)() = NULL;
 void (*oglrender_endOpenGL)() = NULL;
 void (*OGLES3LoadEntryPoints_Func)() = NULL;
-void (*OGLES3CreateRenderers_Func)(OpenGLESRenderer **pGLESRenderer) = NULL;
+void (*OGLES3CreateRenderer_Func)(OpenGLESRenderer **pGLESRenderer) = NULL;
 
 //------------------------------------------------------------
 
@@ -541,10 +541,10 @@ static char OGLInit(void)
 
     // If OpenGL ES 3.0 is supported, we will do this.
     if (IsVersionSupported(3,0)) {
-        if (OGLES3LoadEntryPoints_Func != NULL && OGLES3CreateRenderers_Func != NULL) {
+        if (OGLES3LoadEntryPoints_Func != NULL && OGLES3CreateRenderer_Func != NULL) {
             OGLES3LoadEntryPoints_Func();
             OGLES2LoadEntryPoints();
-            OGLES3CreateRenderers_Func(&_OGLRenderer);
+            OGLES3CreateRenderer_Func(&_OGLRenderer);
             INFO("OpenGL ES: Renderer initialized successfully (v%u.%u).\n[ Driver Info -\n    Version: %s\n    Vendor: %s\n    Renderer: %s ]\n");
         }
 		else

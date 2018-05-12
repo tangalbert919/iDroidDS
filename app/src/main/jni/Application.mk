@@ -1,7 +1,7 @@
 # Android ndk makefile for nds4droid
 
 # We need to switch to libc++
-APP_STL := gnustl_static
+APP_STL := c++_static
 APP_ABI := armeabi-v7a x86 arm64-v8a x86_64
 
 # For releases. The first CFLAG line is for GCC, and the second one is Clang.
