@@ -204,7 +204,7 @@ public class Settings extends PreferenceActivity {
 				editor.putBoolean("Controls.Portrait.Draw", false);
 				editor.putBoolean(SHOW_TOUCH_MESSAGE, false);
 				editor.putBoolean(ALWAYS_TOUCH, true);
-				editor.putString(ENABLE_SOUND, "1");
+				editor.putBoolean(ENABLE_SOUND, true);
 				editor.putBoolean(ENABLE_MICROPHONE, false);
 				editor.putBoolean(SHOW_SOUND_MESSAGE, false);
 				editor.apply();
@@ -239,7 +239,7 @@ public class Settings extends PreferenceActivity {
 		if(!prefs.contains(RENDERER))
 			editor.putString(RENDERER, "3");
 		if(!prefs.contains(ENABLE_SOUND))
-			editor.putString(ENABLE_SOUND, "1");
+			editor.putBoolean(ENABLE_SOUND, true);
 		if(!prefs.contains(SHOW_SOUND_MESSAGE))
 			editor.putBoolean(SHOW_SOUND_MESSAGE, false);
 		if(!prefs.contains(LCD_SWAP))
@@ -265,7 +265,7 @@ public class Settings extends PreferenceActivity {
 		if(!prefs.contains(JIT_SIZE))
 			editor.putInt(JIT_SIZE,10);
 		if(!prefs.contains(ENABLE_AUTOSAVE))
-			editor.putBoolean(ENABLE_AUTOSAVE, true);
+			editor.putBoolean(ENABLE_AUTOSAVE, false);
 		if(!prefs.contains(AUTOSVAE_FREQUENCY))
 			editor.putString(AUTOSVAE_FREQUENCY, "1");
 		if(!prefs.contains(DISABLE_ROM_BROWSER))

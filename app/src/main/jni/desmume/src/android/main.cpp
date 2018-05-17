@@ -640,7 +640,7 @@ void loadSettings(JNIEnv* env)
 	CommonSettings.spuInterpolationMode = (SPUInterpolationMode)GetPrivateProfileInt(env, "Sound","SPUInterpolation", 1, IniName);
 	snd_synchmode = GetPrivateProfileInt(env, "Sound","SynchMode",0,IniName);
 	snd_synchmethod = GetPrivateProfileInt(env, "Sound","SynchMethod",0,IniName);
-	sndcoretype = GetPrivateProfileInt(env, "Sound","SoundCore", 1, IniName);
+	sndcoretype = GetPrivateProfileBool(env, "Sound","SoundCore", true, IniName);
 	// The original was 8/60. By decreasing the buffer sample rate, we seem to be getting much better sound.
 	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize", DESMUME_SAMPLE_RATE*8/120, IniName);
 
