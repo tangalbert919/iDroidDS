@@ -31,7 +31,6 @@
 
 #include "main.h"
 #include "../OGLES2Render.h"
-#include "../OGLES3Render.h"
 #include "../rasterize.h"
 #include "../SPU.h"
 #include "../debug.h"
@@ -61,7 +60,6 @@ unsigned int frameCount = 0;
 GPU3DInterface *core3DList[] = {
 	&gpu3DNull,
 	&gpu3Dgles2,
-    &gpu3Dgles3,
 	&gpu3DRasterize,
 	NULL
 };
@@ -511,14 +509,6 @@ jint JNI(draw, jobject bitmapMain, jobject bitmapTouch, jboolean rotate)
 
 		video.filter();
 	}
-    else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_4444)
-    {
-        u16* dest = (u16*)video.buffer;
-        for(int i=0;i<size;++i)
-            *dest++ = (u16) RGB15TO24_REVERSE(*src++);
-
-		video.filter();
-    }
 
 	//here the magic happens
 	void* pixels = NULL;
@@ -753,7 +743,7 @@ void JNI(init, jobject _inst)
 	NDS_Init();
 
     // This is for the renderer used. Default is rasterizer.
-	cur3DCore = GetPrivateProfileInt(env, "3D", "Renderer", 3, IniName);
+	cur3DCore = GetPrivateProfileInt(env, "3D", "Renderer", 2, IniName);
 	NDS_3D_ChangeCore(cur3DCore);
 	
 	LOG("Init sound core\n");

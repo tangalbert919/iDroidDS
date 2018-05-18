@@ -65,8 +65,6 @@ static void ENDGL()
 bool (*oglrender_init)() = NULL;
 bool (*oglrender_beginOpenGL)() = NULL;
 void (*oglrender_endOpenGL)() = NULL;
-void (*OGLES3LoadEntryPoints_Func)() = NULL;
-void (*OGLES3CreateRenderer_Func)(OpenGLESRenderer **pGLESRenderer) = NULL;
 
 //------------------------------------------------------------
 
@@ -540,7 +538,7 @@ static char OGLInit(void)
 	}
 
     // If OpenGL ES 3.0 is supported, we will do this.
-    if (IsVersionSupported(3,0)) {
+    /*if (IsVersionSupported(3,0)) {
         if (OGLES3LoadEntryPoints_Func != NULL && OGLES3CreateRenderer_Func != NULL) {
             OGLES3LoadEntryPoints_Func();
             OGLES2LoadEntryPoints();
@@ -550,7 +548,7 @@ static char OGLInit(void)
 		else
 			INFO("OpenGL ES: Something went wrong with initializing with v3.0. Falling back to v2.0.");
 
-    }
+    }*/
 	
 	// If the renderer doesn't initialize with OpenGL ES v3.0 or higher, fall back
 	// to one of the lower versions.
@@ -664,16 +662,6 @@ GPU3DInterface gpu3Dgles2 = {
 	OGLRender,
 	OGLRenderFinish,
 	OGLVramReconfigureSignal
-};
-
-GPU3DInterface gpu3Dgles3 = {
-        "OpenGLES3",
-        OGLInit,
-        OGLReset,
-        OGLClose,
-        OGLRender,
-        OGLRenderFinish,
-        OGLVramReconfigureSignal
 };
 
 OpenGLESRenderer::OpenGLESRenderer()

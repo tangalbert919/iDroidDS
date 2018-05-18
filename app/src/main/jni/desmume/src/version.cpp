@@ -49,6 +49,8 @@
 	#define DESMUME_PLATFORM_STRING " x86"
 #elif defined(__arm__)
 	#define DESMUME_PLATFORM_STRING " ARM"
+#elif defined(__aarch64__)
+	#define DESMUME_PLATFORM_STRING " ARM64"
 #elif defined(__thumb__)
 	#define DESMUME_PLATFORM_STRING " ARM-Thumb"
 #elif defined(__ppc64__)
