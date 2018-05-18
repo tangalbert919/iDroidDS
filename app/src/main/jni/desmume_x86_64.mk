@@ -94,7 +94,6 @@ LOCAL_SRC_FILES			:= 	desmume/src/addons/slot1_none.cpp \
 							desmume/src/movie.cpp \
 							desmume/src/NDSSystem.cpp \
 							desmume/src/OGLES2Render.cpp \
-							desmume/src/OGLES3Render.cpp \
 							desmume/src/path.cpp \
 							desmume/src/rasterize.cpp \
 							desmume/src/readwrite.cpp \

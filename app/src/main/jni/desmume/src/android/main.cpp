@@ -45,11 +45,6 @@
 #include "OpenArchive.h"
 #include "sndopensl.h"
 #include "cheatSystem.h"
-//#include "neontest.h"
-
-#if defined(HAVE_NEON)
-#include <android/math-neon/math_neon.h>
-#endif
 
 #define JNI(X,...) Java_com_opendoorstudios_ds4droid_DeSmuME_##X(JNIEnv* env, jclass* clazz, __VA_ARGS__)
 #define JNI_NOARGS(X) Java_com_opendoorstudios_ds4droid_DeSmuME_##X(JNIEnv* env, jclass* clazz)
