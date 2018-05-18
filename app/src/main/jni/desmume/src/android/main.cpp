@@ -752,8 +752,8 @@ void JNI(init, jobject _inst)
 	
 	NDS_Init();
 
-    // This is for the renderer used. By default, we use OpenGL ES 2.0 because of rasterizer problems.
-	cur3DCore = GetPrivateProfileInt(env, "3D", "Renderer", 1, IniName);
+    // This is for the renderer used. Default is rasterizer.
+	cur3DCore = GetPrivateProfileInt(env, "3D", "Renderer", 3, IniName);
 	NDS_3D_ChangeCore(cur3DCore);
 	
 	LOG("Init sound core\n");
