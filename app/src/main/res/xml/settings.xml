@@ -18,7 +18,7 @@
       <PreferenceCategory android:title="@string/Display">
 	      <ListPreference android:entries="@array/zerothroughnine" android:entryValues="@array/zerothroughnine" android:key="FrameSkip" android:title="@string/frameskip" android:summary="@string/frameskipdesc"/>
 	      <ListPreference android:title="@string/filter" android:summary="@string/filterdesc" android:key="Filter" android:entryValues="@array/zerothroughtwentytwo" android:entries="@array/filternames"/>Filter
-	      <ListPreference android:key="Renderer" android:title="@string/threedrenderer" android:summary="@string/threedrendererdesc" android:entries="@array/threed_options" android:entryValues="@array/zerothroughthree"/>
+	      <ListPreference android:key="Renderer" android:title="@string/threedrenderer" android:summary="@string/threedrendererdesc" android:entries="@array/threed_options" android:entryValues="@array/zerothroughtwo"/>
 	      <CheckBoxPreference android:title="@string/fps" android:summary="@string/fpsdesc" android:key="DisplayFps"/>
 	      <CheckBoxPreference android:title="@string/LCDSwap" android:key="LCDsSwap" android:summary="@string/LCDSwapDesc"/>
 		  <CheckBoxPreference android:title="@string/DontRotateLCDs" android:key="WindowRotate" android:summary="@string/DontRotateLCDsDesc"/>
