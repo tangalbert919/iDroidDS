@@ -128,4 +128,3 @@ LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -lGLESv3 -ljnigraphics -lOpenSLES -l
 #LOCAL_CFLAGS += -DMEASURE_FIRST_FRAMES
 
 include $(BUILD_SHARED_LIBRARY)
-include $(LOCAL_BUILD_PATH)/desmume/src/android/math-neon/Android.mk
