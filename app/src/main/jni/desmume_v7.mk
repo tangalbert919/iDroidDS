@@ -119,7 +119,7 @@ LOCAL_ARM_NEON 			:= false
 LOCAL_ARM_MODE 			:= arm
 LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -mfloat-abi=softfp -mfpu=vfpv3-d16 -marm -march=armv7-a
 LOCAL_STATIC_LIBRARIES 	:= sevenzip
-LOCAL_LDLIBS 			:= -llog -lz -lGLESv2 -lGLESv3 -lEGL -ljnigraphics -lOpenSLES -landroid
+LOCAL_LDLIBS 			:= -llog -lz -lGLESv2 -lEGL -ljnigraphics -lOpenSLES -landroid
 
 #To check for speed improvements
 #LOCAL_CFLAGS += -DMEASURE_FIRST_FRAMES

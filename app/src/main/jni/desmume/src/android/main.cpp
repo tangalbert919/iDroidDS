@@ -22,7 +22,7 @@
 #include <android/native_window_jni.h>
 
 #include <EGL/egl.h>
-#include <GLES/gl.h>
+#include <GLES2/gl2.h>
 #include <android/sensor.h>
 #include <android/bitmap.h>
 #include <GPU.h>
@@ -664,8 +664,7 @@ void JNI_NOARGS(loadSettings)
 void JNI(init, jobject _inst)
 {
 #if defined(HAVE_NEON)
-	//neontest();
-	//enable_runfast();
+
 #endif
 	INFO("");
 
