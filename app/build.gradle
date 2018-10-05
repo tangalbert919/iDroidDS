@@ -28,6 +28,9 @@ def getVersionName = {
 android {
     signingConfigs {
     }
+    dependencies {
+        compile 'com.dropbox.core:dropbox-core-sdk:3.0.9'
+    }
     compileSdkVersion 27
     defaultConfig {
         applicationId 'org.opendoorstudios.ds4droid'
