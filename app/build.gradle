@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "26.0.1"
+    compileSdkVersion 26
+    buildToolsVersion "28.0.3"
     defaultConfig {
         applicationId "com.opendoorstudios.ds4droid"
         minSdkVersion 14
-        targetSdkVersion 19
+        targetSdkVersion 26
         versionCode 47
         versionName "47.1"
     }
