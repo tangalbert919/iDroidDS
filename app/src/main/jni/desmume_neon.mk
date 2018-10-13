@@ -120,7 +120,7 @@ LOCAL_ARM_MODE 			:= arm
 LOCAL_CFLAGS			:= -DANDROID -DHAVE_LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_NEON=1 -mfloat-abi=softfp -mfpu=neon-fp16 -marm -march=armv7-a -mtune=cortex-a7
 #To increase performance for the Qualcomm Krait CPU
 #LOCAL_CFLAGS            := -DANDROID -DHAVE-LIBZ -DNO_MEMDEBUG -DNO_GPUDEBUG -DHAVE_NEON=1 -mfloat-abi=softfp -mfpu=neon-vfpv4 -marm -march=armv7-a -mcpu=krait2
-LOCAL_STATIC_LIBRARIES 	:= sevenzip lightningarm
+LOCAL_STATIC_LIBRARIES 	:= sevenzip
 LOCAL_LDLIBS 			:= -llog -lz -lEGL -lGLESv2 -ljnigraphics -lOpenSLES -landroid
 
 #To check for speed improvements

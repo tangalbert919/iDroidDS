@@ -7,7 +7,6 @@ include $(CLEAR_VARS)
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 include $(LOCAL_BUILD_PATH)/desmume_neon.mk
 include $(LOCAL_BUILD_PATH)/desmume_v7.mk
-include $(LOCAL_BUILD_PATH)/desmume/src/utils/lightning-2.1.2/lightning.mk
 endif
 
 ifeq ($(TARGET_ARCH_ABI),x86)
@@ -20,7 +19,6 @@ endif
 
 ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
 include $(LOCAL_BUILD_PATH)/desmume_arm64.mk
-include $(LOCAL_BUILD_PATH)/desmume/src/utils/lightning-2.1.2/lightning.mk
 endif
 
 include $(LOCAL_BUILD_PATH)/cpudetect/cpudetect.mk
