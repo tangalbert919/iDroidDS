@@ -166,6 +166,8 @@
     <orderEntry type="jdk" jdkName="Android API 27 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Gradle: com.dropbox.core:dropbox-core-sdk:3.0.9@jar" level="project" />
+    <orderEntry type="library" name="Gradle: net.sf.sevenzipjbinding:sevenzipjbinding:9.20-2.00beta@jar" level="project" />
+    <orderEntry type="library" name="Gradle: net.sf.sevenzipjbinding:sevenzipjbinding-linux-arm:9.20-2.00beta@jar" level="project" />
     <orderEntry type="library" name="Gradle: __local_aars__:C.\Users\Albert\Documents\iDroidDS\app\libs\ouya-sdk.jar:unspecified@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-core:2.7.4@jar" level="project" />
   </component>

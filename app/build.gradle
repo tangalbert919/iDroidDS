@@ -30,6 +30,8 @@ android {
     }
     dependencies {
         api 'com.dropbox.core:dropbox-core-sdk:3.0.9'
+        api 'net.sf.sevenzipjbinding:sevenzipjbinding:9.20-2.00beta'
+        api 'net.sf.sevenzipjbinding:sevenzipjbinding-linux-arm:9.20-2.00beta'
     }
     compileSdkVersion 27
     defaultConfig {

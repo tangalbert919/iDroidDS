@@ -3,11 +3,27 @@ package com.opendoorstudios.ds4droid.NDSScanner;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.util.Log;
+
+import net.sf.sevenzipjbinding.ExtractAskMode;
+import net.sf.sevenzipjbinding.ExtractOperationResult;
+import net.sf.sevenzipjbinding.IArchiveExtractCallback;
+import net.sf.sevenzipjbinding.IInArchive;
+import net.sf.sevenzipjbinding.ISequentialOutStream;
+import net.sf.sevenzipjbinding.PropID;
+import net.sf.sevenzipjbinding.SevenZip;
+import net.sf.sevenzipjbinding.SevenZipException;
+import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
+import net.sf.sevenzipjbinding.simple.ISimpleInArchive;
+import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -237,8 +253,17 @@ public class NdsRom {
 	//--------------------------------------------------------------------------
 
 	// TODO: Add 7z support.
-	private static boolean isRomArchive() {
-		return false;
+	static boolean isRomArchive( RandomAccessFile file ) throws SevenZipException {
+		boolean isRom = false;
+		IInArchive inArchive = SevenZip.openInArchive(null, new RandomAccessFileInStream(file));
+		ISimpleInArchive simpleInArchive = inArchive.getSimpleInterface();
+
+		for (ISimpleInArchiveItem item: simpleInArchive.getArchiveItems()) {
+			Log.d("7z-test", item.getPath());
+			if (item.getPath().matches(ROM_PATTERN)) isRom = true;
+		}
+		inArchive.close();
+		return isRom;
 	}
 
 	//--------------------------------------------------------------------------
@@ -258,12 +283,15 @@ public class NdsRom {
 			Log.d( "NDS", "\nLoading RAR file " + file.getName() );
 			try { return getRomStream( new RARFile( file )); }
 			catch ( IOException e ) { return null; }
-		}
+		}*/
 		if ( file.getName().matches( SEVENZ_PATTERN )) {
 			Log.d("NDS", "\nLoading 7z file " + file.getName());
-			try {return get RomStram(new SevenZFile(file)); }
-			catch (IOException e) {return null;}
-		*/
+			try {
+				return getRomStream(new RandomAccessFile(file, "r"));
+			} catch (IOException e) {
+				return null;
+			}
+		}
 		return null;
 	}
 	
@@ -291,5 +319,41 @@ public class NdsRom {
 	}
 	*/
 	//--------------------------------------------------------------------------
+
+	private static InputStream getRomStream( RandomAccessFile file ) throws SevenZipException {
+		IInArchive inArchive = SevenZip.openInArchive(null, new RandomAccessFileInStream(file));
+		int count = inArchive.getNumberOfItems();
+		ISimpleInArchive simpleInArchive = inArchive.getSimpleInterface();
+
+		for (ISimpleInArchiveItem item: simpleInArchive.getArchiveItems()) {
+			final int[] hash = new int[] {0};
+			if (item.getPath().matches(ROM_PATTERN)) {
+				ExtractOperationResult result;
+				final long[] sizeArray = new long[1];
+				result = item.extractSlow(new ISequentialOutStream() {
+					@Override
+					public int write(byte[] data) throws SevenZipException {
+						hash[0] ^= Arrays.hashCode(data);
+						sizeArray[0] += data.length;
+						return data.length;
+					}
+				});
+
+				if (result == ExtractOperationResult.OK) {
+					Log.d("NDS", String.format("&9X | %10s | %s", hash[0], sizeArray[0], item.getPath()));
+				}
+				else {
+					System.err.println("Error extracting item: " + result);
+				}
+				inArchive.close();
+				try {
+					return new FileInputStream(new File(item.getPath()));
+				} catch (Exception e) {
+					return null;
+				}
+			}
+		}
+		return null;
+	}
 }
 //------------------------------------------------------------------------------

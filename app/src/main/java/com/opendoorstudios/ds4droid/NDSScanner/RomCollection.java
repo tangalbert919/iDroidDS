@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
@@ -54,25 +55,30 @@ public class RomCollection {
 			catch ( IOException e ) { return false; }
 		}
 		return false;
-	}},
+	}},*/
 	SEVENZ_FILTER = new FileFilter() {
 		@Override
 		public boolean accept(File file) {
+			Log.d("7z-test", "Detected a 7z file. Let's OPEN IT!!!");
 			if (file.getName().matches(NdsRom.SEVENZ_PATTERN)) {
 				try {
-					return NdsRom.isRomArchive(new ZipFile(file));
-				} catch (IOException e) {return false;}
+					Log.d("7z-test", file.getName());
+					return NdsRom.isRomArchive(new RandomAccessFile(file, "r"));
+				} catch (IOException e) {
+					Log.d("7z-test", "Could not load 7z file.");
+					return false;
+				}
 			}
 			return false;
 		}
-	},*/
+	},
 	ALL_ROMS_FILTER = new FileFilter() {
 		@Override
 		public boolean accept( File file ) {
 			return NDS_FILTER.accept( file )
 					|| ZIP_FILTER.accept( file )
-			      /*|| RAR_FILTER.accept( file )
-			        || SEVENZ_FILTER.accept( file) */;
+			      /*|| RAR_FILTER.accept( file )*/
+			        || SEVENZ_FILTER.accept( file ) ;
 		}
 	};
 
