@@ -60,6 +60,9 @@ import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 
+import net.sf.sevenzipjbinding.SevenZip;
+import net.sf.sevenzipjbinding.SevenZipNativeInitializationException;
+
 public class MainActivity extends Activity implements OnSharedPreferenceChangeListener {
 
 	static EmulatorThread coreThread;
@@ -125,7 +128,12 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
+		try {
+			SevenZip.initSevenZipFromPlatformJAR("Linux-arm");
+		} catch (SevenZipNativeInitializationException e) {
+			e.printStackTrace();
+		}
 		if(IS_OUYA)
 			Log.i(TAG, "Starting in OUYA mode");
 

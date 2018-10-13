@@ -255,14 +255,21 @@ public class NdsRom {
 	// TODO: Add 7z support.
 	static boolean isRomArchive( RandomAccessFile file ) throws SevenZipException {
 		boolean isRom = false;
-		IInArchive inArchive = SevenZip.openInArchive(null, new RandomAccessFileInStream(file));
-		ISimpleInArchive simpleInArchive = inArchive.getSimpleInterface();
+		Log.d("7z-archive-check", "Checking to see if this is an archive.");
+		// The native library needed won't initialize at all, so we end up in "catch" instead.
+		try {
+			IInArchive inArchive = SevenZip.openInArchive(null, new RandomAccessFileInStream(file));
+			ISimpleInArchive simpleInArchive = inArchive.getSimpleInterface();
+			Log.d("7z-archive-check", "This is an archive. It will be opened.");
 
-		for (ISimpleInArchiveItem item: simpleInArchive.getArchiveItems()) {
-			Log.d("7z-test", item.getPath());
-			if (item.getPath().matches(ROM_PATTERN)) isRom = true;
+			for (ISimpleInArchiveItem item: simpleInArchive.getArchiveItems()) {
+				Log.d("7z-archive-check", item.getPath());
+				if (item.getPath().matches(ROM_PATTERN)) isRom = true;
+			}
+			inArchive.close();
+		} catch (Exception e) {
+			Log.d("7z-archive-check", "Could not open archive " + e);
 		}
-		inArchive.close();
 		return isRom;
 	}
 

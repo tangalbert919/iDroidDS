@@ -61,11 +61,10 @@ public class RomCollection {
 		public boolean accept(File file) {
 			Log.d("7z-test", "Detected a 7z file. Let's OPEN IT!!!");
 			if (file.getName().matches(NdsRom.SEVENZ_PATTERN)) {
+				Log.d("7z-test", "Ok we're in");
 				try {
-					Log.d("7z-test", file.getName());
 					return NdsRom.isRomArchive(new RandomAccessFile(file, "r"));
 				} catch (IOException e) {
-					Log.d("7z-test", "Could not load 7z file.");
 					return false;
 				}
 			}
