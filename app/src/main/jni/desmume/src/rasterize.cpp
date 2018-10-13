@@ -432,32 +432,18 @@ public:
 			enabled = gfx3d.renderState.enableTexturing && (texFormat!=0);
 		}
 
-		/*FORCEINLINE void clamp(s32 &val, const int size, const s32 sizemask){
+		FORCEINLINE void clamp(s32 &val, const int size, const s32 sizemask){
 			if(val<0) val = 0;
 			if(val>sizemask) val = sizemask;
-		}*/
+		}
+		FORCEINLINE void hclamp(s32 &val) { clamp(val,width,wmask); }
+		FORCEINLINE void vclamp(s32 &val) { clamp(val,height,hmask); }
 
-		//jeffq: branchless clamp
-        #define clamp(val, unused, sizemax) \
-			((val = val + ( -val & ( val >> 31 ) )), (val = sizemax + ( ( val - sizemax ) & ( (val - sizemax) >> 31))))
-
-		/*FORCEINLINE void hclamp(s32 &val) { clamp(val,width,wmask); }
-		FORCEINLINE void vclamp(s32 &val) { clamp(val,height,hmask); }*/
-
-        #define hclamp(val) clamp(val,width,wmask)
-        #define vclamp(val) clamp(val,height,hmask)
-
-		/*FORCEINLINE void repeat(s32 &val, const int size, const s32 sizemask) {
+		FORCEINLINE void repeat(s32 &val, const int size, const s32 sizemask) {
 			val &= sizemask;
-		}*/
-
-        #define repeat(val, unused, sizemask) val &= sizemask
-
-		/*FORCEINLINE void hrepeat(s32 &val) { repeat(val,width,wmask); }
-		FORCEINLINE void vrepeat(s32 &val) { repeat(val,height,hmask); }*/
-
-        #define hrepeat(val) repeat(val,width,wmask)
-        #define vrepeat(val) repeat(val,height,hmask)
+		}
+		FORCEINLINE void hrepeat(s32 &val) { repeat(val,width,wmask); }
+		FORCEINLINE void vrepeat(s32 &val) { repeat(val,height,hmask); }
 
 		FORCEINLINE void flip(s32 &val, const int size, const s32 sizemask) {
 			val &= ((size<<1)-1);
@@ -697,14 +683,9 @@ public:
 		//this is a HACK: 
 		//we are being very sloppy with our interpolation precision right now
 		//and rather than fix it, i just want to clamp it
-		shader.materialColor.r = (u8) max(0U, min(63U, u32floor(r)));
-		shader.materialColor.g = (u8) max(0U, min(63U, u32floor(g)));
-		shader.materialColor.b = (u8) max(0U, min(63U, u32floor(b)));
-
-		/*MakeFragmentColor(max<u8>(0x00, min<u32>(0x3F,u32floor(r))),
-						  max<u8>(0x00, min<u32>(0x3F,u32floor(g))),
-						  max<u8>(0x00, min<u32>(0x3F,u32floor(b))),
-						  polyAttr.alpha);*/
+		shader.materialColor.r = max(0U,min(63U,u32floor(r)));
+		shader.materialColor.g = max(0U,min(63U,u32floor(g)));
+		shader.materialColor.b = max(0U,min(63U,u32floor(b)));
 
 		shader.materialColor.a = polyAttr.alpha;
 

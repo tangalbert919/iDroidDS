@@ -3514,7 +3514,7 @@ void FASTCALL _MMU_ARM9_write08(u32 adr, u8 val)
 	if(restricted) return; //block 8bit vram writes
 
 #ifdef HAVE_JIT
-    if (JIT_MAPPED(adr, ARMCPU_ARM9))
+	if (JIT_MAPPED(adr, ARMCPU_ARM9))
 		JIT_COMPILED_FUNC_PREMASKED(adr, ARMCPU_ARM9, 0) = 0;
 #endif
 

@@ -20,6 +20,7 @@
 #include "path.h"
 #include <stdio.h>
 
+char PathInfo::pathToModule[MAX_PATH]; // added for iNDS backwards compatibility
 
 //-----------------------------------
 //This is taken from mono Path.cs

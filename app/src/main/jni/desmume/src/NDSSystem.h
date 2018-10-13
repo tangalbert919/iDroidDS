@@ -357,7 +357,7 @@ struct GameInfo
 	bool isDSiEnhanced();
 	bool isHomebrew();
 	bool hasRomBanner();
-	void resize(int size);
+	
 };
 
 typedef struct TSCalInfo
@@ -480,7 +480,7 @@ extern struct TCommonSettings {
 		, GFX3D_Zelda_Shadow_Depth_Hack(0)
 		, GFX3D_Renderer_Multisample(false)
 		, GFX3D_TXTHack(false)
-		, jit_max_block_size(50)
+		, jit_max_block_size(100)
 		, loadToMemory(false)
 		, UseExtBIOS(false)
 		, SWIFromBIOS(false)
@@ -523,9 +523,9 @@ extern struct TCommonSettings {
 #ifdef HAVE_JIT
 		//zero 06-sep-2012 - shouldnt be defaulting this to true for now, since the jit is buggy. 
 		//id rather have people discover a bonus speedhack than discover new bugs in a new version
-		use_jit = 0;
+		use_jit = false;
 #else
-		use_jit = 0;
+		use_jit = false;
 #endif
 
 		num_cores = NDS_GetCPUCoreCount();

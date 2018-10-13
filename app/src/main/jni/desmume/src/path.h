@@ -83,7 +83,7 @@ public:
 	#define FIRMWAREKEY		"Firmware"
 	#define FORMATKEY		"format"
 	#define DEFAULTFORMATKEY "defaultFormat"
-	//#define NEEDSSAVINGKEY	"needsSaving"
+	#define NEEDSSAVINGKEY	"needsSaving"
 	#define LASTVISITKEY	"lastVisit"
 	#define LUAKEY			"Lua"
 	#define SLOT1DKEY		"Slot1D"
@@ -114,7 +114,7 @@ public:
 	char pathToCheats[MAX_PATH];
 	char pathToSounds[MAX_PATH];
 	char pathToFirmware[MAX_PATH];
-	char pathToModule[MAX_PATH];
+	static char pathToModule[MAX_PATH]; // static added for backward compatibility
 	char pathToLua[MAX_PATH];
 	char pathToSlot1D[MAX_PATH];
 
@@ -134,7 +134,9 @@ public:
 
 	void LoadModulePath()
 	{
-#if defined(HOST_WINDOWS)
+#ifdef ANDROID
+	return; // set other places
+#elif defined(HOST_WINDOWS)
 
 		char *p;
 		ZeroMemory(pathToModule, sizeof(pathToModule));
@@ -155,9 +157,6 @@ public:
 		std::string pathStr = Path::GetFileDirectoryPath(path);
 
 		strncpy(pathToModule, pathStr.c_str(), MAX_PATH);
-#elif defined(ANDROID)
-        strncpy(pathToModule, "/storage/emulated/0/nds4droid", MAX_PATH); // Not good practice.
-        return; // set from java
 #else
 		char *cwd = g_build_filename(g_get_user_config_dir(), "desmume", NULL);
 		g_mkdir_with_parents(cwd, 0755);
@@ -178,8 +177,7 @@ public:
 		std::string temp = (std::string)"." + DIRECTORY_DELIMITER_CHAR + pathToDefault;
 		strncpy(pathToDefault, temp.c_str(), maxCount);
 #elif ANDROID
-        snprintf(pathToDefault, maxCount, "%s/%s", pathToModule, key);
-        //strncpy(pathToDefault, pathToModule, maxCount);
+		snprintf(pathToDefault, maxCount, "%s/%s", pathToModule, key); 
 #else
 		strncpy(pathToDefault, pathToModule, maxCount);
 #endif
@@ -286,7 +284,7 @@ public:
 	
 			if(!Path::IsPathRooted(thePath))
 			{
-				thePath = pathToModule + thePath;
+				thePath = (std::string)pathToModule + thePath;
 			}
 
 			strncpy(buffer, thePath.c_str(), MAX_PATH);
@@ -450,10 +448,14 @@ public:
 		if (i != std::string::npos) {
 			fileName = fileName.substr(i - 2);
 		}
-
-		return fileName == "ds.gba";
-
+		
+		if(fileName == "ds.gba") {
+			return true;
+		}
+		
+		return false;
 	}
 };
 
 extern PathInfo path;
+

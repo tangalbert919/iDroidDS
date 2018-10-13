@@ -31,7 +31,6 @@
 
 #ifdef HAVE_JIT
 #include "arm_jit.h"
-
 #endif
 
 #define ARMCPU_ARM7 1

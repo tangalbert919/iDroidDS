@@ -86,7 +86,6 @@ EGLContext context;
 const char* IniName = NULL;
 char androidTempPath[1024];
 extern bool enableMicrophone;
-PathInfo pathInfo;
 
 #ifdef USE_PROFILER
 bool profiler_start = false;
@@ -668,7 +667,7 @@ void JNI(init, jobject _inst)
 #endif
 	INFO("");
 
-	Logger::setCallbackAll(logCallback);
+	//Logger::setCallbackAll(logCallback);
 
 	oglrender_init = android_opengl_init;
 	InitDecoder();
@@ -807,7 +806,7 @@ void JNI(setWorkingDir, jstring path, jstring temp)
 {
 	jboolean isCopy;
 	const char* szPath = env->GetStringUTFChars(path, &isCopy);
-	strncpy(pathInfo.pathToModule, szPath, MAX_PATH);
+	strncpy(PathInfo::pathToModule, szPath, MAX_PATH);
 	env->ReleaseStringUTFChars(path, szPath);
 	
 	szPath = env->GetStringUTFChars(temp, &isCopy);

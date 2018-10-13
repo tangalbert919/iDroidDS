@@ -1770,7 +1770,7 @@ void gfx3d_glAlphaFunc(u32 v)
 
 unsigned int gfx3d_glGetPosRes(unsigned int index)
 {
-	return (unsigned int)(PTcoords[index] * 4096.0f);
+	return (unsigned int)(int)(PTcoords[index] * 4096.0f);
 }
 
 //#define _3D_LOG_EXEC

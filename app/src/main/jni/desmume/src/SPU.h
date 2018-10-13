@@ -49,8 +49,7 @@ enum SPUInterpolationMode
 {
 	SPUInterpolation_None = 0,
 	SPUInterpolation_Linear = 1,
-	SPUInterpolation_Cosine = 2,
-	SPUInterpolation_Cubic = 3
+	SPUInterpolation_Cosine = 2
 };
 
 struct SoundInterface_struct
