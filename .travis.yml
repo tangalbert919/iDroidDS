@@ -1,9 +1,9 @@
 language: android
 
 before_install:
-  - wget http://dl.google.com/android/repository/android-ndk-r18-linux-x86_64.zip
-  - unzip -q android-ndk-r18-linux-x86_64.zip -d /usr/local/android-sdk
-  - mv /usr/local/android-sdk/android-ndk-r18 /usr/local/android-sdk/ndk-bundle
+  - wget http://dl.google.com/android/repository/android-ndk-r18b-linux-x86_64.zip
+  - unzip -q android-ndk-r18b-linux-x86_64.zip -d /usr/local/android-sdk
+  - mv /usr/local/android-sdk/android-ndk-r18b /usr/local/android-sdk/ndk-bundle
 
 android:
   components:
