@@ -30,6 +30,7 @@ android {
     }
     dependencies {
         api 'com.dropbox.core:dropbox-core-sdk:3.0.9'
+        compile 'com.android.support:support-v4:27.1.1'
     }
     compileSdkVersion 27
     defaultConfig {
