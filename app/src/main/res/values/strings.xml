@@ -305,4 +305,5 @@
         <item>4</item>
     </string-array>
     <string name="QuickSave">Quick Save</string>
+    <string name="read_storage_permission_denied">This app needs permission to read files.</string>
 </resources>

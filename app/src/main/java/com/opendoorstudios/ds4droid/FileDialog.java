@@ -23,20 +23,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.view.KeyEvent;
+import android.support.v4.app.ActivityCompat;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 //This originally came from http://code.google.com/p/android-file-dialog/
@@ -104,14 +103,31 @@ public class FileDialog extends ListActivity {
 
 		canSelectDir = getIntent().getBooleanExtra(CAN_SELECT_DIR, false);
 
+		ActivityCompat.requestPermissions(this,
+					new java.lang.String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+	}
 
-		String startPath = getIntent().getStringExtra(START_PATH);
-		startPath = startPath != null ? startPath : ROOT;
-		if (canSelectDir) {
-			File file = new File(startPath);
-			selectedFile = file;
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+		switch (requestCode) {
+			case 1: {
+				if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+					String startPath = getIntent().getStringExtra(START_PATH);
+					startPath = startPath != null ? startPath : ROOT;
+					if (canSelectDir) {
+						File file = new File(startPath);
+						selectedFile = file;
+					}
+					getDir(startPath);
+				}
+				else {
+					Toast.makeText(this,
+							R.string.read_storage_permission_denied, Toast.LENGTH_LONG).show();
+					this.finish();
+				}
+				return;
+			}
 		}
-		getDir(startPath);
 	}
 
 	private void getDir(String dirPath) {
