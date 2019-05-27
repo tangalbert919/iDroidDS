@@ -33,7 +33,6 @@ public class TransparencyPreference extends DialogPreference implements OnSeekBa
 
     static final int defaultValue = 78;
     final Drawable example;
-    private SeekBar seek;
     private ImageView img;
     private DisplayMetrics metrics;
     private int currentValue;
@@ -55,18 +54,17 @@ public class TransparencyPreference extends DialogPreference implements OnSeekBa
         ((TextView) view.findViewById(R.id.min_value)).setText("0");
         ((TextView) view.findViewById(R.id.max_value)).setText("100");
 
-        seek = (SeekBar) view.findViewById(R.id.seek_bar);
+        SeekBar seek = view.findViewById(R.id.seek_bar);
         seek.setMax(100);
         seek.setProgress(currentValue);
         seek.setOnSeekBarChangeListener(this);
 
-        img = (ImageView) view.findViewById(R.id.current_value);
+        img = view.findViewById(R.id.current_value);
         img.setImageDrawable(example);
         img.setAlpha((int) (currentValue * 2.55f));
 
         return view;
     }
-
 
     @Override
     protected void onDialogClosed(boolean positiveResult) {
@@ -85,7 +83,6 @@ public class TransparencyPreference extends DialogPreference implements OnSeekBa
 
     @Override
     public CharSequence getSummary() {
-
         String summary = super.getSummary().toString();
         int value = getPersistedInt(currentValue);
         return summary + " (currently " + value + "%)";

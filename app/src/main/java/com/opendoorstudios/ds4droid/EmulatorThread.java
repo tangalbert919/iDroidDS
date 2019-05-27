@@ -181,7 +181,7 @@ class EmulatorThread extends Thread {
                     synchronized (dormant) {
                         dormant.wait();
                     }
-                } catch (InterruptedException e) {
+                } catch (InterruptedException ignored) {
                 }
             }
         }

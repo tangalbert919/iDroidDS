@@ -37,7 +37,7 @@
     <string name="sounddesc">Aktivieret die Verarbeitung und Wiedergabe von Audiodaten. Die Deaktivierung dieser Funktion kann die Leistung erh&#246;hen.</string>
     <string name="showsoundmsg">Meldung vor Sound-Aktivierung anzeigen</string>
     <string name="showsoundmsgdesc">Zeigt eine entsprechende Meldung auf dem Bildschirm an, ob der Sound aktiviert werden soll.</string>
-    <string name="soundmsg">M&#246;chten Sie den Sound aktivieren? Dies kann allerdings zu 3 - 5 Bilder/Sekunde an Leistungsverlust f&#252;hren.</string>
+    <string name="soundmsg">Möchten Sie den Sound aktivieren? Dies kann allerdings zu 3 – 5 Bilder/Sekunde an Leistungsverlust führen.</string>
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
     <string name="Display">Anzeige</string>
@@ -119,7 +119,7 @@ DeSmuME-Webseite: http://desmume.org"</string>
     <string name="AutosaveFrequencyDesc">Legt fest, wie h&#228;ufig der Spielstatus gespeichert wird.</string>
     <string name="Rescan">Erneut einlesen</string>
     <string name="FileBrowser">Dateibrowser</string>
-    <string name="ScanningForROMs">Durchsuche externen Speicher...</string>
+    <string name="ScanningForROMs">Durchsuche externen Speicher…</string>
     <string name="DisableROMBrowser">ROM-Dateibrowser deaktivieren</string>
     <string name="DisableROMBrowserDesc">Deaktiviert die automatische Suche nach ROMs im Dateibrowser, welcher beim Start geladen wird.</string>
 

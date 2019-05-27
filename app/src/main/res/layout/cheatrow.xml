@@ -2,27 +2,23 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
 
-
     <CheckBox
         android:id="@+id/cheatEnabled"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-
     <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
-
 
         <Button
             android:id="@+id/cheatDelete"
             style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:text="@string/Delete" />
-
 
         <Button
             android:id="@+id/cheatEdit"
@@ -30,7 +26,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_toLeftOf="@+id/cheatDelete"
+            android:layout_toStartOf="@+id/cheatDelete"
             android:text="@string/Edit" />
 
     </RelativeLayout>

@@ -12,7 +12,6 @@ import android.widget.TextView;
 public class SliderPreference extends DialogPreference implements OnSeekBarChangeListener {
 
     private static final int defaultValue = 10;
-    private SeekBar seek;
     private int currentValue;
     private TextView currentValueDisplay;
 
@@ -31,10 +30,10 @@ public class SliderPreference extends DialogPreference implements OnSeekBarChang
 
         ((TextView) view.findViewById(R.id.min_value_noimg)).setText("0");
         ((TextView) view.findViewById(R.id.max_value_noimg)).setText("100");
-        currentValueDisplay = (TextView) view.findViewById(R.id.current_value_noimg);
+        currentValueDisplay = view.findViewById(R.id.current_value_noimg);
         currentValueDisplay.setText(String.valueOf(currentValue));
 
-        seek = (SeekBar) view.findViewById(R.id.seek_bar_noimg);
+        SeekBar seek = view.findViewById(R.id.seek_bar_noimg);
         seek.setMax(100);
         seek.setProgress(currentValue);
         seek.setOnSeekBarChangeListener(this);

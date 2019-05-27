@@ -25,32 +25,19 @@ public class RomCollection {
 
     private static final FileFilter
 
-            DIR_FILTER = new FileFilter() {
-        @Override
-        public boolean accept(File file) {
-            return file.isDirectory();
-        }
-    },
+            DIR_FILTER = File::isDirectory,
 
-    NDS_FILTER = new FileFilter() {
-        @Override
-        public boolean accept(File file) {
-            return !file.isDirectory() && file.getName().matches(NdsRom.ROM_PATTERN);
-        }
-    },
+    NDS_FILTER = file -> !file.isDirectory() && file.getName().matches(NdsRom.ROM_PATTERN),
 
-    ZIP_FILTER = new FileFilter() {
-        @Override
-        public boolean accept(File file) {
-            if (file.getName().matches(NdsRom.ZIP_PATTERN)) {
-                try {
-                    return NdsRom.isRomArchive(new ZipFile(file));
-                } catch (IOException e) {
-                    return false;
-                }
+    ZIP_FILTER = file -> {
+        if (file.getName().matches(NdsRom.ZIP_PATTERN)) {
+            try {
+                return NdsRom.isRomArchive(new ZipFile(file));
+            } catch (IOException e) {
+                return false;
             }
-            return false;
         }
+        return false;
     },
     // TODO: Add RAR and 7z file support.
 	/*
@@ -61,30 +48,22 @@ public class RomCollection {
 		}
 		return false;
 	}},*/
-    SEVENZ_FILTER = new FileFilter() {
-        @Override
-        public boolean accept(File file) {
-            Log.d("7z-test", "Detected a 7z file. Let's OPEN IT!!!");
-            if (file.getName().matches(NdsRom.SEVENZ_PATTERN)) {
-                Log.d("7z-test", "Ok we're in");
-                try {
-                    return NdsRom.isRomArchive(new RandomAccessFile(file, "r"));
-                } catch (IOException e) {
-                    return false;
-                }
+    SEVENZ_FILTER = file -> {
+        Log.d("7z-test", "Detected a 7z file. Let's OPEN IT!!!");
+        if (file.getName().matches(NdsRom.SEVENZ_PATTERN)) {
+            Log.d("7z-test", "Ok we're in");
+            try {
+                return NdsRom.isRomArchive(new RandomAccessFile(file, "r"));
+            } catch (IOException e) {
+                return false;
             }
-            return false;
         }
+        return false;
     },
-            ALL_ROMS_FILTER = new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return NDS_FILTER.accept(file)
-                            || ZIP_FILTER.accept(file)
-                            /*|| RAR_FILTER.accept( file )*/
-                            || SEVENZ_FILTER.accept(file);
-                }
-            };
+            ALL_ROMS_FILTER = file -> NDS_FILTER.accept(file)
+                    || ZIP_FILTER.accept(file)
+                    /*|| RAR_FILTER.accept( file )*/
+                    || SEVENZ_FILTER.accept(file);
     private final File ROOT;
     private final Set<ScanListener> LISTENERS = new HashSet<>();
     private SQLiteDatabase DB;
@@ -147,7 +126,7 @@ public class RomCollection {
                 scanDirectory(ROOT, last_scan, recursive, 0);
                 DB.setTransactionSuccessful();
                 DB.endTransaction();
-                prefs.edit().putLong("last_scan", System.currentTimeMillis()).commit();
+                prefs.edit().putLong("last_scan", System.currentTimeMillis()).apply();
                 return null;
             }
 
@@ -199,7 +178,7 @@ public class RomCollection {
             // Subdirectories
             if (recursive) for (File dir : file.listFiles(DIR_FILTER)) {
                 if (dir.lastModified() > last_scan)
-                    scanDirectory(dir, last_scan, recursive, recursionLevel + 1);
+                    scanDirectory(dir, last_scan, true, recursionLevel + 1);
             }
         } catch (Exception e) {
             //on my x86 emulator I'm not allowed to read /mnt/sdcard/.android_secure

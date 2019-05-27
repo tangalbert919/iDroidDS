@@ -56,11 +56,11 @@ public class DeSmuME {
                 break;
             case CPUTYPE_X86:
                 System.loadLibrary("desmumex86");
-                Log.i(MainActivity.TAG, "Using x86 native library");
+                Log.i(MainActivity.TAG, "Using x86 native library.");
                 break;
             case CPUTYPE_X64:
                 System.loadLibrary("desmumex64");
-                Log.i(MainActivity.TAG, "Using x64 native library");
+                Log.i(MainActivity.TAG, "Using x64 native library.");
                 break;
             case CPUTYPE_ARM64:
                 System.loadLibrary("desmumearm64");
@@ -68,7 +68,7 @@ public class DeSmuME {
                 break;
             default:
                 System.loadLibrary("desmumev7");
-                Log.i(MainActivity.TAG, "Unable to detect - old ARMv7 library selected");
+                Log.i(MainActivity.TAG, "Unable to detect - old ARMv7 library selected.");
                 break;
         }
         loaded = true;
@@ -150,17 +150,17 @@ public class DeSmuME {
             return def;
         try {
             return pm.getInt(name, def);
-        } catch (ClassCastException e) {
+        } catch (ClassCastException ignored) {
         }
         try {
             String ret = pm.getString(name, String.valueOf(def));
             return Integer.valueOf(ret);
-        } catch (ClassCastException e) {
+        } catch (ClassCastException ignored) {
         }
         try {
-            Boolean ret = pm.getBoolean(name, def != 0);
+            boolean ret = pm.getBoolean(name, def != 0);
             return ret ? 1 : 0;
-        } catch (ClassCastException e) {
+        } catch (ClassCastException ignored) {
         }
         return def;
     }
@@ -171,17 +171,16 @@ public class DeSmuME {
             return def;
         try {
             return pm.getBoolean(name, def);
-        } catch (ClassCastException e) {
+        } catch (ClassCastException ignored) {
         }
         try {
             String ret = pm.getString(name, String.valueOf(def));
             return Boolean.valueOf(ret);
-        } catch (ClassCastException e) {
+        } catch (ClassCastException ignored) {
         }
         try {
-            Boolean ret = pm.getBoolean(name, def);
-            return ret;
-        } catch (ClassCastException e) {
+            return pm.getBoolean(name, def);
+        } catch (ClassCastException ignored) {
         }
         return def;
     }

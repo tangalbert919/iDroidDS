@@ -2,7 +2,7 @@
 <resources>
     <string-array name="file_options">
         <item>L&#246;schen</item>
-        <item>Senden an...</item>
+        <item>Senden an…</item>
     </string-array>
     <string-array name="threed_options">
         <item>Kein</item>

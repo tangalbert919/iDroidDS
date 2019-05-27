@@ -8,7 +8,7 @@
         <item>Cancella</item>
         <!--item>Cut</item-->
         <!--item>Copy</item-->
-        <item>Invia A...</item>
+        <item>Invia A…</item>
     </string-array>
     <string name="rom_error">C\'è stato un errore nel caricamento della ROM :(</string>
     <string name="OK">OK</string>
@@ -60,7 +60,7 @@
     <string name="sounddesc">Abilita l\'elaborazione e la riproduzione dell\'audio. Disabilitarla può migliorare le prestazioni.</string>
     <string name="showsoundmsg">Mostra il messaggio dei suoni</string>
     <string name="showsoundmsgdesc">Mostra all\'utente una domanda che chiede se vuole abilitare i suoni.</string>
-    <string name="soundmsg">Vuoi abilitare l\'audio? Farlo può causare una perdita di prestazioni di 3-5 FPS.</string>
+    <string name="soundmsg">Vuoi abilitare l\'audio? Farlo può causare una perdita di prestazioni di 3–5 FPS.</string>
     <string name="yes">Si</string>
     <string name="no">No</string>
 
@@ -157,7 +157,7 @@
     <string name="about3">Jeffrey Quesnelle è lo sviluppatore principale di nds4droid. nds4droid è un prodotto di Sterling Heights, Michigan, Stati Uniti d\'America.</string>
     <string name="about4">Un ringraziamento speciale a gechdcb per il suo contributo al threaded interpreter e al tinycc JIT.</string>
     <string name="about5">sito di nds4droid: http://nds4droid.com\nsito di DeSmuME: http://desmume.org</string>
-    <string name="about">Informazioni su...</string>
+    <string name="about">Informazioni su…</string>
 
     <!-- Do not translate -->
 

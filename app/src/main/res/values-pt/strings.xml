@@ -8,12 +8,12 @@
         <item>Apagar</item>
         <!--item>Cut</item-->
         <!--item>Copy</item-->
-        <item>Enviar para...</item>
+        <item>Enviar para…</item>
     </string-array>
     <string name="rom_error">Ocorreu um erro ao carregar este ROM :(</string>
     <string name="OK">OK</string>
     <string name="location">Localização</string>
-    <string name="cant_read_folder">Não é possivel ler a pasta!</string>
+    <string name="cant_read_folder">Não é possível ler a pasta!</string>
     <string name="nnew">Novo</string>
     <string name="select">Selecionar</string>
     <string name="file_name">Nome do ficheiro:</string>
@@ -68,7 +68,7 @@
     <string name="Display">Ecrã</string>
     <string name="Controls">Controlos</string>
     <string name="EditLayout">Editar Controlos</string>
-    <string name="EditLayoutDesc">Edita onde os controlos tácteis estao posicionados no ecrã.</string>
+    <string name="EditLayoutDesc">Edita onde os controlos tácteis estão posicionados no ecrã.</string>
     <string name="UseTouchPort">Botões tácteis em modo vertical</string>
     <string name="UseTouchPortDesc">Usar os botões tácteis no ecrã em modo vertical.</string>
     <string name="UseTouchLand">Botões tácteis em modo horizontal</string>
@@ -101,10 +101,10 @@
     <string name="Touch">Touch</string>
 
     <!-- Release 10 -->
-    <string name="DontRotateLCDs">Nao Rodar Ecrãs</string>
+    <string name="DontRotateLCDs">Não Rodar Ecrãs</string>
     <string name="DontRotateLCDsDesc">Em modo horizontal, não rodar os ecrãs. Usa isto para jogos que sejam jogados com a DS de lado.</string>
     <string name="Language">Linguagem</string>
-    <string name="LanguageDesc">A linguagem do sistema. ROMs de multi-linguagem usam esta definição. As mudaças serão aplicados na proxima ROM carregada.</string>
+    <string name="LanguageDesc">A linguagem do sistema. ROMs de multi-linguagem usam esta definição. As mudaças serão aplicados na próxima ROM carregada.</string>
     <string name="Gameplay">Jogabilidade</string>
 
     <!-- Release 11 -->
@@ -124,7 +124,7 @@
 
     <!-- Release 16 -->
     <string name="MaintainAspectRatio">Manter aspect ratio</string>
-    <string name="MaintainAspectRatioDesc">Manter o aspect ratio da DS; nao esticar para encher o ecrã.</string>
+    <string name="MaintainAspectRatioDesc">Manter o aspect ratio da DS; não esticar para encher o ecrã.</string>
     <string name="MainScreenOnly">Só o ecrã principal</string>
     <string name="MainScreenOnlyDesc">Mostrar só o ecrã principal, escondendo o ecrã táctil.</string>
     <string name="LidOpen">Lid open</string>

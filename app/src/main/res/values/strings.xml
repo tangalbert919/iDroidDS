@@ -35,7 +35,7 @@
     <string name="frameskip">Frame skip</string>
     <string name="frameskipdesc">This allows emulating to match real time faster. Useful on slow devices.</string>
     <string name="vsync">V-Sync</string>
-    <string name="vsyncdesc">Only draw to the screen in-between frames. Can slow down emulation but turning off may cause graphical glitches.</string>
+    <string name="vsyncdesc">Only draw to the screen in-between frames. Can slow down emulation, but turning off may cause graphical glitches.</string>
     <string name="fps">Show FPS</string>
     <string name="fpsdesc">Display the FPS on the top of the screen.</string>
     <string name="showtouchmsg">Show touch message</string>
@@ -57,10 +57,10 @@
         <item>Rasterizer</item>
     </string-array>
     <string name="sound">Enable sound</string>
-    <string name="sounddesc">Enable processing and playback of audio. Disabling can increase performance.</string>
+    <string name="sounddesc">Enable audio processing and playback. Disabling can increase performance.</string>
     <string name="showsoundmsg">Show sound message</string>
     <string name="showsoundmsgdesc">Display a question to the user asking if they would like to enable sound.</string>
-    <string name="soundmsg">Would you like to enable sound? This can cause a 3 to 5 FPS performance loss.</string>
+    <string name="soundmsg">Would you like to enable sound? This may result in a 3 to 5 FPS performance loss.</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
 
@@ -79,9 +79,9 @@
     <string name="LCDSwap">Swap LCDs</string>
     <string name="LCDSwapDesc">Check to swap the location of the main and touch LCDs.</string>
     <string name="ButtonTrans">Button transparency</string>
-    <string name="ButtonTransDesc">How transparent the on-screen touch buttons should be</string>
+    <string name="ButtonTransDesc">How transparent the on-screen touch buttons should be.</string>
     <string name="Haptic">Haptic feedback</string>
-    <string name="HapticDesc">Provide haptic feedback on button press if supported by device.</string>
+    <string name="HapticDesc">Provide haptic feedback on button presses if supported by device.</string>
     <string name="KeymapDialogDesc">Press a key to map to this button</string>
     <string name="KeymapValuePreface">Currently mapped to</string>
     <string name="EditKeymap">Edit key mappings</string>
@@ -152,11 +152,13 @@
     <!-- Release 29 -->
     <string name="JitSize">JIT block size</string>
     <string name="JitSizeDesc">For the JIT compiler engine, how big each JIT block should be. 1 is most accurate, while 100 is fastest.</string>
-    <string name="about1">nds4droid is a free, open source Nintendo DS emulator.</string>
+    <string name="about1">nds4droid is a free, open-source Nintendo DS emulator.</string>
     <string name="about2">nds4droid is the result of countless hours of work by dozens of contributors. The emulation core used by nds4droid is DeSmuME.</string>
     <string name="about3">Jeffrey Quesnelle is the primary developer of nds4droid. nds4droid is a product of Sterling Heights, Michigan, United States of America.</string>
     <string name="about4">Special thanks to gechdcb for his contributions on the threaded interpreter and lightning JIT (Version 47.1 and below).</string>
-    <string name="about5">nds4droid website: http://nds4droid.com\nDeSmuME website: http://desmume.org</string>
+    <string name="about5">
+        nds4droid website: https://jeffq.com/blog/nds4droid/\n
+        DeSmuME website: https://desmume.org/</string>
     <string name="about">About</string>
 
     <!-- Release 30 -->
@@ -164,10 +166,10 @@
     <string name="EnableFogDesc">When using the software renderer, enable processing of fog effects.</string>
 
     <!-- Release 38 -->
-    <string name="EnableAutosave">Enable autosave</string>
-    <string name="EnableAutosaveDesc">Automatically save the game state at a regular interval.</string>
-    <string name="AutosaveFrequency">Autosave frequency</string>
-    <string name="AutosaveFrequencyDesc">How frequently the autosave feature saves the game state.</string>
+    <string name="EnableAutosave">Enable auto-save</string>
+    <string name="EnableAutosaveDesc">Automatically save the game state at regular intervals.</string>
+    <string name="AutosaveFrequency">Auto-save frequency</string>
+    <string name="AutosaveFrequencyDesc">How frequently the auto-save feature saves the game state.</string>
     <string-array name="AutosaveFrequencyNames">
         <item>1 minute</item>
         <item>5 minutes</item>
@@ -175,8 +177,8 @@
         <item>30 minutes</item>
         <item>1 hour</item>
     </string-array>
-    <string name="Rescan">Rescan</string>
-    <string name="FileBrowser">File browser</string>
+    <string name="Rescan">Re-scan</string>
+    <string name="FileBrowser">File Browser</string>
 
     <!-- Release 39 -->
     <string name="ScanningForROMs">Scanning external storage…</string>

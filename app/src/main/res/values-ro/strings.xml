@@ -8,7 +8,7 @@
         <item>Delete</item>
         <!--item>Cut</item-->
         <!--item>Copy</item-->
-        <item>Send To...</item>
+        <item>Send To…</item>
     </string-array>
     <string name="rom_error">A fost o eroare la încărcarea acest ROM :(</string>
     <string name="OK">OK</string>

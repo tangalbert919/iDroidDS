@@ -8,7 +8,7 @@
         <item>Verwijder</item>
         <!--item>knip</item-->
         <!--item>Plak</item-->
-        <item>Verstuur Naar...</item>
+        <item>Verstuur Naar…</item>
     </string-array>
     <string name="rom_error">Er was een fout bij het laden van deze ROM :(</string>
     <string name="OK">OK</string>
@@ -168,7 +168,7 @@
     <string name="AutosaveFrequencyDesc">Hoe vaak slaat de autosave-functie de spelstatus op.</string>
     <string name="Rescan">Opnieuw scannen</string>
     <string name="FileBrowser">Bestandsbrowser</string>
-    <string name="ScanningForROMs">Externe opslag scannen ...</string>
+    <string name="ScanningForROMs">Externe opslag scannen…</string>
     <string name="DisableROMBrowser">Schakel de ROM-browser uit</string>
     <string name="DisableROMBrowserDesc">Schakel de automatische scan-ROM-browser uit. Toon gewoon de bestandsbrowser bij het starten.</string>
     <!-- Version 48 -->

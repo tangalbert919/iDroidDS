@@ -23,8 +23,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -51,6 +49,8 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
+
+import com.opendoorstudios.ds4droid.NDSScanner.CollectionActivity;
 
 import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.SevenZipNativeInitializationException;
@@ -100,21 +100,12 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
                     break;
                 case ROM_ERROR:
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setMessage(R.string.rom_error).setPositiveButton(R.string.OK, new DialogInterface.OnClickListener() {
-
-                        @Override
-                        public void onClick(DialogInterface arg0, int arg1) {
-                            arg0.dismiss();
-                            pickRom();
-                        }
-                    }).setOnCancelListener(new OnCancelListener() {
-
-                        @Override
-                        public void onCancel(DialogInterface arg0) {
-                            arg0.dismiss();
-                            pickRom();
-                        }
-
+                    builder.setMessage(R.string.rom_error).setPositiveButton(R.string.OK, (arg0, arg1) -> {
+                        arg0.dismiss();
+                        pickRom();
+                    }).setOnCancelListener(arg0 -> {
+                        arg0.dismiss();
+                        pickRom();
                     });
                     builder.create().show();
             }
@@ -192,7 +183,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
 
     void pickRom() {
         Intent i = new Intent(this, prefs.getBoolean(Settings.DISABLE_ROM_BROWSER, false) ?
-                FileDialog.class : com.opendoorstudios.ds4droid.NDSScanner.CollectionActivity.class);
+                FileDialog.class : CollectionActivity.class);
         i.setAction(Intent.ACTION_PICK);
 
         String startPath = Environment.getExternalStorageDirectory().getPath();
@@ -476,32 +467,41 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
             controls.loadMappings(this);
 
             if (key != null) {
-                if (key.equals(Settings.SCREEN_FILTER)) {
-                    int newFilter = DeSmuME.getSettingInt(Settings.SCREEN_FILTER, 0);
-                    DeSmuME.setFilter(newFilter);
-                    view.forceResize();
-                } else if (key.equals(Settings.RENDERER)) {
-                    int new3D = DeSmuME.getSettingInt(Settings.RENDERER, 2);
-                    if (coreThread != null)
-                        coreThread.change3D(new3D);
-                } else if (key.equals(Settings.ENABLE_SOUND)) {
-                    int newSound = DeSmuME.getSettingInt(Settings.ENABLE_SOUND, 0);
-                    if (coreThread != null)
-                        coreThread.changeSound(newSound);
-                } else if (key.equals(Settings.CPU_MODE) || key.equals(Settings.JIT_SIZE)) {
-                    int newCpuMode = DeSmuME.getSettingInt(Settings.CPU_MODE, 0);
-                    if (coreThread != null)
-                        coreThread.changeCPUMode(newCpuMode);
-                } else if (key.equals(Settings.SOUND_SYNC_MODE)) {
-                    int newSoundSyncMode = DeSmuME.getSettingInt(Settings.SOUND_SYNC_MODE, 0);
-                    if (coreThread != null)
-                        coreThread.changeSoundSyncMode(newSoundSyncMode);
-                } else if (key.equals(Settings.ENABLE_AUTOSAVE) || key.equals(Settings.AUTOSVAE_FREQUENCY)) {
-                    cancelAutosave();
-                    if (coreThread != null) {
-                        if (DeSmuME.romLoaded)
-                            scheduleAutosave();
-                    }
+                switch (key) {
+                    case Settings.SCREEN_FILTER:
+                        int newFilter = DeSmuME.getSettingInt(Settings.SCREEN_FILTER, 0);
+                        DeSmuME.setFilter(newFilter);
+                        view.forceResize();
+                        break;
+                    case Settings.RENDERER:
+                        int new3D = DeSmuME.getSettingInt(Settings.RENDERER, 2);
+                        if (coreThread != null)
+                            coreThread.change3D(new3D);
+                        break;
+                    case Settings.ENABLE_SOUND:
+                        int newSound = DeSmuME.getSettingInt(Settings.ENABLE_SOUND, 0);
+                        if (coreThread != null)
+                            coreThread.changeSound(newSound);
+                        break;
+                    case Settings.CPU_MODE:
+                    case Settings.JIT_SIZE:
+                        int newCpuMode = DeSmuME.getSettingInt(Settings.CPU_MODE, 0);
+                        if (coreThread != null)
+                            coreThread.changeCPUMode(newCpuMode);
+                        break;
+                    case Settings.SOUND_SYNC_MODE:
+                        int newSoundSyncMode = DeSmuME.getSettingInt(Settings.SOUND_SYNC_MODE, 0);
+                        if (coreThread != null)
+                            coreThread.changeSoundSyncMode(newSoundSyncMode);
+                        break;
+                    case Settings.ENABLE_AUTOSAVE:
+                    case Settings.AUTOSVAE_FREQUENCY:
+                        cancelAutosave();
+                        if (coreThread != null) {
+                            if (DeSmuME.romLoaded)
+                                scheduleAutosave();
+                        }
+                        break;
                 }
             }
         }
@@ -614,14 +614,9 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
             if (showSoundMessage) {
                 prefs.edit().putBoolean(Settings.SHOW_SOUND_MESSAGE, showSoundMessage = false).apply();
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setMessage(R.string.soundmsg).setPositiveButton(R.string.yes, new Dialog.OnClickListener() {
-
-                    @Override
-                    public void onClick(DialogInterface arg0, int arg1) {
-                        prefs.edit().putBoolean(Settings.ENABLE_SOUND, true).apply();
-                        arg0.dismiss();
-                    }
-
+                builder.setMessage(R.string.soundmsg).setPositiveButton(R.string.yes, (arg0, arg1) -> {
+                    prefs.edit().putBoolean(Settings.ENABLE_SOUND, true).apply();
+                    arg0.dismiss();
                 }).setNegativeButton(R.string.no, null).create().show();
             }
 
@@ -837,11 +832,9 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
             }
         }
 
-
         @Override
         public void surfaceCreated(SurfaceHolder arg0) {
         }
-
 
         @Override
         public void surfaceDestroyed(SurfaceHolder arg0) {

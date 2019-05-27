@@ -1,19 +1,19 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/load"
-        android:title="@string/Load"></item>
+        android:title="@string/Load" />
     <item
         android:id="@+id/quicksave"
-        android:title="@string/QuickSave"></item>
+        android:title="@string/QuickSave" />
     <item
         android:id="@+id/quickrestore"
-        android:title="@string/QuickRestore"></item>
+        android:title="@string/QuickRestore" />
     <item
         android:id="@+id/cheats"
-        android:title="@string/Cheats"></item>
+        android:title="@string/Cheats" />
     <item
         android:id="@+id/settings"
-        android:title="@string/Settings"></item>
+        android:title="@string/Settings" />
     <item
         android:id="@+id/savestate"
         android:title="@string/SaveState">
@@ -86,11 +86,11 @@
     <item
         android:id="@+id/lid"
         android:checkable="true"
-        android:title="@string/LidOpen"></item>
+        android:title="@string/LidOpen" />
     <item
         android:id="@+id/about"
         android:title="@string/about" />
     <item
         android:id="@+id/exit"
-        android:title="@string/Exit"></item>
+        android:title="@string/Exit" />
 </menu>

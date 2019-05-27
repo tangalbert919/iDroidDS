@@ -24,8 +24,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.os.Environment;
-import android.preference.Preference;
-import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
@@ -117,35 +115,35 @@ public class Settings extends PreferenceActivity {
         edit.apply();
     }
 
-    static void applyMappingDefaults(SharedPreferences prefs, boolean overwrite) {
+    static void applyMappingDefaults(SharedPreferences prefs) {
         final SharedPreferences.Editor editor = prefs.edit();
-        if (overwrite || !prefs.contains(MAPPING_UP))
+        if (!prefs.contains(MAPPING_UP))
             editor.putInt(MAPPING_UP, KeyEvent.KEYCODE_DPAD_UP);
-        if (overwrite || !prefs.contains(MAPPING_DOWN))
+        if (!prefs.contains(MAPPING_DOWN))
             editor.putInt(MAPPING_DOWN, KeyEvent.KEYCODE_DPAD_DOWN);
-        if (overwrite || !prefs.contains(MAPPING_LEFT))
+        if (!prefs.contains(MAPPING_LEFT))
             editor.putInt(MAPPING_LEFT, KeyEvent.KEYCODE_DPAD_LEFT);
-        if (overwrite || !prefs.contains(MAPPING_RIGHT))
+        if (!prefs.contains(MAPPING_RIGHT))
             editor.putInt(MAPPING_RIGHT, KeyEvent.KEYCODE_DPAD_RIGHT);
-        if (overwrite || !prefs.contains(MAPPING_A))
+        if (!prefs.contains(MAPPING_A))
             editor.putInt(MAPPING_A, KeyEvent.KEYCODE_BUTTON_B);
-        if (overwrite || !prefs.contains(MAPPING_B))
+        if (!prefs.contains(MAPPING_B))
             editor.putInt(MAPPING_B, KeyEvent.KEYCODE_BUTTON_A);
-        if (overwrite || !prefs.contains(MAPPING_X))
+        if (!prefs.contains(MAPPING_X))
             editor.putInt(MAPPING_X, KeyEvent.KEYCODE_BUTTON_Y);
-        if (overwrite || !prefs.contains(MAPPING_Y))
+        if (!prefs.contains(MAPPING_Y))
             editor.putInt(MAPPING_Y, KeyEvent.KEYCODE_BUTTON_X);
-        if (overwrite || !prefs.contains(MAPPING_START))
+        if (!prefs.contains(MAPPING_START))
             editor.putInt(MAPPING_START, KeyEvent.KEYCODE_BUTTON_THUMBR);
-        if (overwrite || !prefs.contains(MAPPING_SELECT))
+        if (!prefs.contains(MAPPING_SELECT))
             editor.putInt(MAPPING_SELECT, KeyEvent.KEYCODE_BUTTON_THUMBL);
-        if (overwrite || !prefs.contains(MAPPING_L))
+        if (!prefs.contains(MAPPING_L))
             editor.putInt(MAPPING_L, KeyEvent.KEYCODE_BUTTON_L1);
-        if (overwrite || !prefs.contains(MAPPING_R))
+        if (!prefs.contains(MAPPING_R))
             editor.putInt(MAPPING_R, KeyEvent.KEYCODE_BUTTON_R1);
-        if (overwrite || !prefs.contains(MAPPING_TOUCH))
+        if (!prefs.contains(MAPPING_TOUCH))
             editor.putInt(MAPPING_TOUCH, KeyEvent.KEYCODE_T);
-        if (overwrite || !prefs.contains(MAPPING_OPTIONS))
+        if (!prefs.contains(MAPPING_OPTIONS))
             editor.putInt(MAPPING_OPTIONS, KeyEvent.KEYCODE_BUTTON_START);
         editor.apply();
     }
@@ -232,26 +230,33 @@ public class Settings extends PreferenceActivity {
         if (!prefs.contains(LANGUAGE)) {
             final String userLanguage = Locale.getDefault().getISO3Language();
             int lang = 1; //english
-            if (userLanguage.equals("jpn"))
-                lang = 0;
-            else if (userLanguage.equals("fra"))
-                lang = 2;
-            else if (userLanguage.equals("deu"))
-                lang = 3;
-            else if (userLanguage.equals("ita"))
-                lang = 4;
-            else if (userLanguage.equals("spa"))
-                lang = 5;
+            switch (userLanguage) {
+                case "jpn":
+                    lang = 0;
+                    break;
+                case "fra":
+                    lang = 2;
+                    break;
+                case "deu":
+                    lang = 3;
+                    break;
+                case "ita":
+                    lang = 4;
+                    break;
+                case "spa":
+                    lang = 5;
+                    break;
+            }
             editor.putString(LANGUAGE, String.valueOf(lang));
         }
         if (!prefs.contains(SOUND_INTERPOLATION))
             editor.putString(SOUND_INTERPOLATION, "1");
         applyLayoutDefaults(prefs, false);
-        applyMappingDefaults(prefs, false);
+        applyMappingDefaults(prefs);
         try {
             PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             editor.putInt(INSTALLED_RELEASE, info.versionCode);
-        } catch (NameNotFoundException e) {
+        } catch (NameNotFoundException ignored) {
         }
         editor.apply();
     }
@@ -262,34 +267,19 @@ public class Settings extends PreferenceActivity {
         addPreferencesFromResource(R.xml.settings);
 
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        findPreference(EDIT_LAYOUT).setOnPreferenceClickListener(new OnPreferenceClickListener() {
-
-            @Override
-            public boolean onPreferenceClick(Preference pref) {
-                startActivityForResult(new Intent(Settings.this, ButtonLayoutEditor.class), EDIT_LAYOUT_ID);
-                return true;
-            }
-
+        findPreference(EDIT_LAYOUT).setOnPreferenceClickListener(pref -> {
+            startActivityForResult(new Intent(Settings.this, ButtonLayoutEditor.class), EDIT_LAYOUT_ID);
+            return true;
         });
 
-        findPreference(RESET_LAYOUT).setOnPreferenceClickListener(new OnPreferenceClickListener() {
-
-            @Override
-            public boolean onPreferenceClick(Preference preference) {
-                applyLayoutDefaults(prefs, true);
-                return true;
-            }
-
+        findPreference(RESET_LAYOUT).setOnPreferenceClickListener(preference -> {
+            applyLayoutDefaults(prefs, true);
+            return true;
         });
 
-        findPreference(EDIT_MAPPINGS).setOnPreferenceClickListener(new OnPreferenceClickListener() {
-
-            @Override
-            public boolean onPreferenceClick(Preference preference) {
-                startActivity(new Intent(Settings.this, KeyMapSettings.class));
-                return true;
-            }
-
+        findPreference(EDIT_MAPPINGS).setOnPreferenceClickListener(preference -> {
+            startActivity(new Intent(Settings.this, KeyMapSettings.class));
+            return true;
         });
 
     }

@@ -1,142 +1,176 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory android:title="@string/Gameplay">
+
         <ListPreference
             android:entries="@array/languages"
             android:entryValues="@array/zerothroughfive"
             android:key="Language"
             android:summary="@string/LanguageDesc"
             android:title="@string/Language" />
+
         <ListPreference
             android:entries="@array/executionengines"
             android:entryValues="@array/zerothroughone"
             android:key="CpuMode"
             android:summary="@string/ExecutionEngineDesc"
             android:title="@string/ExecutionEngine" />
-        <!--<CheckBoxPreference android:title="@string/ExecutionEngine" android:summary="@string/ExecutionEngineDesc" android:key="CpuMode"/>-->
+
+        <!--CheckBoxPreference
+            android:key="CpuMode"
+            android:summary="@string/ExecutionEngineDesc"
+            android:title="@string/ExecutionEngine" /-->
+
         <com.opendoorstudios.ds4droid.SliderPreference
             android:dialogTitle="@string/JitSize"
             android:key="JitSize"
             android:persistent="true"
             android:summary="@string/JitSizeDesc"
             android:title="@string/JitSize" />
+
         <CheckBoxPreference
             android:key="EnableAutosave"
             android:summary="@string/EnableAutosaveDesc"
             android:title="@string/EnableAutosave" />
+
         <ListPreference
             android:entries="@array/AutosaveFrequencyNames"
             android:entryValues="@array/zerothroughfour"
             android:key="AutosaveFrequency"
             android:summary="@string/AutosaveFrequencyDesc"
             android:title="@string/AutosaveFrequency" />
+
         <CheckBoxPreference
             android:key="DisableROMBrowser"
             android:summary="@string/DisableROMBrowserDesc"
             android:title="@string/DisableROMBrowser" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/Display">
+
         <ListPreference
             android:entries="@array/zerothroughnine"
             android:entryValues="@array/zerothroughnine"
             android:key="FrameSkip"
             android:summary="@string/frameskipdesc"
             android:title="@string/frameskip" />
+
         <ListPreference
             android:entries="@array/filternames"
             android:entryValues="@array/zerothroughtwentytwo"
             android:key="Filter"
             android:summary="@string/filterdesc"
-            android:title="@string/filter" />Filter
+            android:title="@string/filter" />
+
         <ListPreference
             android:entries="@array/threed_options"
             android:entryValues="@array/zerothroughtwo"
             android:key="Renderer"
             android:summary="@string/threedrendererdesc"
             android:title="@string/threedrenderer" />
+
         <CheckBoxPreference
             android:key="DisplayFps"
             android:summary="@string/fpsdesc"
             android:title="@string/fps" />
+
         <CheckBoxPreference
             android:key="LCDsSwap"
             android:summary="@string/LCDSwapDesc"
             android:title="@string/LCDSwap" />
+
         <CheckBoxPreference
             android:key="WindowRotate"
             android:summary="@string/DontRotateLCDsDesc"
             android:title="@string/DontRotateLCDs" />
+
         <CheckBoxPreference
             android:key="MaintainAspectRatio"
             android:summary="@string/MaintainAspectRatioDesc"
             android:title="@string/MaintainAspectRatio" />
+
         <CheckBoxPreference
             android:key="EnableFog"
             android:summary="@string/EnableFogDesc"
             android:title="@string/EnableFog" />
+
         <ListPreference
             android:entries="@array/screen_options"
             android:entryValues="@array/zerothroughtwo"
             android:key="SpecificScreenOnly"
             android:summary="@string/SelectScreensDesc"
             android:title="@string/SelectScreens" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/Sound">
+
         <CheckBoxPreference
             android:key="SoundCore"
             android:summary="@string/sounddesc"
             android:title="@string/sound" />
+
         <CheckBoxPreference
             android:key="EnableMicrophone"
             android:summary="@string/EnableMicrophoneDesc"
             android:title="@string/EnableMicrophone" />
+
         <ListPreference
             android:entries="@array/soundsyncmodes"
             android:entryValues="@array/zerothroughone"
             android:key="SynchMode"
             android:summary="@string/SoundSyncModeDesc"
             android:title="@string/SoundSyncMode" />
+
         <ListPreference
             android:entries="@array/soundinterpolationmodes"
             android:entryValues="@array/zerothroughtwo"
             android:key="SPUInterpolation"
             android:summary="@string/SoundInterpolationDesc"
             android:title="@string/SoundInterpolation" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/Controls">
+
         <Preference
             android:key="Controls.EditLayout"
             android:summary="@string/EditLayoutDesc"
             android:title="@string/EditLayout" />
+
         <Preference
             android:key="Controls.EditMappings"
             android:summary="@string/EditKeymapDesc"
             android:title="@string/EditKeymap" />
+
         <CheckBoxPreference
             android:key="Controls.Portrait.Draw"
             android:summary="@string/UseTouchPortDesc"
             android:title="@string/UseTouchPort" />
+
         <CheckBoxPreference
             android:key="Controls.Landscape.Draw"
             android:summary="@string/UseTouchLandDesc"
             android:title="@string/UseTouchLand" />
+
         <CheckBoxPreference
             android:key="Controls.Haptic"
             android:summary="@string/HapticDesc"
             android:title="@string/Haptic" />
+
         <CheckBoxPreference
             android:key="Controls.AlwaysTouch"
             android:summary="@string/AlwaysTouchDesc"
             android:title="@string/AlwaysTouch" />
+
         <com.opendoorstudios.ds4droid.TransparencyPreference
             android:dialogTitle="@string/ButtonTrans"
             android:key="Controls.Transparency"
             android:persistent="true"
             android:summary="@string/ButtonTransDesc"
             android:title="@string/ButtonTrans" />
+
         <Preference
             android:key="Controls.ResetLayout"
             android:summary="@string/ResetLayoutDesc"

@@ -8,7 +8,7 @@
         <item>מחק</item>
         <!--item>גזור</item-->
         <!--item>העתק</item-->
-        <item>שלח אל...</item>
+        <item>שלח אל…</item>
     </string-array>
     <string name="rom_error">ארעה שגיאה בטעינת הרום :(</string>
     <string name="OK">אישור</string>
@@ -166,7 +166,7 @@
     <string name="AutosaveFrequencyDesc">באיזו תדירות התכונה \'שמירה אוטומטית\' חוסכת את מצב המשחק.</string>
     <string name="Rescan">סרוק מחדש</string>
     <string name="FileBrowser">סייר קבצים</string>
-    <string name="ScanningForROMs">סורק אחסון חיצוני ...</string>
+    <string name="ScanningForROMs">סורק אחסון חיצוני…</string>
     <string name="DisableROMBrowser">השבת דפדפן ROM</string>
     <string name="DisableROMBrowserDesc">השבת את דפדפן ה- ROM של הסריקה האוטומטית. כל שעליך לעשות הוא להציג את דפדפן הקובץ על ההשקה.</string>
     <string name="SoundInterpolation">קול אינטרפולציה</string>

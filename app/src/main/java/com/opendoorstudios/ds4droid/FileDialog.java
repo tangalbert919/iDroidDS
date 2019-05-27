@@ -20,9 +20,9 @@ package com.opendoorstudios.ds4droid;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ListActivity;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.widget.EditText;
@@ -67,7 +67,7 @@ public class FileDialog extends ListActivity {
         setResult(RESULT_CANCELED, getIntent());
 
         setContentView(R.layout.file_dialog_main);
-        myPath = (TextView) findViewById(R.id.path);
+        myPath = findViewById(R.id.path);
 
 
         int selectionMode = getIntent().getIntExtra(SELECTION_MODE, SelectionMode.MODE_CREATE);
@@ -81,23 +81,19 @@ public class FileDialog extends ListActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case 1: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    String startPath = getIntent().getStringExtra(START_PATH);
-                    startPath = startPath != null ? startPath : ROOT;
-                    if (canSelectDir) {
-                        File file = new File(startPath);
-                        selectedFile = file;
-                    }
-                    getDir(startPath);
-                } else {
-                    Toast.makeText(this,
-                            R.string.read_storage_permission_denied, Toast.LENGTH_LONG).show();
-                    this.finish();
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                String startPath = getIntent().getStringExtra(START_PATH);
+                startPath = startPath != null ? startPath : ROOT;
+                if (canSelectDir) {
+                    selectedFile = new File(startPath);
                 }
-                return;
+                getDir(startPath);
+            } else {
+                Toast.makeText(this,
+                        R.string.read_storage_permission_denied, Toast.LENGTH_LONG).show();
+                this.finish();
             }
         }
     }
@@ -215,7 +211,7 @@ public class FileDialog extends ListActivity {
     }
 
     private void addItem(String fileName, int imageId) {
-        HashMap<String, Object> item = new HashMap<String, Object>();
+        HashMap<String, Object> item = new HashMap<>();
         item.put(ITEM_KEY, fileName);
         item.put(ITEM_IMAGE, imageId);
         mList.add(item);
@@ -238,12 +234,7 @@ public class FileDialog extends ListActivity {
             } else {
                 new AlertDialog.Builder(this).setIcon(R.drawable.ic_launcher)
                         .setTitle("[" + file.getName() + "] " + getText(R.string.cant_read_folder))
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                            }
+                        .setPositiveButton("OK", (dialog, which) -> {
                         }).show();
             }
         } else {
@@ -259,6 +250,5 @@ public class FileDialog extends ListActivity {
         public static final int MODE_OPEN = 1;
         static final int MODE_CREATE = 0;
     }
-
 
 }

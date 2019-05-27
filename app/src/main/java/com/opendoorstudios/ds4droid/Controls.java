@@ -91,7 +91,7 @@ class Controls {
             int map = prefs.getInt("Controls.KeyMap." + Button.getButtonName(id), 0);
             if (map != 0) {
                 if (!buildKey.containsKey(map))
-                    buildKey.put(map, new LinkedList<Integer>());
+                    buildKey.put(map, new LinkedList<>());
                 buildKey.get(map).add(id);
             }
         }
@@ -156,11 +156,11 @@ class Controls {
             buttonsToProcess.add(select);
         }
 
-		/*
-		fastForwardButton = Button.load(context, Button.BUTTON_FASTFORWARD, R.drawable.ff, landscape, is565, space, space, false);
-		if(fastForwardButton.bitmap != null)
-			buttonsToDraw.add(fastForwardButton);
-		*/
+/*
+        fastForwardButton = Button.load(context, Button.BUTTON_FASTFORWARD, R.drawable.ff, landscape, is565, space, space, false);
+        if (fastForwardButton.bitmap != null)
+            buttonsToDraw.add(fastForwardButton);
+*/
 
         optionsButton = Button.load(context, Button.BUTTON_OPTIONS, R.drawable.menu, landscape, is565, screen, space, false);
         if (optionsButton.bitmap != null)
@@ -209,8 +209,7 @@ class Controls {
                 //convert to bottom touch screen coordinates
                 if (landscape && view.dontRotate) {
                     final float newy = x / 1.33f;
-                    final float newx = (192 - y) * 1.33f;
-                    x = newx;
+                    x = (192 - y) * 1.33f;
                     y = newy;
                 }
                 if (landscape && !view.dontRotate) {
@@ -281,11 +280,10 @@ class Controls {
                             break;
                         }
                     }
-				/*
-				if(fastForwardButton.bitmap != null && fastForwardButton.position.contains(x, y))
-					DeSmuME.fastForwardMode = true;
-				*/
-
+/*
+                    if (fastForwardButton.bitmap != null && fastForwardButton.position.contains(x, y))
+                        DeSmuME.fastForwardMode = true;
+*/
                     if (!pressedButton && view.alwaysTouch)
                         return touchScreenProcess(event);
 
@@ -298,10 +296,10 @@ class Controls {
                         activeTouches.clear();
                         break;
                     }
-				/*
-				if(fastForwardButton.bitmap != null && fastForwardButton.position.contains((int)event.getX(), (int)event.getY()))
-					DeSmuME.fastForwardMode = false;
-				*/
+/*
+                    if (fastForwardButton.bitmap != null && fastForwardButton.position.contains((int) event.getX(), (int) event.getY()))
+                        DeSmuME.fastForwardMode = false;
+*/
                     if (view.alwaysTouch)
                         touchScreenProcess(event);
                     if (optionsButton.bitmap != null && optionsButton.position.contains((int) event.getX(), (int) event.getY()))
@@ -315,10 +313,10 @@ class Controls {
                         break;
                     button.apply(buttonStates, false);
                     activeTouches.remove(id);
-				/*
-				if(fastForwardButton.bitmap != null && fastForwardButton.position.contains((int)event.getX(), (int)event.getY()))
-					DeSmuME.fastForwardMode = false;
-				*/
+/*
+                    if (fastForwardButton.bitmap != null && fastForwardButton.position.contains((int) event.getX(), (int) event.getY()))
+                        DeSmuME.fastForwardMode = false;
+*/
                 }
                 break;
                 default:

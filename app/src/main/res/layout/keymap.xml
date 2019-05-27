@@ -31,5 +31,4 @@
         android:focusableInTouchMode="false"
         android:textColor="#aaaaaa" />
 
-
 </RelativeLayout>

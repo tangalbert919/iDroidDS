@@ -41,7 +41,7 @@ public class ButtonLayoutEditor extends Activity {
         for (Editing button : view.buttons) {
             if (!button.position.equals(button.button.position)) {
                 button.button.position = button.position;
-                button.button.applyToPrefs(prefs, view.landscape, true);
+                button.button.applyToPrefs(prefs, view.landscape);
             }
         }
     }
@@ -91,7 +91,7 @@ public class ButtonLayoutEditor extends Activity {
 
                 if (savedValues != null) {
                     final Object saved = savedValues.get(Button.getButtonName(id));
-                    if (saved != null && saved instanceof Rect)
+                    if (saved instanceof Rect)
                         button.position = (Rect) saved;
                 }
                 buttons.add(new Editing(button));
@@ -212,7 +212,6 @@ public class ButtonLayoutEditor extends Activity {
             }
 
         }
-
 
     }
 

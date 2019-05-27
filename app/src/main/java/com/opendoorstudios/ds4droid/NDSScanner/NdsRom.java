@@ -7,7 +7,6 @@ import android.util.Log;
 
 import net.sf.sevenzipjbinding.ExtractOperationResult;
 import net.sf.sevenzipjbinding.IInArchive;
-import net.sf.sevenzipjbinding.ISequentialOutStream;
 import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.SevenZipException;
 import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
@@ -20,9 +19,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
@@ -109,8 +108,6 @@ public class NdsRom {
 
     public static NdsRom MakeRom(File f) {
         final InputStream stream = NdsRom.getRomStream(f);
-        if (f == null)
-            return null;
         return new NdsRom(f, stream);
     }
 
@@ -132,7 +129,7 @@ public class NdsRom {
     //--------------------------------------------------------------------------
 
     // TODO: Add 7z support.
-    static boolean isRomArchive(RandomAccessFile file) throws SevenZipException {
+    static boolean isRomArchive(RandomAccessFile file) {
         boolean isRom = false;
         Log.d("7z-archive-check", "Checking to see if this is an archive.");
         // The native library needed won't initialize at all, so we end up in "catch" instead.
@@ -170,12 +167,16 @@ public class NdsRom {
                 return null;
             }
         }
-		/*
-		if ( file.getName().matches( RAR_PATTERN )) {
-			Log.d( "NDS", "\nLoading RAR file " + file.getName() );
-			try { return getRomStream( new RARFile( file )); }
-			catch ( IOException e ) { return null; }
-		}*/
+/*
+        if (file.getName().matches(RAR_PATTERN)) {
+            Log.d("NDS", "\nLoading RAR file " + file.getName());
+            try {
+                return getRomStream(new RARFile(file));
+            } catch (IOException e) {
+                return null;
+            }
+        }
+*/
         if (file.getName().matches(SEVENZ_PATTERN)) {
             Log.d("NDS", "\nLoading 7z file " + file.getName());
             try {
@@ -214,13 +215,10 @@ public class NdsRom {
             if (item.getPath().matches(ROM_PATTERN)) {
                 ExtractOperationResult result;
                 final long[] sizeArray = new long[1];
-                result = item.extractSlow(new ISequentialOutStream() {
-                    @Override
-                    public int write(byte[] data) throws SevenZipException {
-                        hash[0] ^= Arrays.hashCode(data);
-                        sizeArray[0] += data.length;
-                        return data.length;
-                    }
+                result = item.extractSlow(data -> {
+                    hash[0] ^= Arrays.hashCode(data);
+                    sizeArray[0] += data.length;
+                    return data.length;
                 });
 
                 if (result == ExtractOperationResult.OK) {
@@ -239,6 +237,27 @@ public class NdsRom {
         return null;
     }
 
+    //--------------------------------------------------------------------------
+    // TODO: Add RAR support.
+/*
+    private static boolean isRomArchive(RARFile file) {
+        for (RARArchivedFile entry : file.getArchivedFiles()) {
+            if (entry.getName().matches(ROM_PATTERN)) return true;
+        }
+        return false;
+    }
+*/
+    //--------------------------------------------------------------------------
+/*
+    private static InputStream getRomStream(RARFile file) {
+        for (RARArchivedFile entry : file.getArchivedFiles()) {
+            if (entry.getName().matches(ROM_PATTERN)) {
+                return file.extract(entry);
+            }
+        }
+        return null;
+    }
+*/
     //--------------------------------------------------------------------------
 
     // Iterate to skip large sections, in case we're reading an archive
@@ -296,16 +315,6 @@ public class NdsRom {
         return icon;
     }
 
-    // TODO: Add RAR support.
-    //--------------------------------------------------------------------------
-	/*
-	private static boolean isRomArchive( RARFile file ) {
-		for ( RARArchivedFile entry : file.getArchivedFiles() ) {
-			if ( entry.getName().matches( ROM_PATTERN )) return true;
-		}
-		return false;
-	}
-	*/
     //--------------------------------------------------------------------------
 
     public boolean isIconLoaded() {
@@ -321,48 +330,33 @@ public class NdsRom {
     //--------------------------------------------------------------------------
 
     public String getTitle(String lang) {
-        try {
-            if (Locale.JAPANESE.getLanguage().equals(lang)) {
-                if (title_jp == null) title_jp = new String(TITLE_JP_BYTES, "UTF-8");
-                return title_jp;
+        if (Locale.JAPANESE.getLanguage().equals(lang)) {
+            if (title_jp == null) title_jp = new String(TITLE_JP_BYTES, StandardCharsets.UTF_8);
+            return title_jp;
 
-            } else if (Locale.FRENCH.getLanguage().equals(lang)) {
-                if (title_fr == null) title_fr = new String(TITLE_FR_BYTES, "UTF-8");
-                return title_fr;
+        } else if (Locale.FRENCH.getLanguage().equals(lang)) {
+            if (title_fr == null) title_fr = new String(TITLE_FR_BYTES, StandardCharsets.UTF_8);
+            return title_fr;
 
-            } else if (Locale.GERMAN.getLanguage().equals(lang)) {
-                if (title_de == null) title_de = new String(TITLE_DE_BYTES, "UTF-8");
-                return title_de;
+        } else if (Locale.GERMAN.getLanguage().equals(lang)) {
+            if (title_de == null) title_de = new String(TITLE_DE_BYTES, StandardCharsets.UTF_8);
+            return title_de;
 
-            } else if (Locale.ITALIAN.getLanguage().equals(lang)) {
-                if (title_it == null) title_it = new String(TITLE_IT_BYTES, "UTF-8");
-                return title_it;
+        } else if (Locale.ITALIAN.getLanguage().equals(lang)) {
+            if (title_it == null) title_it = new String(TITLE_IT_BYTES, StandardCharsets.UTF_8);
+            return title_it;
 
-            } else if ("es".equals(lang)) { // Spanish not in Android?
-                if (title_es == null) title_es = new String(TITLE_ES_BYTES, "UTF-8");
-                return title_es;
+        } else if ("es".equals(lang)) { // Spanish not in Android?
+            if (title_es == null) title_es = new String(TITLE_ES_BYTES, StandardCharsets.UTF_8);
+            return title_es;
 
-            } else {
-                if (title_en == null) title_en = new String(TITLE_EN_BYTES, "UTF-8");
-                return title_en;
-            }
-
-        } catch (UnsupportedEncodingException e) {
-            return null;
+        } else {
+            if (title_en == null) title_en = new String(TITLE_EN_BYTES, StandardCharsets.UTF_8);
+            return title_en;
         }
+
     }
 
-    //--------------------------------------------------------------------------
-	/*
-	private static InputStream getRomStream( RARFile file ) {
-		for ( RARArchivedFile entry : file.getArchivedFiles() ) {
-			if ( entry.getName().matches( ROM_PATTERN )) {
-				return file.extract( entry );
-			}
-		}
-		return null;
-	}
-	*/
     //--------------------------------------------------------------------------
 
     public File getFile() {

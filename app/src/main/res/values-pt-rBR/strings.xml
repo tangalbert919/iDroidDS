@@ -8,7 +8,7 @@
         <item>Deletar</item>
         <!--item>Cortar</item-->
         <!--item>Copiar</item-->
-        <item>Mandar para...</item>
+        <item>Mandar para…</item>
     </string-array>
     <string name="rom_error">Aconteceu um problema carregando este jogo ;(</string>
     <string name="OK">OK</string>
@@ -83,7 +83,7 @@
     <string name="Haptic">Haptic feedback</string>
     <string name="HapticDesc">Fornece Haptic feedback se o aparelho suportar.</string>
     <string name="KeymapDialogDesc">Presione uma tecla para mapear o botão</string>
-    <string name="KeymapValuePreface">Atualmente mapeado em...</string>
+    <string name="KeymapValuePreface">Atualmente mapeado em…</string>
     <string name="EditKeymap">Editar mapeamentos de teclas</string>
     <string name="EditKeymapDesc">Use o mapeamento das teclas do seu celular para usar no DS.</string>
     <string name="Up">Cima</string>

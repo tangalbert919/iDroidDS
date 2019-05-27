@@ -201,7 +201,7 @@ public class KeyMapPreference extends DialogPreference implements OnKeyListener 
         RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.keymap, null);
         layout.setOnKeyListener(this);
         layout.requestFocus();
-        currentValueDesc = (TextView) layout.findViewById(R.id.keymap_value);
+        currentValueDesc = layout.findViewById(R.id.keymap_value);
         sync();
 
         return layout;
@@ -216,13 +216,15 @@ public class KeyMapPreference extends DialogPreference implements OnKeyListener 
 
     @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
-		/*switch(keyCode) {
-		case KeyEvent.KEYCODE_HOME:
-		case KeyEvent.KEYCODE_BACK:
-		case KeyEvent.KEYCODE_SETTINGS:
-		case KeyEvent.KEYCODE_SEARCH:
-			return false;
-		}*/
+/*
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_HOME:
+            case KeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_SETTINGS:
+            case KeyEvent.KEYCODE_SEARCH:
+                return false;
+        }
+*/
         currentValue = keyCode;
         sync();
         return true;
@@ -242,6 +244,5 @@ public class KeyMapPreference extends DialogPreference implements OnKeyListener 
 
         notifyChanged();
     }
-
 
 }

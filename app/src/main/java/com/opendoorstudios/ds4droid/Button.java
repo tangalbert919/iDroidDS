@@ -71,7 +71,7 @@ class Button {
     private static final Button OPTIONS_LAND_DEFAULT = new Button(new Rect(502, 0, 650, 84), Button.BUTTON_OPTIONS);
 
     static {
-        portraitToDefault = new HashMap<Integer, Button>();
+        portraitToDefault = new HashMap<>();
         portraitToDefault.put(Button.BUTTON_L, L_PORT_DEFAULT);
         portraitToDefault.put(Button.BUTTON_R, R_PORT_DEFAULT);
         portraitToDefault.put(Button.BUTTON_TOUCH, TOUCH_PORT_DEFAULT);
@@ -82,7 +82,7 @@ class Button {
         //portraitToDefault.put(Button.BUTTON_FASTFORWARD, FASTFORWARD_PORT_DEFAULT);
         portraitToDefault.put(Button.BUTTON_OPTIONS, OPTIONS_DEFAULT);
 
-        landscapeToDefault = new HashMap<Integer, Button>();
+        landscapeToDefault = new HashMap<>();
         landscapeToDefault.put(Button.BUTTON_L, L_LAND_DEFAULT);
         landscapeToDefault.put(Button.BUTTON_R, R_LAND_DEFAULT);
         landscapeToDefault.put(Button.BUTTON_TOUCH, TOUCH_LAND_DEFAULT);
@@ -213,11 +213,10 @@ class Button {
         }
     }
 
-    void applyToPrefs(SharedPreferences prefs, boolean landscape, boolean overwrite) {
+    void applyToPrefs(SharedPreferences prefs, boolean landscape) {
         final String prefLayoutBase = "Controls." + (landscape ? "Landscape." : "Portrait.");
         final String prefBase = prefLayoutBase + getButtonName(id) + ".";
-        if (prefs.contains(prefBase + "Left") && !overwrite)
-            return;
+        prefs.contains(prefBase + "Left");
         prefs.edit().putInt(prefBase + "Left", position.left).putInt(prefBase + "Top", position.top).putInt(prefBase + "Right", position.right).putInt(prefBase + "Bottom", position.bottom).apply();
     }
 }
