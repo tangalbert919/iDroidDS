@@ -1,88 +1,88 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    
+
     <com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.Up"
-			android:title="@string/Up"
-			android:dialogTitle="@string/Up"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-   	<com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.Down"
-			android:title="@string/Down"
-			android:dialogTitle="@string/Down"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-   	<com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.Left"
-			android:title="@string/Left"
-			android:dialogTitle="@string/Left"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-   	<com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.Right"
-			android:title="@string/Right"
-			android:dialogTitle="@string/Right"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-   	<com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.A"
-			android:title="@string/A"
-			android:dialogTitle="@string/A"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-   	<com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.B"
-			android:title="@string/B"
-			android:dialogTitle="@string/B"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-   	<com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.X"
-			android:title="@string/X"
-			android:dialogTitle="@string/X"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-   	<com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.Y"
-			android:title="@string/Y"
-			android:dialogTitle="@string/Y"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-   	<com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.Start"
-			android:title="@string/Start"
-			android:dialogTitle="@string/Start"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-   	<com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.Select"
-			android:title="@string/Select"
-			android:dialogTitle="@string/Select"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-   	<com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.L"
-			android:title="@string/L"
-			android:dialogTitle="@string/L"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-   	<com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.R"
-			android:title="@string/R"
-			android:dialogTitle="@string/R"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-   	<com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.Touch"
-			android:title="@string/Touch"
-			android:dialogTitle="@string/Touch"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-   	<com.opendoorstudios.ds4droid.KeyMapPreference
-			android:key="Controls.KeyMap.Options"
-			android:title="@string/Options"
-			android:dialogTitle="@string/Options"
-			android:summary="@string/KeymapValuePreface"
-			android:persistent="true" />
-    
+        android:dialogTitle="@string/Up"
+        android:key="Controls.KeyMap.Up"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/Up" />
+    <com.opendoorstudios.ds4droid.KeyMapPreference
+        android:dialogTitle="@string/Down"
+        android:key="Controls.KeyMap.Down"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/Down" />
+    <com.opendoorstudios.ds4droid.KeyMapPreference
+        android:dialogTitle="@string/Left"
+        android:key="Controls.KeyMap.Left"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/Left" />
+    <com.opendoorstudios.ds4droid.KeyMapPreference
+        android:dialogTitle="@string/Right"
+        android:key="Controls.KeyMap.Right"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/Right" />
+    <com.opendoorstudios.ds4droid.KeyMapPreference
+        android:dialogTitle="@string/A"
+        android:key="Controls.KeyMap.A"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/A" />
+    <com.opendoorstudios.ds4droid.KeyMapPreference
+        android:dialogTitle="@string/B"
+        android:key="Controls.KeyMap.B"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/B" />
+    <com.opendoorstudios.ds4droid.KeyMapPreference
+        android:dialogTitle="@string/X"
+        android:key="Controls.KeyMap.X"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/X" />
+    <com.opendoorstudios.ds4droid.KeyMapPreference
+        android:dialogTitle="@string/Y"
+        android:key="Controls.KeyMap.Y"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/Y" />
+    <com.opendoorstudios.ds4droid.KeyMapPreference
+        android:dialogTitle="@string/Start"
+        android:key="Controls.KeyMap.Start"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/Start" />
+    <com.opendoorstudios.ds4droid.KeyMapPreference
+        android:dialogTitle="@string/Select"
+        android:key="Controls.KeyMap.Select"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/Select" />
+    <com.opendoorstudios.ds4droid.KeyMapPreference
+        android:dialogTitle="@string/L"
+        android:key="Controls.KeyMap.L"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/L" />
+    <com.opendoorstudios.ds4droid.KeyMapPreference
+        android:dialogTitle="@string/R"
+        android:key="Controls.KeyMap.R"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/R" />
+    <com.opendoorstudios.ds4droid.KeyMapPreference
+        android:dialogTitle="@string/Touch"
+        android:key="Controls.KeyMap.Touch"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/Touch" />
+    <com.opendoorstudios.ds4droid.KeyMapPreference
+        android:dialogTitle="@string/Options"
+        android:key="Controls.KeyMap.Options"
+        android:persistent="true"
+        android:summary="@string/KeymapValuePreface"
+        android:title="@string/Options" />
+
 </PreferenceScreen>

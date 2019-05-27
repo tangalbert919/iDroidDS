@@ -1,18 +1,18 @@
 <resources>
-    
-	<!-- Release 1 -->
+
+    <!-- Release 1 -->
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">設定</string>
     <string-array name="file_options">
-		<!--item>Rename</item--> 
-		<item>Delete</item>
-		<!--item>Cut</item-->
-		<!--item>Copy</item-->
-		<item>Send To...</item>
-	</string-array>
-	<string name="rom_error">ROMのロード中にエラーが発生しました :(</string>
-	<string name="OK">OK</string>
-	<string name="location">ROMの場所</string>
+        <!--item>Rename</item-->
+        <item>Delete</item>
+        <!--item>Cut</item-->
+        <!--item>Copy</item-->
+        <item>Send To...</item>
+    </string-array>
+    <string name="rom_error">ROMのロード中にエラーが発生しました :(</string>
+    <string name="OK">OK</string>
+    <string name="location">ROMの場所</string>
     <string name="cant_read_folder">このフォルダは読み込めません</string>
     <string name="nnew">新規</string>
     <string name="select">選択</string>
@@ -28,7 +28,7 @@
     <string name="SaveState">スロットにセーブ</string>
     <string name="RestoreState">スロットから再開</string>
     <string name="Settings">設定</string>
-    
+
     <!-- Release 2 -->
     <string name="touchnotify">タッチモードとキーパッドモードは、画面中央のtouchボタンで切り替わります</string>
     <string name="frameskip">フレームスキップ</string>
@@ -39,18 +39,18 @@
     <string name="fpsdesc">画面上にFPSを表示します。</string>
     <string name="showtouchmsg">タッチメッセージを表示</string>
     <string name="showtouchmsgdesc">タッチモード・キーパッドモードの切替を説明するメッセージを表示します。</string>
-    
+
     <!-- Release 3 -->
-    <string name="loading">ロード中</string>    
-    
+    <string name="loading">ロード中</string>
+
     <!-- Release 4 -->
     <string name="filter">スクリーンフィルタ</string>
     <string name="filterdesc">ゲーム本来の解像度を、端末画面の解像度へと変換する際のフィルタを選択します。高品質なフィルタほどゲーム速度の低下を招きます。</string>
-    
+
     <!-- Release 5 -->
     <string name="threedrenderer">3Dレンダラ</string>
     <string name="threedrendererdesc">３Dレンダリングエンジンを選択します。</string>
-    <string-array name ="threed_options">
+    <string-array name="threed_options">
         <item>なし</item>
         <item>OpenGL ES 2.0</item>
         <item>OpenGL ES 3.0</item>
@@ -63,7 +63,7 @@
     <string name="soundmsg">サウンドを有効化しますか？（３～５FPS分の遅延が発生する場合があります）</string>
     <string name="yes">はい</string>
     <string name="no">いいえ</string>
-    
+
     <!-- Release 8 -->
     <string name="Display">Display</string>
     <string name="Controls">Controls</string>
@@ -99,14 +99,14 @@
     <string name="L">L</string>
     <string name="R">R</string>
     <string name="Touch">Touch</string>
-    
+
     <!-- Release 10 -->
     <string name="DontRotateLCDs">画面回転無効化</string>
     <string name="DontRotateLCDsDesc">ランドスケープモードにおけるLCD画面のローテーションを無効化します。</string>
     <string name="Language">言語</string>
     <string name="LanguageDesc">ゲームシステムの言語を選択します.多言語対応のROMはこの設定を利用します。変更は、次回ROMロード時に適用されます。</string>
     <string name="Gameplay">ゲームプレイ</string>
-    
+
     <!-- Release 11 -->
     <string name="AddCheat">プロアクションリプレイのチートを新規追加</string>
     <string name="Cheats">チート</string>
@@ -115,40 +115,40 @@
     <string name="Delete">削除</string>
     <string name="Description">説明</string>
     <string name="Code">コード</string>
-    
+
     <!-- Release 12 -->
     <string name="EnableMicrophone">マイク有効化</string>
     <string name="EnableMicrophoneDesc">端末のマイクをDSのマイクとして使用します。</string>
     <string name="AlwaysTouch">タッチを常時有効化</string>
     <string name="AlwaysTouchDesc">タッチモード時でなくとも、常時DSタッチスクリーンを処理します。タッチとキー操作を同時に要求するゲームに対して有効です。</string>
-    
+
     <!-- Release 16 -->
     <string name="MaintainAspectRatio">アスペクト比を保持</string>
     <string name="MaintainAspectRatioDesc">DSのアスペクト比を保持</string>
-	<string name="MainScreenOnly">メイン画面のみ</string>
-	<string name="MainScreenOnlyDesc">タッチスクリーンを隠し、メインのゲーム画面のみ表示</string>
-	<string name="LidOpen">蓋を開ける</string>
-    
-	<!-- Release 18 -->
-	<string name="SelectScreens">画面選択</string>
-	<string name="SelectScreensDesc">どのDS画面を表示するか選択</string>
-	<string-array name="screen_options">
-	    <item>両方</item>
-	    <item>メイン</item>
-	    <item>タッチ</item>
-	</string-array>
-	
-	<!-- Release 20 -->
-	<string name="Options">オプション</string>
-	
-	<!-- Release 22 -->
-	<string name="ExecutionEngine">実行エンジン</string>
-	<string name="ExecutionEngineDesc">DSのARMプロセッサをエミュレートするエンジン</string>
-	
-	<!-- Release 28 -->
-	<string name="SoundSyncMode">サウンド同期モード</string>
-	<string name="SoundSyncModeDesc">ゲームサウンドの同期。同期・非同期併用で通常は問題ありませんが、音声や動画再生に有用な場合があります</string>
-	
+    <string name="MainScreenOnly">メイン画面のみ</string>
+    <string name="MainScreenOnlyDesc">タッチスクリーンを隠し、メインのゲーム画面のみ表示</string>
+    <string name="LidOpen">蓋を開ける</string>
+
+    <!-- Release 18 -->
+    <string name="SelectScreens">画面選択</string>
+    <string name="SelectScreensDesc">どのDS画面を表示するか選択</string>
+    <string-array name="screen_options">
+        <item>両方</item>
+        <item>メイン</item>
+        <item>タッチ</item>
+    </string-array>
+
+    <!-- Release 20 -->
+    <string name="Options">オプション</string>
+
+    <!-- Release 22 -->
+    <string name="ExecutionEngine">実行エンジン</string>
+    <string name="ExecutionEngineDesc">DSのARMプロセッサをエミュレートするエンジン</string>
+
+    <!-- Release 28 -->
+    <string name="SoundSyncMode">サウンド同期モード</string>
+    <string name="SoundSyncModeDesc">ゲームサウンドの同期。同期・非同期併用で通常は問題ありませんが、音声や動画再生に有用な場合があります</string>
+
     <!-- Do not translate -->
 
 </resources>

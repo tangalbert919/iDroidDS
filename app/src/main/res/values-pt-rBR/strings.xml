@@ -1,18 +1,18 @@
 <resources>
 
-	<!-- Release 1 -->
+    <!-- Release 1 -->
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Configurações</string>
     <string-array name="file_options">
-		<!--item>Renomear</item--> 
-		<item>Deletar</item>
-		<!--item>Cortar</item-->
-		<!--item>Copiar</item-->
-		<item>Mandar para...</item>
-	</string-array>
-	<string name="rom_error">Aconteceu um problema carregando este jogo ;(</string>
-	<string name="OK">OK</string>
-	<string name="location">Localização</string>
+        <!--item>Renomear</item-->
+        <item>Deletar</item>
+        <!--item>Cortar</item-->
+        <!--item>Copiar</item-->
+        <item>Mandar para...</item>
+    </string-array>
+    <string name="rom_error">Aconteceu um problema carregando este jogo ;(</string>
+    <string name="OK">OK</string>
+    <string name="location">Localização</string>
     <string name="cant_read_folder">Pasta não pode ser lida</string>
     <string name="nnew">Novo</string>
     <string name="select">Selecionar</string>
@@ -41,7 +41,7 @@
     <string name="showtouchmsgdesc">Mostra menssagem quando escolhendo entre setas e touchscreen.</string>
 
     <!-- Release 3 -->
-    <string name="loading">Carregando</string>    
+    <string name="loading">Carregando</string>
 
     <!-- Release 4 -->
     <string name="filter">Filtro de tela</string>
@@ -50,7 +50,7 @@
     <!-- Release 5 -->
     <string name="threedrenderer">Suporte 3D</string>
     <string name="threedrendererdesc">Qual driver de suporte 3D usar.</string>
-    <string-array name ="threed_options">
+    <string-array name="threed_options">
         <item>Nenhuma</item>
         <item>OpenGL ES 2.0</item>
         <item>OpenGL ES 3.0</item>
@@ -63,7 +63,7 @@
     <string name="soundmsg">Você tem certeza que deseja ativar o som? Ativando-o pode causar a perda de 3 a 5 Frames por segundo.</string>
     <string name="yes">Sim</string>
     <string name="no">Não</string>
-    
+
     <!-- Release 8 -->
     <string name="Display">Display</string>
     <string name="Controls">Controles</string>
@@ -101,8 +101,8 @@
     <string name="Touch">Touch</string>
 
     <!-- Version 48 -->
-    
+
     <!-- Do not translate -->
-    
-    
+
+
 </resources>

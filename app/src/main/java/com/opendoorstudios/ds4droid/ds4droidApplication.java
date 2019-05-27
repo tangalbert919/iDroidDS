@@ -18,14 +18,13 @@ package com.opendoorstudios.ds4droid;
 */
 
 
-
 import android.app.Application;
 
 public class ds4droidApplication extends Application {
-	
-	@Override
-	public void onCreate() {
-		super.onCreate();
-	}
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+    }
 
 }

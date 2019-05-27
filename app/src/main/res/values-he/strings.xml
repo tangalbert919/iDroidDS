@@ -1,18 +1,18 @@
 <resources>
-    
-	<!-- Release 1 -->
+
+    <!-- Release 1 -->
     <string name="hello_world">שלום עולם!</string>
     <string name="menu_settings">הגדרות</string>
     <string-array name="file_options">
-		<!--item>שנה שם</item--> 
-		<item>מחק</item>
-		<!--item>גזור</item-->
-		<!--item>העתק</item-->
-		<item>שלח אל...</item>
-	</string-array>
-	<string name="rom_error">ארעה שגיאה בטעינת הרום :(</string>
-	<string name="OK">אישור</string>
-	<string name="location">מיקום</string>
+        <!--item>שנה שם</item-->
+        <item>מחק</item>
+        <!--item>גזור</item-->
+        <!--item>העתק</item-->
+        <item>שלח אל...</item>
+    </string-array>
+    <string name="rom_error">ארעה שגיאה בטעינת הרום :(</string>
+    <string name="OK">אישור</string>
+    <string name="location">מיקום</string>
     <string name="cant_read_folder">קריאת התיקייה נכשלה</string>
     <string name="nnew">חדש</string>
     <string name="select">בחר</string>
@@ -28,7 +28,7 @@
     <string name="SaveState">שמירה</string>
     <string name="RestoreState">טען שמירה</string>
     <string name="Settings">הגדרות</string>
-    
+
     <!-- Release 2 -->
     <string name="touchnotify">על מנת להחליף בין מצב מגע ל-מצב מקשים, לחץ על כפתור מגע שלמעלה</string>
     <string name="frameskip">דילוג פריימים</string>
@@ -39,18 +39,18 @@
     <string name="fpsdesc">הצג על המסך את כמות הפריימים המוצגים בשניה</string>
     <string name="showtouchmsg">הראה את ההודעה בדבר מגע</string>
     <string name="showtouchmsgdesc">הצג הודעה למשתמש המסבירה לגבי המעבר בין מצב מגע למצב מקשים.</string>
-    
+
     <!-- Release 3 -->
-    <string name="loading">טוען</string>    
-    
+    <string name="loading">טוען</string>
+
     <!-- Release 4 -->
     <string name="filter">פילטר מסך</string>
     <string name="filterdesc">מסננים אלה ישפרו את הגרפיקה במכשיר שלך. עם זאת, משמעות הדבר היא להקריב ביצועים.</string>
-    
+
     <!-- Release 5 -->
     <string name="threedrenderer">3D Renderer</string>
     <string name="threedrendererdesc">כאן, אתה יכול לבחור איזה מפיק אתה רוצה להשתמש. אחד יהיה טוב יותר מאשר אחרים.</string>
-    <string-array name ="threed_options">
+    <string-array name="threed_options">
         <item>שום מנוע</item>
         <item>OpenGL ES 2.0</item>
         <item>OpenGL ES 3.0</item>
@@ -63,7 +63,7 @@
     <string name="soundmsg">האם תרצה לאפשר השמעת קול? זה עלול להביא לירידת הביצועים בכ-3 על 5 פריימים לשניה</string>
     <string name="yes">כן</string>
     <string name="no">לא</string>
-    
+
     <!-- Release 8 -->
     <string name="Display">תצוגה</string>
     <string name="Controls">מקשים</string>
@@ -99,14 +99,14 @@
     <string name="L">L</string>
     <string name="R">R</string>
     <string name="Touch">מגע</string>
-    
+
     <!-- Release 10 -->
     <string name="DontRotateLCDs">אל תחליף בין המסכים</string>
     <string name="DontRotateLCDsDesc">במצג תצוגה אופקית, המנע מלהחליף בין המשסכים. השתמש בפונקציה זו למשחקים שבהם אמורים להחזיק את הדי.אס על הצד</string>
     <string name="Language">שפה</string>
     <string name="LanguageDesc">שפת המערכת. רומים התומכים במספר שפות משתמשים בהגדרה זו. השינויים ייושמו כלפי הרום הבא שיטען</string>
     <string name="Gameplay">משחקיות</string>
-    
+
     <!-- Release 11 -->
     <string name="AddCheat">הוסף ציט מסוג אקשן ריפליי</string>
     <string name="Cheats">ציטים</string>
@@ -115,48 +115,48 @@
     <string name="Delete">מחק</string>
     <string name="Description">תיאור</string>
     <string name="Code">קוד</string>
-    
+
     <!-- Release 12 -->
     <string name="EnableMicrophone">אפשר האזנה למיקרופטן</string>
     <string name="EnableMicrophoneDesc">משתמש במיקרופון המכשיר כמיקרופון הדי.אס</string>
     <string name="AlwaysTouch">אפשר מגע תמיד</string>
     <string name="AlwaysTouchDesc">אפשר תמיד לחיצה על מסך המגע, גם כשלא במצב מגע. השתמש בפונקציה זו בעת הפעלה משחקים שדורשים שימוש במסך המשני ובמקשים במקביל</string>
-    
+
     <!-- Release 16 -->
     <string name="MaintainAspectRatio">שמור על יחס התצוגה</string>
     <string name="MaintainAspectRatioDesc">שמור על יחס התצוגה של הדי.אס. אל תמתח את המסך</string>
-	<string name="MainScreenOnly">מסך ראשי בלבד</string>
-	<string name="MainScreenOnlyDesc">הצג את המסך הראשי בלבד. החבא את המסך המשני</string>
-	<string name="LidOpen">מכסה פתוח</string>
-    
-	<!-- Release 18 -->
-	<string name="SelectScreens">בחר מסכים</string>
-	<string name="SelectScreensDesc">בחר אילו מסכי די.אס יוצגו</string>
-	<string-array name="screen_options">
-	    <item>שניהם</item>
-	    <item>ראשי</item>
-	    <item>מגע</item>
-	</string-array>
-	
-	<!-- Release 20 -->
-	<string name="Options">אפשרויות</string>
-	
-	<!-- Release 22 -->
-	<string name="ExecutionEngine">מנוע ביצוע</string>
+    <string name="MainScreenOnly">מסך ראשי בלבד</string>
+    <string name="MainScreenOnlyDesc">הצג את המסך הראשי בלבד. החבא את המסך המשני</string>
+    <string name="LidOpen">מכסה פתוח</string>
+
+    <!-- Release 18 -->
+    <string name="SelectScreens">בחר מסכים</string>
+    <string name="SelectScreensDesc">בחר אילו מסכי די.אס יוצגו</string>
+    <string-array name="screen_options">
+        <item>שניהם</item>
+        <item>ראשי</item>
+        <item>מגע</item>
+    </string-array>
+
+    <!-- Release 20 -->
+    <string name="Options">אפשרויות</string>
+
+    <!-- Release 22 -->
+    <string name="ExecutionEngine">מנוע ביצוע</string>
 
     <!-- Release 28 -->
-	<string name="SoundSyncMode">מצב סינכרון קול</string>
-	<string name="SoundSyncModeDesc">סינכרון הקול.האפשרות הראשונה טובה בדרך כלל, אבל השנייה דרושה לעיתים עבור סרטונים או קול</string>
-	
-	<!-- Release 29 -->
-	<string name="JitSize">JIT block size</string>
-	<string name="JitSizeDesc">עבור מנוע מהדר JIT, כמה גדול כל JIT לחסום צריך להיות. 1 הוא מדויק ביותר, בעוד 100 הוא המהיר ביותר.</string>
-	<string name="about1">הוא אימולטור חינמי לנינטנדו .די.אס המבוסס על קוד פתוח nds4droid</string>
-	<string name="about2">האימולטור הוא תוצר של אינספור שעות של מאמץ של תורמים רבים</string>
-	<string name="about3">גפרי קווסנל הוא המפתח העיקרי של האימולטור. האימולטור פותח בסטרלינג הייטס, מישיגן, ארצות הברית של אמריקה</string>
-	<string name="about4">תודה מיוחדת gechdcb על התרומות שלו על המתורגמן מושחל וברקים JIT (גרסה 47.1 ומטה).</string>
-	<string name="about5">nds4droid website: http://nds4droid.com\nDeSmuME website: http://desmume.org</string>
-	<string name="about">אודות</string>
+    <string name="SoundSyncMode">מצב סינכרון קול</string>
+    <string name="SoundSyncModeDesc">סינכרון הקול.האפשרות הראשונה טובה בדרך כלל, אבל השנייה דרושה לעיתים עבור סרטונים או קול</string>
+
+    <!-- Release 29 -->
+    <string name="JitSize">JIT block size</string>
+    <string name="JitSizeDesc">עבור מנוע מהדר JIT, כמה גדול כל JIT לחסום צריך להיות. 1 הוא מדויק ביותר, בעוד 100 הוא המהיר ביותר.</string>
+    <string name="about1">הוא אימולטור חינמי לנינטנדו .די.אס המבוסס על קוד פתוח nds4droid</string>
+    <string name="about2">האימולטור הוא תוצר של אינספור שעות של מאמץ של תורמים רבים</string>
+    <string name="about3">גפרי קווסנל הוא המפתח העיקרי של האימולטור. האימולטור פותח בסטרלינג הייטס, מישיגן, ארצות הברית של אמריקה</string>
+    <string name="about4">תודה מיוחדת gechdcb על התרומות שלו על המתורגמן מושחל וברקים JIT (גרסה 47.1 ומטה).</string>
+    <string name="about5">nds4droid website: http://nds4droid.com\nDeSmuME website: http://desmume.org</string>
+    <string name="about">אודות</string>
     <string name="ExecutionEngineDesc">אתה יכול לבחור איזה מנוע אתה רוצה להשתמש. רק מכשירים הפועלים במעבד Intel חייבים לשנות הגדרה זו!</string>
     <string name="EnableFog">אפשר ערפל</string>
     <string name="EnableFogDesc">בעת שימוש בתוכנה מפיק, לאפשר עיבוד של אפקט ערפל.</string>
@@ -174,5 +174,5 @@
     <string name="about6">תודה מיוחדת tangalbert919 עבור OpenGL ES 3.0 מפיק ושדרוג DeSmuME ל 0.9.11 עבור nds4droid (גרסה 48 ומעלה).</string>
 
     <!-- Do not translate -->
-    
+
 </resources>

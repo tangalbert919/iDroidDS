@@ -1,18 +1,18 @@
 <resources>
-    
-	<!-- Release 1 -->
+
+    <!-- Release 1 -->
     <string name="hello_world">Bonjour tout le monde!</string>
     <string name="menu_settings">Réglages</string>
     <string-array name="file_options">
-		<!--item>Rename</item--> 
-		<item>Delete</item>
-		<!--item>Cut</item-->
-		<!--item>Copy</item-->
-		<item>Send To...</item>
-	</string-array>
-	<string name="rom_error">Erreur de chargement de cette ROM :(</string>
-	<string name="OK">OK</string>
-	<string name="location">Emplacement</string>
+        <!--item>Rename</item-->
+        <item>Delete</item>
+        <!--item>Cut</item-->
+        <!--item>Copy</item-->
+        <item>Send To...</item>
+    </string-array>
+    <string name="rom_error">Erreur de chargement de cette ROM :(</string>
+    <string name="OK">OK</string>
+    <string name="location">Emplacement</string>
     <string name="cant_read_folder">Impossible de lire le dossier!</string>
     <string name="nnew">Nouveau</string>
     <string name="select">Sélectionner</string>
@@ -28,7 +28,7 @@
     <string name="SaveState">Sauver l\'état</string>
     <string name="RestoreState">Restauration de l\'état</string>
     <string name="Settings">Réglages</string>
-    
+
     <!-- Release 2 -->
     <string name="touchnotify">Pour basculer entre le mode tactile et le mode clavier, appuyez sur le bouton "toucher" dessus</string>
     <string name="frameskip">Sauter cadre</string>
@@ -39,18 +39,18 @@
     <string name="fpsdesc">Draw FPS onto screen.</string>
     <string name="showtouchmsg">Afficher message de toucher</string>
     <string name="showtouchmsgdesc">Afficher un message à l\'utilisateur expliquant commutation entre le mode tactile / clavier.</string>
-    
+
     <!-- Release 3 -->
-    <string name="loading">Chargement</string>    
-    
+    <string name="loading">Chargement</string>
+
     <!-- Release 4 -->
     <string name="filter">Filtre d\'écran</string>
     <string name="filterdesc">Ces filtres amélioreront les graphiques sur votre appareil. Cependant, cela signifie sacrifier les performances.</string>
-    
+
     <!-- Release 5 -->
     <string name="threedrenderer">Moteur de rendu 3D</string>
     <string name="threedrendererdesc">Ici, vous pouvez sélectionner quel représentant vous souhaitez utiliser. L\'un sera meilleur que l\'autre.</string>
-    <string-array name ="threed_options">
+    <string-array name="threed_options">
         <item>Aucun</item>
         <item>OpenGL ES 2.0</item>
         <item>OpenGL ES 3.0</item>
@@ -63,7 +63,7 @@
     <string name="soundmsg">Voulez-vous activer le son? Ça peut causer une perte de performance de 3 à 5 FPS.</string>
     <string name="yes">Oui</string>
     <string name="no">Non</string>
-    
+
     <!-- Release 8 -->
     <string name="Display">Afficher</string>
     <string name="Controls">Commandes</string>
@@ -99,14 +99,14 @@
     <string name="L">L</string>
     <string name="R">R</string>
     <string name="Touch">Toucher</string>
-    
+
     <!-- Release 10 -->
     <string name="DontRotateLCDs">Ne pas tourner les LCD</string>
     <string name="DontRotateLCDsDesc">En mode paysage, ne tourner pas les LCD des jeux. Utilisez ça pour des jeux qui sont conçus pour être joués avec le DS tenu latéralement.</string>
     <string name="Language">Langue</string>
     <string name="LanguageDesc">La langue du système. Des ROM multilingues utilisent ce paramètre. Les modifications seront appliquées au prochain chargement de ROM.</string>
     <string name="Gameplay">Jouabilité</string>
-    
+
     <!-- Release 11 -->
     <string name="AddCheat">Ajouter un nouveau triche pour Action Replay</string>
     <string name="Cheats">Tricheries</string>
@@ -115,39 +115,39 @@
     <string name="Delete">Supprimer</string>
     <string name="Description">Description</string>
     <string name="Code">Code</string>
-    
+
     <!-- Release 12 -->
     <string name="EnableMicrophone">Activer le microphone</string>
     <string name="EnableMicrophoneDesc">Utilisez le microphone de votre appareil comme le microphone du DS.</string>
     <string name="AlwaysTouch">Toujours autoriser toucher</string>
     <string name="AlwaysTouchDesc">Toujours traiter le DS écran comme tactile, même lorsqu\'il n\'est pas en mode tactile. Pour les jeux qui nécessitent l\'aide des commandes et de l\'écran tactile en même temps.</string>
-    
+
     <!-- Release 16 -->
     <string name="MaintainAspectRatio">Maintenir rapport d\'aspect</string>
     <string name="MaintainAspectRatioDesc">Maintenir le rapport d\'aspect du DS; n\'étirez pas pour adapter l\'écran.</string>
-	<string name="MainScreenOnly">Seulement l\'écran principal</string>
-	<string name="MainScreenOnlyDesc">Seulement afficher l\'écran principal de jeu, cachant l\'écran tactile.</string>
-	<string name="LidOpen">Le couvercle est ouvert</string>
-    
-	<!-- Release 18 -->
-	<string name="SelectScreens">Sélectionner les écrans</string>
-	<string name="SelectScreensDesc">Choisissez quels écrans DS seront affichés.</string>
-	<string-array name="screen_options">
-	    <item>Tous les deux</item>
-	    <item>Principal</item>
-	    <item>Tactil</item>
-	</string-array>
-	
-	<!-- Release 20 -->
-	<string name="Options">Options</string>
-	
-	<!-- Release 22 -->
-	<string name="ExecutionEngine">Le moteur d\'exécution</string>
-	<string name="ExecutionEngineDesc">Vous pouvez sélectionner le moteur que vous souhaitez utiliser. Seuls les périphériques utilisant une CPU Intel doivent changer ce paramètre!</string>
-	
-	<!-- Release 28 -->
-	<string name="SoundSyncMode">Mode de synchronisation du son</string>
-	<string name="SoundSyncModeDesc">Synchronisation du son du jeu. Le mode double sync/async est généralement acceptable et le plus rapide, mais Sync est parfois nécessaire pour les films ou la voix.</string>
+    <string name="MainScreenOnly">Seulement l\'écran principal</string>
+    <string name="MainScreenOnlyDesc">Seulement afficher l\'écran principal de jeu, cachant l\'écran tactile.</string>
+    <string name="LidOpen">Le couvercle est ouvert</string>
+
+    <!-- Release 18 -->
+    <string name="SelectScreens">Sélectionner les écrans</string>
+    <string name="SelectScreensDesc">Choisissez quels écrans DS seront affichés.</string>
+    <string-array name="screen_options">
+        <item>Tous les deux</item>
+        <item>Principal</item>
+        <item>Tactil</item>
+    </string-array>
+
+    <!-- Release 20 -->
+    <string name="Options">Options</string>
+
+    <!-- Release 22 -->
+    <string name="ExecutionEngine">Le moteur d\'exécution</string>
+    <string name="ExecutionEngineDesc">Vous pouvez sélectionner le moteur que vous souhaitez utiliser. Seuls les périphériques utilisant une CPU Intel doivent changer ce paramètre!</string>
+
+    <!-- Release 28 -->
+    <string name="SoundSyncMode">Mode de synchronisation du son</string>
+    <string name="SoundSyncModeDesc">Synchronisation du son du jeu. Le mode double sync/async est généralement acceptable et le plus rapide, mais Sync est parfois nécessaire pour les films ou la voix.</string>
     <string name="JitSize">Taille du bloc JIT</string>
     <string name="JitSizeDesc">Pour le moteur de compilation JIT, quelle est la taille de chaque bloc JIT. 1 est le plus précis, tandis que 100 est le plus rapide.</string>
     <string name="about1">nds4droid est un émulateur Nintendo DS gratuit.</string>
@@ -172,5 +172,5 @@
     <string name="about6">Un merci spécial à tangalbert919 pour le rendu OpenGL ES 3.0 et la mise à niveau de DeSmuME vers 0.9.11 pour nds4droid (version 48 et supérieure).</string>
 
     <!-- Do not translate -->
-    
+
 </resources>
