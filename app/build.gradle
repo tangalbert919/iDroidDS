@@ -22,17 +22,13 @@ def getVersionName = {
         }
         return stdout.toString().trim()
     } catch (ignored) {
-        return null;
+        return null
     }
 }
 android {
-    signingConfigs {
-    }
-    dependencies {
-        api 'com.dropbox.core:dropbox-core-sdk:3.0.9'
-        compile 'com.android.support:support-v4:27.1.1'
-    }
     compileSdkVersion 27
+    buildToolsVersion "28.0.3"
+
     defaultConfig {
         applicationId 'org.opendoorstudios.ds4droid'
         minSdkVersion 21
@@ -42,30 +38,42 @@ android {
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
         }
-
     }
+
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    lintOptions {
-        checkReleaseBuilds false
-        abortOnError false
-    }
+
     externalNativeBuild {
         ndkBuild {
             path 'src/main/jni/Android.mk'
         }
     }
-    productFlavors {
+
+    lintOptions {
+        disable 'GoogleAppIndexingWarning'
+        checkReleaseBuilds false
+        abortOnError false
     }
-    buildToolsVersion '28.0.3'
+
+    compileOptions {
+        encoding = 'UTF-8'
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
     implementation files('libs/ouya-sdk.jar')
+
+    implementation 'com.android.support:support-v4:27.1.1' //api?
+
+    //https://github.com/dropbox/dropbox-sdk-java/releases
+    api 'com.dropbox.core:dropbox-core-sdk:3.0.9' //3.1.0
+
     api 'net.sf.sevenzipjbinding:sevenzipjbinding:9.20-2.00beta'
     implementation 'net.sf.sevenzipjbinding:sevenzipjbinding-linux-arm:9.20-2.00beta'
 }

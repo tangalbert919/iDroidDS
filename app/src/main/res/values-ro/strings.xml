@@ -1,18 +1,18 @@
 <resources>
-    
-	<!-- Release 1 -->
+
+    <!-- Release 1 -->
     <string name="hello_world">Bună ziua lume!</string>
     <string name="menu_settings">Setări</string>
     <string-array name="file_options">
-		<!--item>Rename</item--> 
-		<item>Delete</item>
-		<!--item>Cut</item-->
-		<!--item>Copy</item-->
-		<item>Send To...</item>
-	</string-array>
-	<string name="rom_error">A fost o eroare la încărcarea acest ROM :(</string>
-	<string name="OK">OK</string>
-	<string name="location">Locație</string>
+        <!--item>Rename</item-->
+        <item>Delete</item>
+        <!--item>Cut</item-->
+        <!--item>Copy</item-->
+        <item>Send To…</item>
+    </string-array>
+    <string name="rom_error">A fost o eroare la încărcarea acest ROM :(</string>
+    <string name="OK">OK</string>
+    <string name="location">Locație</string>
     <string name="cant_read_folder">Dosarul nu poate fi citit!</string>
     <string name="nnew">Nou</string>
     <string name="select">Selecționează</string>
@@ -28,7 +28,7 @@
     <string name="SaveState">Salvare de stare</string>
     <string name="RestoreState">Refacere de stare</string>
     <string name="Settings">Setări</string>
-    
+
     <!-- Release 2 -->
     <string name="touchnotify">Pentru a comuta între modul de atingere și modul de tastatură, apăsați butonul "atingere" de sus</string>
     <string name="frameskip">Sari cadru</string>
@@ -39,18 +39,18 @@
     <string name="fpsdesc">Desenează FPS-ul pe ecran.</string>
     <string name="showtouchmsg">Arată mesajul de atingere</string>
     <string name="showtouchmsgdesc">Afișează un mesaj utilizatorului explicând modul de comutare pentru atingere / tastatura.</string>
-    
+
     <!-- Release 3 -->
-    <string name="loading">Încărcare</string>    
-    
+    <string name="loading">Încărcare</string>
+
     <!-- Release 4 -->
     <string name="filter">Filtru de ecran</string>
     <string name="filterdesc">Filtru utilizat pentru conversia extinsă la rezoluția Nintendo DS pe ecran. Filtre de calitate mai ridicată pot degrada performanța.</string>
-    
+
     <!-- Release 5 -->
     <string name="threedrenderer">Randare 3D</string>
     <string name="threedrendererdesc">Care motor de randare 3D să fie folosit.</string>
-    <string-array name ="threed_options">
+    <string-array name="threed_options">
         <item>Nici unul</item>
         <item>OpenGL ES 2.0</item>
         <item>OpenGL ES 3.0</item>
@@ -63,7 +63,7 @@
     <string name="soundmsg">Vrei să activezi sunetul? Acest lucru poate duce la o pierdere de performanță între 3 și 5 FPS.</string>
     <string name="yes">Da</string>
     <string name="no">Nu</string>
-    
+
     <!-- Release 8 -->
     <string name="Display">Afișează</string>
     <string name="Controls">Controale</string>
@@ -99,14 +99,14 @@
     <string name="L">L</string>
     <string name="R">R</string>
     <string name="Touch">Atinge</string>
-    
+
     <!-- Release 10 -->
     <string name="DontRotateLCDs">Nu rotiți LCD-uri</string>
     <string name="DontRotateLCDsDesc">În modul peisaj, nu rotiți LCD-uri de joc. Folosiți pentru jocurile care au fost concepute pentru a fi jucate când DS-ul este ținut lateral.</string>
     <string name="Language">Limba</string>
     <string name="LanguageDesc">Limba sistemului. ROM-uri multilingve folosesc această setare. Modificările vor fi aplicate când ROM-ul este încărcat din nou.</string>
     <string name="Gameplay">Modul de joc</string>
-    
+
     <!-- Release 11 -->
     <string name="AddCheat">Adaugă un nou truc de reluare de acțiune</string>
     <string name="Cheats">Truc</string>
@@ -115,42 +115,42 @@
     <string name="Delete">Ștergere</string>
     <string name="Description">Descriere</string>
     <string name="Code">Cod</string>
-    
+
     <!-- Release 12 -->
     <string name="EnableMicrophone">Activează microfonul</string>
     <string name="EnableMicrophoneDesc">Folosește microfonul aparatului ca microfonul DS-ului</string>
     <string name="AlwaysTouch">Permite atingerea întotdeauna</string>
     <string name="AlwaysTouchDesc">Procesează întotdeauna ecranul tactil DS, chiar și atunci când nu este în modul de atingere. Pentru jocurile care necesită utilizarea controalelor și ecranul tactil în același timp.</string>
-    
+
     <!-- Release 16 -->
     <string name="MaintainAspectRatio">Menține raportul de aspect</string>
     <string name="MaintainAspectRatioDesc">Menține raportul de aspect al DS-ului; nu-l întinde pentru a se potrivi pe ecran.</string>
-	<string name="MainScreenOnly">Numai ecranul principal</string>
-	<string name="MainScreenOnlyDesc">Afișează numai ecranul de joc principal, ascunde ecranul tactil.</string>
-	<string name="LidOpen">Capacul deschis</string>
-    
-	<!-- Release 18 -->
-	<string name="SelectScreens">Selectează ecrane</string>
-	<string name="SelectScreensDesc">Selectează care ecran DS va fi arătat.</string>
-	<string-array name="screen_options">
-	    <item>Amândouă</item>
-	    <item>Cel principal</item>
-	    <item>Cel atins</item>
-	</string-array>
-	
-	<!-- Release 20 -->
-	<string name="Options">Opțiuni</string>
-	
-	<!-- Release 22 -->
-	<string name="ExecutionEngine">Motorul de execuție</string>
-	<string name="ExecutionEngineDesc">Motorul folosit pentru a emula procesoarele ARM ale DS-ului.</string>
-	
-	<!-- Release 28 -->
-	<string name="SoundSyncMode">Modul de sincronizare al sunetului</string>
-	<string name="SoundSyncModeDesc">Sincronizarea sunetului. Sync/async dublu este de obicei acceptabil și mai rapid, dar Sync este uneori necesar pentru filme sau voce.</string>
+    <string name="MainScreenOnly">Numai ecranul principal</string>
+    <string name="MainScreenOnlyDesc">Afișează numai ecranul de joc principal, ascunde ecranul tactil.</string>
+    <string name="LidOpen">Capacul deschis</string>
+
+    <!-- Release 18 -->
+    <string name="SelectScreens">Selectează ecrane</string>
+    <string name="SelectScreensDesc">Selectează care ecran DS va fi arătat.</string>
+    <string-array name="screen_options">
+        <item>Amândouă</item>
+        <item>Cel principal</item>
+        <item>Cel atins</item>
+    </string-array>
+
+    <!-- Release 20 -->
+    <string name="Options">Opțiuni</string>
+
+    <!-- Release 22 -->
+    <string name="ExecutionEngine">Motorul de execuție</string>
+    <string name="ExecutionEngineDesc">Motorul folosit pentru a emula procesoarele ARM ale DS-ului.</string>
+
+    <!-- Release 28 -->
+    <string name="SoundSyncMode">Modul de sincronizare al sunetului</string>
+    <string name="SoundSyncModeDesc">Sincronizarea sunetului. Sync/async dublu este de obicei acceptabil și mai rapid, dar Sync este uneori necesar pentru filme sau voce.</string>
 
     <!-- Version 48 -->
 
     <!-- Do not translate -->
-    
+
 </resources>

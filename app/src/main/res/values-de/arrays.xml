@@ -1,34 +1,64 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
-<string-array name="file_options"><item>L&#246;schen</item><item>Senden an...</item></string-array>
-<string-array name="threed_options"><item>Kein</item><item>OpenGL ES 2.0</item><item>OpenGL ES 3.0</item><item>Rasterizer</item></string-array>
-<string-array name="screen_options"><item>Beide</item><item>Hauptbildschirm</item><item>Touch-Bildschirm</item></string-array>
-<string-array name="AutosaveFrequencyNames"><item>Jede Minute</item><item>Alle 5 Minuten</item><item>Alle 15 Minuten</item><item>Alle 30 Minuten</item><item>Jede Stunde</item></string-array>
-<string-array name="filternames">
-    <item>Normal</item>
-    <item>LQ2X</item>
-    <item>LQ2XS</item>
-    <item>HQ2X</item>
-    <item>HQ2XS</item>
-    <item>HQ4X</item>
-    <item>HQ4XS</item>
-    <item>2xSAI</item>
-    <item>Super2xSAI</item>
-    <item>SuperEagle</item>
-    <item>Scanline</item>
-    <item>Bilinear</item>
-    <item>Nearest 2x</item>
-    <item>Nearest 1.5x</item>
-    <item>Nearest+ 1.5x</item>
-    <item>EPX</item>
-    <item>EPX+</item>
-    <item>EPX 1.5x</item>
-    <item>EPX+ 1.5x</item>
-    <item>2xBRZ</item>
-    <item>3xBRZ</item>
-    <item>4xBRZ</item>
-    <item>5xBRZ</item></string-array>
-<string-array name="zerothroughnine"><item>0</item><item>1</item><item>2</item><item>3</item><item>4</item><item>5</item><item>6</item><item>7</item><item>8</item><item>9</item></string-array>
+    <string-array name="file_options">
+        <item>L&#246;schen</item>
+        <item>Senden an…</item>
+    </string-array>
+    <string-array name="threed_options">
+        <item>Kein</item>
+        <item>OpenGL ES 2.0</item>
+        <item>OpenGL ES 3.0</item>
+        <item>Rasterizer</item>
+    </string-array>
+    <string-array name="screen_options">
+        <item>Beide</item>
+        <item>Hauptbildschirm</item>
+        <item>Touch-Bildschirm</item>
+    </string-array>
+    <string-array name="AutosaveFrequencyNames">
+        <item>Jede Minute</item>
+        <item>Alle 5 Minuten</item>
+        <item>Alle 15 Minuten</item>
+        <item>Alle 30 Minuten</item>
+        <item>Jede Stunde</item>
+    </string-array>
+    <string-array name="filternames">
+        <item>Normal</item>
+        <item>LQ2X</item>
+        <item>LQ2XS</item>
+        <item>HQ2X</item>
+        <item>HQ2XS</item>
+        <item>HQ4X</item>
+        <item>HQ4XS</item>
+        <item>2xSAI</item>
+        <item>Super2xSAI</item>
+        <item>SuperEagle</item>
+        <item>Scanline</item>
+        <item>Bilinear</item>
+        <item>Nearest 2x</item>
+        <item>Nearest 1.5x</item>
+        <item>Nearest+ 1.5x</item>
+        <item>EPX</item>
+        <item>EPX+</item>
+        <item>EPX 1.5x</item>
+        <item>EPX+ 1.5x</item>
+        <item>2xBRZ</item>
+        <item>3xBRZ</item>
+        <item>4xBRZ</item>
+        <item>5xBRZ</item>
+    </string-array>
+    <string-array name="zerothroughnine">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </string-array>
     <string-array name="zerothroughtwentytwo">
         <item>0</item>
         <item>1</item>
@@ -54,12 +84,50 @@
         <item>21</item>
         <item>22</item>
     </string-array>
-    <string-array name="zerothroughtwo"><item>0</item><item>1</item><item>2</item></string-array>
-<string-array name="languages"><item>&#26085;&#26412;&#35486;</item><item>English</item><item>Fran&#231;ais</item><item>Deutsch</item><item>Italiano</item><item>Espa&#241;ol</item></string-array>
-<string-array name="zerothroughfive"><item>0</item><item>1</item><item>2</item><item>3</item><item>4</item><item>5</item></string-array>
-<string-array name="executionengines"><item>DeSmuME Interpreter</item><item>JIT Compiler</item></string-array>
-<string-array name="zerothroughthree"><item>0</item><item>1</item><item>2</item><item>3</item></string-array>
-<string-array name="zerothroughone"><item>0</item><item>1</item></string-array>
-<string-array name="soundsyncmodes"><item>Dual sync/async</item><item>Sync</item></string-array>
-<string-array name="zerothroughfour"><item>0</item><item>1</item><item>2</item><item>3</item><item>4</item></string-array>
+    <string-array name="zerothroughtwo">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string-array name="languages">
+        <item>&#26085;&#26412;&#35486;</item>
+        <item>English</item>
+        <item>Fran&#231;ais</item>
+        <item>Deutsch</item>
+        <item>Italiano</item>
+        <item>Espa&#241;ol</item>
+    </string-array>
+    <string-array name="zerothroughfive">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+    <string-array name="executionengines">
+        <item>DeSmuME Interpreter</item>
+        <item>JIT Compiler</item>
+    </string-array>
+    <string-array name="zerothroughthree">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+    <string-array name="zerothroughone">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+    <string-array name="soundsyncmodes">
+        <item>Dual sync/async</item>
+        <item>Sync</item>
+    </string-array>
+    <string-array name="zerothroughfour">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
 </resources>

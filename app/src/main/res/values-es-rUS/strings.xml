@@ -33,7 +33,7 @@
     <string name="showtouchmsgdesc">Muestre un mensaje al usuario explicando el cambio del modo táctil / teclado.</string>
     <string name="yes">Si</string>
     <string name="no">No</string>
-    <string name="loading">Cargando ROM ...</string>
+    <string name="loading">Cargando ROM…</string>
     <string name="filter">Filtro de pantalla</string>
     <string name="filterdesc">Estos filtros mejorarán los gráficos en su dispositivo. Sin embargo, esto significa sacrificar el rendimiento.</string>
     <string name="threedrenderer">Renderer 3D</string>

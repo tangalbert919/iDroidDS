@@ -1,25 +1,34 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.opendoorstudios.ds4droid">
-    
-	<uses-permission
-		android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:required="true"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:required="true" />
-	<uses-permission android:name="android.permission.RECORD_AUDIO" />
-	<uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-    <uses-feature android:glEsVersion="0x00020000" android:required="true"/>
-		    
+
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:required="true" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:required="true" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
+
     <application
+        android:name="ds4droidApplication"
+        android:allowBackup="true"
+        android:configChanges="keyboardHidden|orientation"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen"
-        android:configChanges="keyboardHidden|orientation"
-        android:name="ds4droidApplication"
-        android:allowBackup="true">
+        android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen">
         <activity
             android:name=".MainActivity"
-            android:label="@string/title_activity_main" >
+            android:label="@string/title_activity_main">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="tv.ouya.intent.category.GAME" />
             </intent-filter>
@@ -27,29 +36,29 @@
 
         <activity android:name=".FileDialog">
             <intent-filter>
-                <action android:name="android.intent.action.PICK"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-			</intent-filter>
+                <action android:name="android.intent.action.PICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
-		
-		<activity
-			android:name="com.opendoorstudios.ds4droid.NDSScanner.CollectionActivity"
-			android:label="@string/app_name" >
-			<intent-filter>
-                <action android:name="android.intent.action.PICK"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-			</intent-filter>
-		</activity>
-        
+
+        <activity
+            android:name=".NDSScanner.CollectionActivity"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.PICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <activity android:name=".Settings" />
-        
+
         <activity android:name=".ButtonLayoutEditor" />
-        
+
         <activity android:name=".KeyMapSettings" />
-        
+
         <activity android:name=".Cheats" />
-        
+
         <activity android:name=".About" />
-        
+
     </application>
 </manifest>

@@ -17,18 +17,12 @@ package com.opendoorstudios.ds4droid;
 	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.TreeMap;
-
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ListActivity;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.widget.EditText;
@@ -37,253 +31,224 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.TreeMap;
+
 
 //This originally came from http://code.google.com/p/android-file-dialog/
 
 public class FileDialog extends ListActivity {
-	
-	private static class SelectionMode {
-		static final int MODE_CREATE = 0;
 
-		public static final int MODE_OPEN = 1;
-	}
+    public static final String START_PATH = "START_PATH";
+    public static final String FORMAT_FILTER = "FORMAT_FILTER";
+    public static final String RESULT_PATH = "RESULT_PATH";
+    public static final String SELECTION_MODE = "SELECTION_MODE";
+    public static final String CAN_SELECT_DIR = "CAN_SELECT_DIR";
+    private static final String ITEM_KEY = "key";
+    private static final String ITEM_IMAGE = "image";
+    private static final String ROOT = "/";
+    private List<String> path = null;
+    private TextView myPath;
+    private EditText mFileName;
+    private ArrayList<HashMap<String, Object>> mList;
+    private String parentPath;
+    private String currentPath = ROOT;
+    private String[] formatFilter = null;
+    private boolean canSelectDir = false;
+    private File selectedFile;
+    private HashMap<String, Integer> lastPositions = new HashMap<>();
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setResult(RESULT_CANCELED, getIntent());
 
-	private static final String ITEM_KEY = "key";
-
-
-	private static final String ITEM_IMAGE = "image";
-
-
-	private static final String ROOT = "/";
-
-
-	public static final String START_PATH = "START_PATH";
-
-
-	public static final String FORMAT_FILTER = "FORMAT_FILTER";
-
-
-	public static final String RESULT_PATH = "RESULT_PATH";
-
-
-	public static final String SELECTION_MODE = "SELECTION_MODE";
-
-
-	public static final String CAN_SELECT_DIR = "CAN_SELECT_DIR";
-
-	private List<String> path = null;
-	private TextView myPath;
-	private EditText mFileName;
-	private ArrayList<HashMap<String, Object>> mList;
-
-	private String parentPath;
-	private String currentPath = ROOT;
-
-	private String[] formatFilter = null;
-
-	private boolean canSelectDir = false;
-
-	private File selectedFile;
-	private HashMap<String, Integer> lastPositions = new HashMap<>();
+        setContentView(R.layout.file_dialog_main);
+        myPath = findViewById(R.id.path);
 
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setResult(RESULT_CANCELED, getIntent());
+        int selectionMode = getIntent().getIntExtra(SELECTION_MODE, SelectionMode.MODE_CREATE);
 
-		setContentView(R.layout.file_dialog_main);
-		myPath = (TextView) findViewById(R.id.path);
+        formatFilter = getIntent().getStringArrayExtra(FORMAT_FILTER);
 
+        canSelectDir = getIntent().getBooleanExtra(CAN_SELECT_DIR, false);
 
-		int selectionMode = getIntent().getIntExtra(SELECTION_MODE, SelectionMode.MODE_CREATE);
+        ActivityCompat.requestPermissions(this,
+                new java.lang.String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+    }
 
-		formatFilter = getIntent().getStringArrayExtra(FORMAT_FILTER);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                String startPath = getIntent().getStringExtra(START_PATH);
+                startPath = startPath != null ? startPath : ROOT;
+                if (canSelectDir) {
+                    selectedFile = new File(startPath);
+                }
+                getDir(startPath);
+            } else {
+                Toast.makeText(this,
+                        R.string.read_storage_permission_denied, Toast.LENGTH_LONG).show();
+                this.finish();
+            }
+        }
+    }
 
-		canSelectDir = getIntent().getBooleanExtra(CAN_SELECT_DIR, false);
+    private void getDir(String dirPath) {
 
-		ActivityCompat.requestPermissions(this,
-					new java.lang.String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
-	}
+        boolean useAutoSelection = dirPath.length() < currentPath.length();
 
-	@Override
-	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-		switch (requestCode) {
-			case 1: {
-				if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					String startPath = getIntent().getStringExtra(START_PATH);
-					startPath = startPath != null ? startPath : ROOT;
-					if (canSelectDir) {
-						File file = new File(startPath);
-						selectedFile = file;
-					}
-					getDir(startPath);
-				}
-				else {
-					Toast.makeText(this,
-							R.string.read_storage_permission_denied, Toast.LENGTH_LONG).show();
-					this.finish();
-				}
-				return;
-			}
-		}
-	}
+        Integer position = lastPositions.get(parentPath);
 
-	private void getDir(String dirPath) {
+        getDirImpl(dirPath);
 
-		boolean useAutoSelection = dirPath.length() < currentPath.length();
+        if (position != null && useAutoSelection) {
+            getListView().setSelection(position);
+        }
 
-		Integer position = lastPositions.get(parentPath);
+    }
 
-		getDirImpl(dirPath);
+    private void getDirImpl(final String dirPath) {
 
-		if (position != null && useAutoSelection) {
-			getListView().setSelection(position);
-		}
+        currentPath = dirPath;
 
-	}
+        final List<String> item = new ArrayList<>();
+        path = new ArrayList<>();
+        mList = new ArrayList<>();
 
+        File f = new File(currentPath);
+        File[] files = f.listFiles();
+        if (files == null) {
+            currentPath = ROOT;
+            f = new File(currentPath);
+            files = f.listFiles();
+        }
+        StringBuilder pathString = new StringBuilder(getText(R.string.location) + ": " + currentPath);
+        if (formatFilter != null) {
+            if (formatFilter.length > 0) {
+                pathString.append(" (");
+                for (int i = 0; i < formatFilter.length; ++i) {
+                    pathString.append(formatFilter[i]);
+                    if (i != formatFilter.length - 1)
+                        pathString.append(", ");
+                }
+                pathString.append(")");
+            }
+        }
+        myPath.setText(pathString.toString());
 
-	private void getDirImpl(final String dirPath) {
+        if (!currentPath.equals(ROOT)) {
 
-		currentPath = dirPath;
+            item.add(ROOT);
+            addItem(ROOT, R.drawable.folder);
+            path.add(ROOT);
 
-		final List<String> item = new ArrayList<>();
-		path = new ArrayList<>();
-		mList = new ArrayList<>();
+            item.add("../");
+            addItem("../", R.drawable.updirectory);
+            path.add(f.getParent());
+            parentPath = f.getParent();
 
-		File f = new File(currentPath);
-		File[] files = f.listFiles();
-		if (files == null) {
-			currentPath = ROOT;
-			f = new File(currentPath);
-			files = f.listFiles();
-		}
-		StringBuilder pathString = new StringBuilder(getText(R.string.location) + ": " + currentPath);
-		if(formatFilter != null) {
-			if(formatFilter.length > 0) {
-				pathString.append(" (");
-				for(int i = 0 ; i < formatFilter.length ; ++i) {
-					pathString.append(formatFilter[i]);
-					if(i != formatFilter.length - 1)
-						pathString.append(", ");
-				}
-				pathString.append(")");
-			}
-		}
-		myPath.setText(pathString.toString());
+        }
 
-		if (!currentPath.equals(ROOT)) {
+        TreeMap<String, String> dirsMap = new TreeMap<>();
+        TreeMap<String, String> dirsPathMap = new TreeMap<>();
+        TreeMap<String, String> filesMap = new TreeMap<>();
+        TreeMap<String, String> filesPathMap = new TreeMap<>();
+        for (File file : files) {
+            if (file.isDirectory()) {
+                String dirName = file.getName();
+                dirsMap.put(dirName, dirName);
+                dirsPathMap.put(dirName, file.getPath());
+            } else {
+                final String fileName = file.getName();
+                final String fileNameLwr = fileName.toLowerCase();
 
-			item.add(ROOT);
-			addItem(ROOT, R.drawable.folder);
-			path.add(ROOT);
+                if (formatFilter != null) {
+                    boolean contains = false;
+                    // for (int i = 0; i < formatFilter.length; i++) {
+                    for (String aFormatFilter : formatFilter) {
+                        final String formatLwr = aFormatFilter.toLowerCase();
+                        if (fileNameLwr.endsWith(formatLwr)) {
+                            contains = true;
+                            break;
+                        }
+                    }
+                    if (contains) {
+                        filesMap.put(fileName, fileName);
+                        filesPathMap.put(fileName, file.getPath());
+                    }
 
-			item.add("../");
-			addItem("../", R.drawable.updirectory);
-			path.add(f.getParent());
-			parentPath = f.getParent();
+                } else {
+                    filesMap.put(fileName, fileName);
+                    filesPathMap.put(fileName, file.getPath());
+                }
+            }
+        }
+        item.addAll(dirsMap.tailMap("").values());
+        item.addAll(filesMap.tailMap("").values());
+        path.addAll(dirsPathMap.tailMap("").values());
+        path.addAll(filesPathMap.tailMap("").values());
 
-		}
+        SimpleAdapter fileList = new SimpleAdapter(this, mList, R.layout.file_dialog_row, new String[]{
+                ITEM_KEY, ITEM_IMAGE}, new int[]{R.id.fdrowtext, R.id.fdrowimage});
 
-		TreeMap<String, String> dirsMap = new TreeMap<>();
-		TreeMap<String, String> dirsPathMap = new TreeMap<>();
-		TreeMap<String, String> filesMap = new TreeMap<>();
-		TreeMap<String, String> filesPathMap = new TreeMap<>();
-		for (File file : files) {
-			if (file.isDirectory()) {
-				String dirName = file.getName();
-				dirsMap.put(dirName, dirName);
-				dirsPathMap.put(dirName, file.getPath());
-			} else {
-				final String fileName = file.getName();
-				final String fileNameLwr = fileName.toLowerCase();
-				
-				if (formatFilter != null) {
-					boolean contains = false;
-					// for (int i = 0; i < formatFilter.length; i++) {
-					for (String aFormatFilter : formatFilter) {
-						final String formatLwr = aFormatFilter.toLowerCase();
-						if (fileNameLwr.endsWith(formatLwr)) {
-							contains = true;
-							break;
-						}
-					}
-					if (contains) {
-						filesMap.put(fileName, fileName);
-						filesPathMap.put(fileName, file.getPath());
-					}
-					
-				} else {
-					filesMap.put(fileName, fileName);
-					filesPathMap.put(fileName, file.getPath());
-				}
-			}
-		}
-		item.addAll(dirsMap.tailMap("").values());
-		item.addAll(filesMap.tailMap("").values());
-		path.addAll(dirsPathMap.tailMap("").values());
-		path.addAll(filesPathMap.tailMap("").values());
+        for (String dir : dirsMap.tailMap("").values()) {
+            addItem(dir, R.drawable.folder);
+        }
 
-		SimpleAdapter fileList = new SimpleAdapter(this, mList, R.layout.file_dialog_row, new String[] {
-				ITEM_KEY, ITEM_IMAGE }, new int[] { R.id.fdrowtext, R.id.fdrowimage });
+        for (String file : filesMap.tailMap("").values()) {
+            addItem(file, R.drawable.file);
+        }
 
-		for (String dir : dirsMap.tailMap("").values()) {
-			addItem(dir, R.drawable.folder);
-		}
+        fileList.notifyDataSetChanged();
 
-		for (String file : filesMap.tailMap("").values()) {
-			addItem(file, R.drawable.file);
-		}
+        setListAdapter(fileList);
 
-		fileList.notifyDataSetChanged();
+    }
 
-		setListAdapter(fileList);
+    private void addItem(String fileName, int imageId) {
+        HashMap<String, Object> item = new HashMap<>();
+        item.put(ITEM_KEY, fileName);
+        item.put(ITEM_IMAGE, imageId);
+        mList.add(item);
+    }
 
-	}
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
 
-	private void addItem(String fileName, int imageId) {
-		HashMap<String, Object> item = new HashMap<String, Object>();
-		item.put(ITEM_KEY, fileName);
-		item.put(ITEM_IMAGE, imageId);
-		mList.add(item);
-	}
-
-	@Override
-	protected void onListItemClick(ListView l, View v, int position, long id) {
-
-		File file = new File(path.get(position));
+        File file = new File(path.get(position));
 
 
-		if (file.isDirectory()) {
-			if (file.canRead()) {
-				lastPositions.put(currentPath, position);
-				getDir(path.get(position));
-				if (canSelectDir) {
-					selectedFile = file;
-					v.setSelected(true);
-				}
-			} else {
-				new AlertDialog.Builder(this).setIcon(R.drawable.ic_launcher)
-						.setTitle("[" + file.getName() + "] " + getText(R.string.cant_read_folder))
-						.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        if (file.isDirectory()) {
+            if (file.canRead()) {
+                lastPositions.put(currentPath, position);
+                getDir(path.get(position));
+                if (canSelectDir) {
+                    selectedFile = file;
+                    v.setSelected(true);
+                }
+            } else {
+                new AlertDialog.Builder(this).setIcon(R.drawable.ic_launcher)
+                        .setTitle("[" + file.getName() + "] " + getText(R.string.cant_read_folder))
+                        .setPositiveButton("OK", (dialog, which) -> {
+                        }).show();
+            }
+        } else {
+            selectedFile = file;
+            v.setSelected(true);
+            getIntent().putExtra(RESULT_PATH, selectedFile.getPath());
+            setResult(RESULT_OK, getIntent());
+            finish();
+        }
+    }
 
-							@Override
-							public void onClick(DialogInterface dialog, int which) {
-
-							}
-						}).show();
-			}
-		} else {
-			selectedFile = file;
-			v.setSelected(true);
-			getIntent().putExtra(RESULT_PATH, selectedFile.getPath());
-			setResult(RESULT_OK, getIntent());
-			finish();
-		}
-	}
-
-	
+    private static class SelectionMode {
+        public static final int MODE_OPEN = 1;
+        static final int MODE_CREATE = 0;
+    }
 
 }

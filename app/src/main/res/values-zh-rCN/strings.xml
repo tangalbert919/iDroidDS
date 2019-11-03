@@ -1,18 +1,18 @@
 <resources>
-    
-	<!-- Release 1 -->
+
+    <!-- Release 1 -->
     <string name="hello_world">测试程序!</string>
     <string name="menu_settings">设置</string>
     <string-array name="file_options">
-		<!--item>重命名</item--> 
-		<item>删除</item>
-		<!--item>剪切</item-->
-		<!--item>拷贝</item-->
-		<item>发送至…</item>
-	</string-array>
-	<string name="rom_error">读取ROM出错</string>
-	<string name="OK">确定</string>
-	<string name="location">定位</string>
+        <!--item>重命名</item-->
+        <item>删除</item>
+        <!--item>剪切</item-->
+        <!--item>拷贝</item-->
+        <item>发送至…</item>
+    </string-array>
+    <string name="rom_error">读取ROM出错</string>
+    <string name="OK">确定</string>
+    <string name="location">定位</string>
     <string name="cant_read_folder">无法读取文件夹</string>
     <string name="nnew">新建</string>
     <string name="select">选择</string>
@@ -28,7 +28,7 @@
     <string name="SaveState">保存状态</string>
     <string name="RestoreState">恢复状态</string>
     <string name="Settings">设定</string>
-    
+
     <!-- Release 2 -->
     <string name="touchnotify">请点击顶部的“点击”按钮以切换键盘和触屏模式</string>
     <string name="frameskip">跳帧</string>
@@ -39,18 +39,18 @@
     <string name="fpsdesc">绘制 FPS 到屏幕</string>
     <string name="showtouchmsg">显示触摸信息</string>
     <string name="showtouchmsgdesc">在触屏和键盘模式间切换时，显示一条消息给用户</string>
-    
+
     <!-- Release 3 -->
-    <string name="loading">加载中</string>    
-    
+    <string name="loading">加载中</string>
+
     <!-- Release 4 -->
     <string name="filter">屏幕过滤器</string>
     <string name="filterdesc">這些過濾器將增強設備上的圖形。 但是，這意味著犧牲性能。</string>
-    
+
     <!-- Release 5 -->
     <string name="threedrenderer">三维渲染器</string>
     <string name="threedrendererdesc">在這裡，您可以選擇要使用的渲染器。 一個會比另一個更好。</string>
-    <string-array name ="threed_options">
+    <string-array name="threed_options">
         <item>无</item>
         <item>OpenGL ES 2.0</item>
         <item>OpenGL ES 3.0</item>
@@ -63,8 +63,8 @@
     <string name="soundmsg">是否需要开启声音? 这会导致降低 3 到5 FPS 的性能</string>
     <string name="yes">是</string>
     <string name="no">否</string>
-	
-	<!-- Release 8 -->
+
+    <!-- Release 8 -->
     <string name="Display">顯示</string>
     <string name="Controls">控制</string>
     <string name="EditLayout">编辑按键布局</string>
@@ -99,14 +99,14 @@
     <string name="L">L</string>
     <string name="R">R</string>
     <string name="Touch">觸摸</string>
-    
+
     <!-- Release 10 -->
     <string name="DontRotateLCDs">固定的方向屏幕</string>
     <string name="DontRotateLCDsDesc">手机系统横屏时，上下屏幕不会翻转。用于横向持机的特殊游戏，如七日死。</string>
     <string name="Language">语言</string>
     <string name="LanguageDesc">系統的語言。 多語言ROM使用此設置。 更改將應用於下一個ROM負載。</string>
     <string name="Gameplay">遊戲</string>
-    
+
     <!-- Release 11 -->
     <string name="AddCheat">添加新的金手指</string>
     <string name="Cheats">金手指</string>
@@ -115,39 +115,39 @@
     <string name="Delete">删除</string>
     <string name="Description">备注</string>
     <string name="Code">代码</string>
-    
+
     <!-- Release 12 -->
     <string name="EnableMicrophone">模拟麦克风</string>
     <string name="EnableMicrophoneDesc">使用设备的麦克风来模拟ds的麦克风（线控耳机麦克风可用）</string>
     <string name="AlwaysTouch">总是允许触摸操作</string>
     <string name="AlwaysTouchDesc">在虚拟按键操作的同时进行触摸操作，用于某些特殊游戏，如美妙世界。</string>
-    
+
     <!-- Release 16 -->
     <string name="MaintainAspectRatio">保持原有比例</string>
     <string name="MaintainAspectRatioDesc">不会拉伸至全屏</string>
-	<string name="MainScreenOnly">僅主屏</string>
-	<string name="MainScreenOnlyDesc">只顯示主遊戲畫面，隱藏觸摸屏。</string>
-	<string name="LidOpen">打开上屏</string>
-    
-	<!-- Release 18 -->
-	<string name="SelectScreens">选择屏幕</string>
-	<string name="SelectScreensDesc">选择要显示的ds屏幕</string>
-	<string-array name="screen_options">
-	    <item>全部显示</item>
-	    <item>只显示上屏</item>
-	    <item>只显示下屏</item>
-	</string-array>
-	
-	<!-- Release 20 -->
-	<string name="Options">選項</string>
-	
-	<!-- Release 22 -->
-	<string name="ExecutionEngine">执行引擎</string>
-	<string name="ExecutionEngineDesc">您可以選擇要使用的引擎。 只有運行Intel CPU的設備才能更改此設置！</string>
-	
-	<!-- Release 28 -->
-	<string name="SoundSyncMode">声音同步方式</string>
-	<string name="SoundSyncModeDesc">dual sync/async是通常选项，不会影响整体模拟速度。sync用来播放cg等，但是会稍微降低速度</string>
+    <string name="MainScreenOnly">僅主屏</string>
+    <string name="MainScreenOnlyDesc">只顯示主遊戲畫面，隱藏觸摸屏。</string>
+    <string name="LidOpen">打开上屏</string>
+
+    <!-- Release 18 -->
+    <string name="SelectScreens">选择屏幕</string>
+    <string name="SelectScreensDesc">选择要显示的ds屏幕</string>
+    <string-array name="screen_options">
+        <item>全部显示</item>
+        <item>只显示上屏</item>
+        <item>只显示下屏</item>
+    </string-array>
+
+    <!-- Release 20 -->
+    <string name="Options">選項</string>
+
+    <!-- Release 22 -->
+    <string name="ExecutionEngine">执行引擎</string>
+    <string name="ExecutionEngineDesc">您可以選擇要使用的引擎。 只有運行Intel CPU的設備才能更改此設置！</string>
+
+    <!-- Release 28 -->
+    <string name="SoundSyncMode">声音同步方式</string>
+    <string name="SoundSyncModeDesc">dual sync/async是通常选项，不会影响整体模拟速度。sync用来播放cg等，但是会稍微降低速度</string>
     <!-- Release 48 -->
     <string name="JitSize">JIT塊大小</string>
     <string name="JitSizeDesc">對於JIT編譯器引擎，每個JIT塊應該有多大。 1是最準確的，而100是最快的。</string>
@@ -176,5 +176,5 @@
 
     <!-- Do not translate -->
 
-    
+
 </resources>

@@ -31,86 +31,32 @@ along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 
 public class KeyMapPreference extends DialogPreference implements OnKeyListener {
 
-	public KeyMapPreference(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		currentValuePreface = context.getResources().getString(R.string.KeymapValuePreface);
-	}
-	
-	private int currentValue;
-	private TextView currentValueDesc;
-	private final String currentValuePreface;
-	
-	private static String getKeyDesc(int value) {
-		if(value == 0)
-			return "(none)";
-		else {
-			final String ret = KEYCODE_SYMBOLIC_NAMES.get(value, "(none)");
-			return ret == null ? "(unknown)" : ret;
-		}
-	}
-	
-	private void sync() {
-		currentValueDesc.setText(currentValuePreface + " " + getKeyDesc(currentValue));
-	}
-	
-	@Override
-	protected View onCreateDialogView() {
-		currentValue = getPersistedInt(0);
-		
-		LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		RelativeLayout layout = (RelativeLayout)inflater.inflate(R.layout.keymap, null);
-		layout.setOnKeyListener(this);
-		layout.requestFocus();
-		currentValueDesc = (TextView) layout.findViewById(R.id.keymap_value);
-		sync();
-		
-		return layout;
-	}
-	
-	@Override
-	public CharSequence getSummary() {
-		String summary = super.getSummary().toString();
-		int value = getPersistedInt(currentValue);
-		return summary + " " + getKeyDesc(value);
-	}
-	
-	
-	@Override
-	public boolean onKey(View v, int keyCode, KeyEvent event) {
-		/*switch(keyCode) {
-		case KeyEvent.KEYCODE_HOME:
-		case KeyEvent.KEYCODE_BACK:
-		case KeyEvent.KEYCODE_SETTINGS:
-		case KeyEvent.KEYCODE_SEARCH:
-			return false;
-		}*/
-		currentValue = keyCode;
-		sync();
-		return true;
-	}
-	
-	@Override
-	protected void onDialogClosed(boolean positiveResult) {
-		super.onDialogClosed(positiveResult);
+    //This actually comes straight from the Android source code (android.view.KeyEvent) but it isn't in until ICS
+    private static final SparseArray<String> KEYCODE_SYMBOLIC_NAMES;
 
-		if (!positiveResult) {
-			return;
-		}
+    static {
+        KEYCODE_SYMBOLIC_NAMES = new SparseArray<>();
+        populateKeycodeSymbolicNames();
+    }
 
-		if (shouldPersist()) {
-			persistInt(currentValue);
-		}
+    private final String currentValuePreface;
+    private int currentValue;
+    private TextView currentValueDesc;
 
-		notifyChanged();
-	}
-	
-	static {
-		KEYCODE_SYMBOLIC_NAMES = new SparseArray<>();
-		populateKeycodeSymbolicNames();
-	}
-	
-	//This actually comes straight from the Android source code (android.view.KeyEvent) but it isn't in until ICS
-	private static final SparseArray<String> KEYCODE_SYMBOLIC_NAMES;
+    public KeyMapPreference(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        currentValuePreface = context.getResources().getString(R.string.KeymapValuePreface);
+    }
+
+    private static String getKeyDesc(int value) {
+        if (value == 0)
+            return "(none)";
+        else {
+            final String ret = KEYCODE_SYMBOLIC_NAMES.get(value, "(none)");
+            return ret == null ? "(unknown)" : ret;
+        }
+    }
+
     private static void populateKeycodeSymbolicNames() {
         SparseArray<String> names = KEYCODE_SYMBOLIC_NAMES;
         names.append(KeyEvent.KEYCODE_UNKNOWN, "UNKNOWN");
@@ -209,41 +155,94 @@ public class KeyMapPreference extends DialogPreference implements OnKeyListener 
         names.append(KeyEvent.KEYCODE_PAGE_DOWN, "PAGE_DOWN");
         names.append(KeyEvent.KEYCODE_PICTSYMBOLS, "PICTSYMBOLS");
         names.append(KeyEvent.KEYCODE_SWITCH_CHARSET, "SWITCH_CHARSET");
-        
-        if(!MainActivity.IS_OUYA) {
-	        names.append(KeyEvent.KEYCODE_BUTTON_A, "BUTTON_A");
-	        names.append(KeyEvent.KEYCODE_BUTTON_B, "BUTTON_B");
-	        names.append(KeyEvent.KEYCODE_BUTTON_X, "BUTTON_X");
-	        names.append(KeyEvent.KEYCODE_BUTTON_Y, "BUTTON_Y");
-	        names.append(KeyEvent.KEYCODE_BUTTON_L1, "BUTTON_L1");
-	        names.append(KeyEvent.KEYCODE_BUTTON_R1, "BUTTON_R1");
-	        names.append(KeyEvent.KEYCODE_BUTTON_L2, "BUTTON_L2");
-	        names.append(KeyEvent.KEYCODE_BUTTON_R2, "BUTTON_R2");
-	        names.append(KeyEvent.KEYCODE_BUTTON_THUMBL, "BUTTON_THUMBL");
-	        names.append(KeyEvent.KEYCODE_BUTTON_THUMBR, "BUTTON_THUMBR");
+
+        if (!MainActivity.IS_OUYA) {
+            names.append(KeyEvent.KEYCODE_BUTTON_A, "BUTTON_A");
+            names.append(KeyEvent.KEYCODE_BUTTON_B, "BUTTON_B");
+            names.append(KeyEvent.KEYCODE_BUTTON_X, "BUTTON_X");
+            names.append(KeyEvent.KEYCODE_BUTTON_Y, "BUTTON_Y");
+            names.append(KeyEvent.KEYCODE_BUTTON_L1, "BUTTON_L1");
+            names.append(KeyEvent.KEYCODE_BUTTON_R1, "BUTTON_R1");
+            names.append(KeyEvent.KEYCODE_BUTTON_L2, "BUTTON_L2");
+            names.append(KeyEvent.KEYCODE_BUTTON_R2, "BUTTON_R2");
+            names.append(KeyEvent.KEYCODE_BUTTON_THUMBL, "BUTTON_THUMBL");
+            names.append(KeyEvent.KEYCODE_BUTTON_THUMBR, "BUTTON_THUMBR");
+        } else {
+            //The OUYA interface guidelines wants us to call the buttons by these names
+            names.append(KeyEvent.KEYCODE_BUTTON_A, "O");
+            names.append(KeyEvent.KEYCODE_BUTTON_B, "A");
+            names.append(KeyEvent.KEYCODE_BUTTON_X, "U");
+            names.append(KeyEvent.KEYCODE_BUTTON_Y, "Y");
+            names.append(KeyEvent.KEYCODE_BUTTON_L1, "L1");
+            names.append(KeyEvent.KEYCODE_BUTTON_R1, "R1");
+            names.append(KeyEvent.KEYCODE_BUTTON_L2, "L2");
+            names.append(KeyEvent.KEYCODE_BUTTON_R2, "R2");
+            names.append(KeyEvent.KEYCODE_BUTTON_THUMBL, "L3");
+            names.append(KeyEvent.KEYCODE_BUTTON_THUMBR, "R3");
         }
-        else {
-        	//The OUYA interface guidelines wants us to call the buttons by these names
-        	names.append(KeyEvent.KEYCODE_BUTTON_A, "O");
-	        names.append(KeyEvent.KEYCODE_BUTTON_B, "A");
-	        names.append(KeyEvent.KEYCODE_BUTTON_X, "U");
-	        names.append(KeyEvent.KEYCODE_BUTTON_Y, "Y");
-	        names.append(KeyEvent.KEYCODE_BUTTON_L1, "L1");
-	        names.append(KeyEvent.KEYCODE_BUTTON_R1, "R1");
-	        names.append(KeyEvent.KEYCODE_BUTTON_L2, "L2");
-	        names.append(KeyEvent.KEYCODE_BUTTON_R2, "R2");
-	        names.append(KeyEvent.KEYCODE_BUTTON_THUMBL, "L3");
-	        names.append(KeyEvent.KEYCODE_BUTTON_THUMBR, "R3");
-        }
-        
+
         names.append(KeyEvent.KEYCODE_BUTTON_START, "BUTTON_START");
         names.append(KeyEvent.KEYCODE_BUTTON_SELECT, "BUTTON_SELECT");
         names.append(KeyEvent.KEYCODE_BUTTON_MODE, "BUTTON_MODE");
         names.append(KeyEvent.KEYCODE_BUTTON_Z, "BUTTON_Z");
         names.append(KeyEvent.KEYCODE_BUTTON_C, "BUTTON_C");
-	    names.append(188, "KEYCODE_BUTTON_1"); //KEYCODE_BUTTON_1
+        names.append(188, "KEYCODE_BUTTON_1"); //KEYCODE_BUTTON_1
     }
 
+    private void sync() {
+        currentValueDesc.setText(currentValuePreface + " " + getKeyDesc(currentValue));
+    }
 
+    @Override
+    protected View onCreateDialogView() {
+        currentValue = getPersistedInt(0);
+
+        LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.keymap, null);
+        layout.setOnKeyListener(this);
+        layout.requestFocus();
+        currentValueDesc = layout.findViewById(R.id.keymap_value);
+        sync();
+
+        return layout;
+    }
+
+    @Override
+    public CharSequence getSummary() {
+        String summary = super.getSummary().toString();
+        int value = getPersistedInt(currentValue);
+        return summary + " " + getKeyDesc(value);
+    }
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+/*
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_HOME:
+            case KeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_SETTINGS:
+            case KeyEvent.KEYCODE_SEARCH:
+                return false;
+        }
+*/
+        currentValue = keyCode;
+        sync();
+        return true;
+    }
+
+    @Override
+    protected void onDialogClosed(boolean positiveResult) {
+        super.onDialogClosed(positiveResult);
+
+        if (!positiveResult) {
+            return;
+        }
+
+        if (shouldPersist()) {
+            persistInt(currentValue);
+        }
+
+        notifyChanged();
+    }
 
 }

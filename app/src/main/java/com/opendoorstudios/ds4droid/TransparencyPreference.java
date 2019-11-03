@@ -19,97 +19,88 @@ along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.preference.DialogPreference;
 import android.widget.ImageView;
 import android.widget.SeekBar;
-import android.widget.TextView;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.TextView;
 
 public class TransparencyPreference extends DialogPreference implements OnSeekBarChangeListener {
 
-	final Drawable example;
-	
-	public TransparencyPreference(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		
-		example = context.getResources().getDrawable(R.drawable.dpad);
-	}
+    static final int defaultValue = 78;
+    final Drawable example;
+    private ImageView img;
+    private DisplayMetrics metrics;
+    private int currentValue;
 
-	private SeekBar seek;
-	private ImageView img;
-	private DisplayMetrics metrics;
+    public TransparencyPreference(Context context, AttributeSet attrs) {
+        super(context, attrs);
 
-	static final int defaultValue = 78;
-	private int currentValue;
+        example = context.getResources().getDrawable(R.drawable.dpad);
+    }
 
-	@Override
-	protected View onCreateDialogView() {
+    @Override
+    protected View onCreateDialogView() {
 
-		currentValue = getPersistedInt(defaultValue);
+        currentValue = getPersistedInt(defaultValue);
 
-		LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		View view = inflater.inflate(R.layout.dialog_slider, null);
+        LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(R.layout.dialog_slider, null);
 
-		((TextView) view.findViewById(R.id.min_value)).setText("0");
-		((TextView) view.findViewById(R.id.max_value)).setText("100");
+        ((TextView) view.findViewById(R.id.min_value)).setText("0");
+        ((TextView) view.findViewById(R.id.max_value)).setText("100");
 
-		seek = (SeekBar) view.findViewById(R.id.seek_bar);
-		seek.setMax(100);
-		seek.setProgress(currentValue);
-		seek.setOnSeekBarChangeListener(this);
+        SeekBar seek = view.findViewById(R.id.seek_bar);
+        seek.setMax(100);
+        seek.setProgress(currentValue);
+        seek.setOnSeekBarChangeListener(this);
 
-		img = (ImageView) view.findViewById(R.id.current_value);
-		img.setImageDrawable(example);
-		img.setAlpha((int)(currentValue * 2.55f));
+        img = view.findViewById(R.id.current_value);
+        img.setImageDrawable(example);
+        img.setAlpha((int) (currentValue * 2.55f));
 
-		return view;
-	}
-	
+        return view;
+    }
 
+    @Override
+    protected void onDialogClosed(boolean positiveResult) {
+        super.onDialogClosed(positiveResult);
 
-	
+        if (!positiveResult) {
+            return;
+        }
 
-	@Override
-	protected void onDialogClosed(boolean positiveResult) {
-		super.onDialogClosed(positiveResult);
+        if (shouldPersist()) {
+            persistInt(currentValue);
+        }
 
-		if (!positiveResult) {
-			return;
-		}
+        notifyChanged();
+    }
 
-		if (shouldPersist()) {
-			persistInt(currentValue);
-		}
+    @Override
+    public CharSequence getSummary() {
+        String summary = super.getSummary().toString();
+        int value = getPersistedInt(currentValue);
+        return summary + " (currently " + value + "%)";
+    }
 
-		notifyChanged();
-	}
+    public void onProgressChanged(SeekBar seek, int value, boolean fromTouch) {
+        currentValue = value;
+        img.setAlpha((int) (currentValue * 2.55f));
+    }
 
-	@Override
-	public CharSequence getSummary() {
+    @Override
+    public void onStartTrackingTouch(SeekBar arg0) {
+        // TODO Auto-generated method stub
+    }
 
-		String summary = super.getSummary().toString();
-		int value = getPersistedInt(currentValue);
-		return summary + " (currently " + value + "%)";
-	}
-
-	public void onProgressChanged(SeekBar seek, int value, boolean fromTouch) {
-		currentValue = value;
-		img.setAlpha((int)(currentValue * 2.55f));
-	}
-
-	@Override
-	public void onStartTrackingTouch(SeekBar arg0) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void onStopTrackingTouch(SeekBar arg0) {
-		// TODO Auto-generated method stub
-	}
+    @Override
+    public void onStopTrackingTouch(SeekBar arg0) {
+        // TODO Auto-generated method stub
+    }
 
 }
