@@ -84,7 +84,7 @@ AndroidBitmapInfo bitmapInfo;
 EGLSurface surface;
 EGLContext context;
 const char* IniName = NULL;
-char androidTempPath[1024];
+char androidTempPath[MAX_PATH];
 extern bool enableMicrophone;
 
 #ifdef USE_PROFILER
@@ -164,7 +164,7 @@ void logCallback(const Logger& logger, const char* message)
  */
 static bool android_opengl_init() {
 	//call back into java here?
-	
+
 	const EGLint attribs[] = {
             EGL_RED_SIZE, 8,
 			EGL_GREEN_SIZE, 8,
@@ -174,7 +174,7 @@ static bool android_opengl_init() {
 			EGL_STENCIL_SIZE, 8,
 			EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
 			EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-			EGL_NONE 
+			EGL_NONE
     };
 	EGLint major, minor;
     EGLint w, h, format;
@@ -198,7 +198,7 @@ static bool android_opengl_init() {
 			EGL_LARGEST_PBUFFER, EGL_FALSE,
 			EGL_NONE
     };
-	
+
     surface = eglCreatePbufferSurface(display, config, surfaceAttribs);
 
 	const EGLint contextAttribs[] = {
@@ -212,7 +212,7 @@ static bool android_opengl_init() {
         LOGW("Unable to eglMakeCurrent\n");
         return false;
     }
-	
+
 	INFO("EGL(%u.%u): Created OpenGL ES\n", major ,minor);
     return true;
 }
@@ -362,7 +362,7 @@ void nds4droid_user()
 		mainLoopData.fpsticks = GetTickCount();
 	}
 
-	if(nds.idleFrameCounter==0 || oneSecond) 
+	if(nds.idleFrameCounter==0 || oneSecond)
 	{
 		//calculate a 16 frame arm9 load average
 		for(int cpu=0;cpu<2;cpu++)
@@ -374,7 +374,7 @@ void nds4droid_user()
 				//blend together a few frames to keep low-framerate games from having a jittering load average
 				//(they will tend to work 100% for a frame and then sleep for a while)
 				//4 frames should handle even the slowest of games
-				s32 sample = 
+				s32 sample =
 					nds.runCycleCollector[cpu][(i+0+nds.idleFrameCounter)&15]
 				+	nds.runCycleCollector[cpu][(i+1+nds.idleFrameCounter)&15]
 				+	nds.runCycleCollector[cpu][(i+2+nds.idleFrameCounter)&15]
@@ -429,7 +429,7 @@ bool doRomLoad(const char* path, const char* logical)
 	{
 		moncleanup();
 		profiler_end = true;
-		
+
 		INFO("profile end\n");
 	}
 	if(!profiler_start && !profiler_end)
@@ -459,7 +459,7 @@ bool nds4droid_loadrom(const char* path)
 
 	if(!ObtainFile(path, LogicalName, PhysicalName, "rom", s_nonRomExtensions, ARRAY_SIZE(s_nonRomExtensions)))
 		return false;
-		
+
 	return doRomLoad(path, PhysicalName);
 }
 
@@ -591,7 +591,7 @@ void JNI(restoreState, int slot)
 void loadSettings(JNIEnv* env)
 {
 	CommonSettings.num_cores = static_cast<int>(sysconf(_SC_NPROCESSORS_ONLN ));
-	LOGI("%i cores detected", CommonSettings.num_cores); 
+	LOGI("%i cores detected", CommonSettings.num_cores);
 	CommonSettings.cheatsDisable = GetPrivateProfileBool(env,"General", "cheatsDisable", false, IniName);
 	CommonSettings.autodetectBackupMethod = GetPrivateProfileInt(env,"General", "autoDetectMethod", 0, IniName);
 	enableMicrophone = GetPrivateProfileBool(env, "General", "EnableMicrophone", true, IniName);
@@ -671,22 +671,22 @@ void JNI(init, jobject _inst)
 
 	oglrender_init = android_opengl_init;
 	InitDecoder();
-	
+
 	path.ReadPathSettings();
 	if (video.layout > 2)
 	{
 		video.layout = video.layout_old = 0;
 	}
-	
+
 	loadSettings(env);
 
 	Desmume_InitOnce();
 	//gpu_SetRotateScreen(video.rotation);
 	NDS_FillDefaultFirmwareConfigData(&fw_config);
 	Hud.reset();
-	
+
 	INFO("Init NDS");
-	
+
 	int slot1_device_type = NDS_SLOT1_RETAIL_AUTO;
 	switch (slot1_device_type)
 	{
@@ -732,13 +732,13 @@ void JNI(init, jobject _inst)
 	slot1_Change((NDS_SLOT1_TYPE)slot1_device_type);
 	slot2_Change((NDS_SLOT2_TYPE)slot2_device_type);
 
-	
+
 	NDS_Init();
 
     // This is for the renderer used. Default is rasterizer.
 	cur3DCore = GetPrivateProfileInt(env, "3D", "Renderer", 2, IniName);
 	NDS_3D_ChangeCore(cur3DCore);
-	
+
 	LOG("Init sound core\n");
 
 	SPU_ChangeSoundCore(sndcoretype, sndbuffersize);
@@ -749,7 +749,7 @@ void JNI(init, jobject _inst)
 	fw_config.nickname_len = strlen(nickname);
 	for(int i = 0 ; i < fw_config.nickname_len ; ++i)
 		fw_config.nickname[i] = nickname[i];
-		
+
 	static const char* message = "The One and Only";
 	fw_config.message_len = strlen(message);
 	for(int i = 0 ; i < fw_config.message_len ; ++i)
@@ -757,13 +757,13 @@ void JNI(init, jobject _inst)
     // End of reference
 
 	fw_config.language = GetPrivateProfileInt(env, "Firmware","Language", 1, IniName);
-		
+
 	video.setfilter(GetPrivateProfileInt(env,"Video", "Filter", video.NONE, IniName));
-	
+
 	NDS_CreateDummyFirmware(&fw_config);
-	
+
 	InitSpeedThrottle();
-	
+
 	mainLoopData.freq = 1000;
 	mainLoopData.lastticks = GetTickCount();
 }
@@ -795,7 +795,7 @@ void JNI(changeSoundSynchMethod, int synchmethod)
 
 jboolean JNI(loadRom, jstring path)
 {
-	jboolean isCopy; 
+	jboolean isCopy;
 	const char* szPath = env->GetStringUTFChars(path, &isCopy);
 	bool ret = nds4droid_loadrom(szPath);
 	env->ReleaseStringUTFChars(path, szPath);
@@ -808,7 +808,7 @@ void JNI(setWorkingDir, jstring path, jstring temp)
 	const char* szPath = env->GetStringUTFChars(path, &isCopy);
 	strncpy(PathInfo::pathToModule, szPath, MAX_PATH);
 	env->ReleaseStringUTFChars(path, szPath);
-	
+
 	szPath = env->GetStringUTFChars(temp, &isCopy);
 	strncpy(androidTempPath, szPath, MAX_PATH);
 	env->ReleaseStringUTFChars(temp, szPath);
@@ -924,7 +924,7 @@ void JNI_NOARGS(exit)
 	{
 		moncleanup();
 		profiler_end = true;
-		
+
 		INFO("profile end\n");
 	}
 #endif
