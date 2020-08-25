@@ -43,14 +43,14 @@ Performance varies by the hardware in your device and the game you're attempting
 ### To-do list
 
 - [ ] Handle problems other users have reported.
-- [ ] Add Dropbox support.
+- [ ] Add Dropbox support (to sync save files).
 - [ ] Improve the OpenGL ES 2.0 Renderer.
 - [ ] Get the OpenGL ES 3.0 Renderer working.
 - [ ] Replace Google's math-neon with Qualcomm's Ne10.
-- [ ] Switch to libc++ (NDK requirements).
+- [x] Switch to libc++ (NDK requirements).
 - [x] Fix the bug that causes the emulator to not write save files.
 - [ ] Improve the UI.
-- [ ] Add Vulkan renderer.
+- [ ] ~~Add Vulkan renderer.~~
 - [ ] Build JIT for ARM (x86 already has it).
 
 ### License
