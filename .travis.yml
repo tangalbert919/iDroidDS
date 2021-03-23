@@ -2,7 +2,7 @@ language: android
 
 env:
   global:
-    - NDK_VERSION=r18b #r19c
+    - NDK_VERSION=r21e
     #https://github.com/android-ndk/ndk/wiki/Changelog-r19
 
 android:

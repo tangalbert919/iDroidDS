@@ -495,7 +495,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
                             coreThread.changeSoundSyncMode(newSoundSyncMode);
                         break;
                     case Settings.ENABLE_AUTOSAVE:
-                    case Settings.AUTOSVAE_FREQUENCY:
+                    case Settings.AUTOSAVE_FREQUENCY:
                         cancelAutosave();
                         if (coreThread != null) {
                             if (DeSmuME.romLoaded)
@@ -517,7 +517,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
     void scheduleAutosave() {
         cancelAutosave();
         if (prefs.getBoolean(Settings.ENABLE_AUTOSAVE, true)) {
-            final int freqSel = Integer.valueOf(prefs.getString(Settings.AUTOSVAE_FREQUENCY, "1"));
+            final int freqSel = Integer.valueOf(prefs.getString(Settings.AUTOSAVE_FREQUENCY, "1"));
             long autosaveDelay;
             switch (freqSel) {
                 case 0:

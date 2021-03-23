@@ -36,28 +36,18 @@ jint JNI_NOARGS(getCPUType)
 	if (cpuFamily == ANDROID_CPU_FAMILY_ARM)
 	{
 		if ((cpuFeatures & ANDROID_CPU_ARM_FEATURE_NEON) != 0)
-		{
 			return CPUTYPE_NEON;
-		}
 		else if ((cpuFeatures & ANDROID_CPU_ARM_FEATURE_ARMv7) != 0)
-		{
 			return CPUTYPE_V7;
-		}
 	}
 	else if (cpuFamily == ANDROID_CPU_FAMILY_X86)
-	{
 		return CPUTYPE_X86;
-	}
 	else if (cpuFamily == ANDROID_CPU_FAMILY_X86_64)
 		return CPUTYPE_X64;
     else if (cpuFamily == ANDROID_CPU_FAMILY_ARM64)
-    {
         return CPUTYPE_ARM64;
-    }
 	else
-	{
 		return CPUTYPE_V7;
-	}
 }
 
 }

@@ -78,7 +78,7 @@ public class Settings extends PreferenceActivity {
     public static final String JIT_SIZE = "JitSize";
     public static final String ENABLE_FOG = "EnableFog";
     public static final String ENABLE_AUTOSAVE = "EnableAutosave";
-    public static final String AUTOSVAE_FREQUENCY = "AutosaveFrequency";
+    public static final String AUTOSAVE_FREQUENCY = "AutosaveFrequency";
     public static final String DISABLE_ROM_BROWSER = "DisableROMBrowser";
     static final int EDIT_LAYOUT_ID = 1337;
 
@@ -223,8 +223,8 @@ public class Settings extends PreferenceActivity {
             editor.putInt(JIT_SIZE, 10);
         if (!prefs.contains(ENABLE_AUTOSAVE))
             editor.putBoolean(ENABLE_AUTOSAVE, false);
-        if (!prefs.contains(AUTOSVAE_FREQUENCY))
-            editor.putString(AUTOSVAE_FREQUENCY, "1");
+        if (!prefs.contains(AUTOSAVE_FREQUENCY))
+            editor.putString(AUTOSAVE_FREQUENCY, "1");
         if (!prefs.contains(DISABLE_ROM_BROWSER))
             editor.putBoolean(DISABLE_ROM_BROWSER, false);
         if (!prefs.contains(LANGUAGE)) {

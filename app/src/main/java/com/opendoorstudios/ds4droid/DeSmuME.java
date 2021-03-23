@@ -154,7 +154,8 @@ public class DeSmuME {
         }
         try {
             String ret = pm.getString(name, String.valueOf(def));
-            return Integer.valueOf(ret);
+            assert ret != null;
+            return Integer.parseInt(ret);
         } catch (ClassCastException ignored) {
         }
         try {
