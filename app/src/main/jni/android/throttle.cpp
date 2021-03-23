@@ -19,9 +19,9 @@
 	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common.h"
-#include "../types.h"
-#include "../debug.h"
+#include "common.h"
+#include "types.h"
+#include "debug.h"
 #ifndef ANDROID
 #include "../console.h"
 #endif
@@ -175,7 +175,7 @@ waiter:
 	if((ttime - ltime) < (tfreq / desiredfps))
 	{
 		u64 sleepy;
-		sleepy = (tfreq / desiredfps) - (ttime - ltime);  
+		sleepy = (tfreq / desiredfps) - (ttime - ltime);
 		sleepy *= 1000;
 		if(tfreq >= 65536)
 			sleepy /= afsfreq;

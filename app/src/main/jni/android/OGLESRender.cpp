@@ -19,8 +19,8 @@
 
 #include "OGLESRender.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "debug.h"
 #include "gfx3d.h"
@@ -654,8 +654,8 @@ static void OGLRenderFinish()
 	ENDGL();
 }
 
-GPU3DInterface gpu3Dgles2 = {
-	"OpenGLES2",
+GPU3DInterface gpu3Dgles = {
+	"OpenGLES",
 	OGLInit,
 	OGLReset,
 	OGLClose,

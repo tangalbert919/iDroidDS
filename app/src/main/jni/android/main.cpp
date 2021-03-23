@@ -17,7 +17,7 @@
 */
 
 #include <jni.h>
-#include <errno.h>
+#include <cerrno>
 
 #include <android/native_window_jni.h>
 
@@ -30,16 +30,16 @@
 #include <arm_jit.h>
 
 #include "main.h"
-#include "../OGLESRender.h"
-#include "../rasterize.h"
-#include "../SPU.h"
-#include "../debug.h"
-#include "../NDSSystem.h"
-#include "../path.h"
-#include "../GPU_osd.h"
-#include "../slot1.h"
-#include "../slot2.h"
-#include "../saves.h"
+#include "OGLESRender.h"
+#include "rasterize.h"
+#include "SPU.h"
+#include "debug.h"
+#include "NDSSystem.h"
+#include "path.h"
+#include "GPU_osd.h"
+#include "slot1.h"
+#include "slot2.h"
+#include "saves.h"
 #include "throttle.h"
 #include "video.h"
 #include "OpenArchive.h"
@@ -54,7 +54,7 @@ unsigned int frameCount = 0;
 
 GPU3DInterface *core3DList[] = {
 	&gpu3DNull,
-	&gpu3Dgles2,
+	&gpu3Dgles,
 	&gpu3DRasterize,
 	NULL
 };

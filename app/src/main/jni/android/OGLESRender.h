@@ -273,7 +273,7 @@ struct POLY;
 class TexCacheItem;
 class OpenGLESRenderer;
 
-extern GPU3DInterface gpu3Dgles2;
+extern GPU3DInterface gpu3Dgles;
 
 //This is called by OGLRender whenever it initializes.
 //Platforms, please be sure to set this up.

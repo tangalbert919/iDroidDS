@@ -20,6 +20,7 @@ LOCAL_SRC_FILES			:= 	android/mic.cpp \
                             android/7zip.cpp \
                             android/sndopensl.cpp \
                             android/draw.cpp \
+                            android/OGLESRender.cpp \
                             desmume/src/addons/slot1_none.cpp \
 							desmume/src/addons/slot1_r4.cpp \
 							desmume/src/addons/slot1_retail_auto.cpp \
@@ -100,7 +101,6 @@ LOCAL_SRC_FILES			:= 	android/mic.cpp \
 							desmume/src/MMU.cpp \
 							desmume/src/movie.cpp \
 							desmume/src/NDSSystem.cpp \
-							desmume/src/OGLESRender.cpp \
 							desmume/src/path.cpp \
 							desmume/src/rasterize.cpp \
 							desmume/src/readwrite.cpp \

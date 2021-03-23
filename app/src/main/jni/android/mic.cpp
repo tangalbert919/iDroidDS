@@ -17,14 +17,14 @@
 
 /*
 	The NDS microphone produces 8-bit sound sampled at 16khz.
-	The sound data must be read sample-by-sample through the 
+	The sound data must be read sample-by-sample through the
 	ARM7 SPI device (touchscreen controller, channel 6).
 
-	Note : I added these notes because the microphone isn't 
+	Note : I added these notes because the microphone isn't
 	documented on GBATek.
 */
 
-#include "../mic.h"
+#include "mic.h"
 #include "readwrite.h"
 #include "main.h"
 
@@ -39,7 +39,7 @@ static SLRecordItf recorderRecord = NULL;
 static SLAndroidSimpleBufferQueueItf bqRecordBufferQueue;
 static bool samplesReady = false;
 
-#define MAX_NUMBER_INTERFACES 5 
+#define MAX_NUMBER_INTERFACES 5
 #define MAX_NUMBER_INPUT_DEVICES 3
 
 #define FAILED(X) (X) != SL_RESULT_SUCCESS
@@ -89,7 +89,7 @@ void JNI(setMicPaused, int set)
 		{
 			(*recorderRecord)->SetRecordState(recorderRecord,SL_RECORDSTATE_STOPPED);
 		}
-		else 
+		else
 		{
 			Mic_Reset();
 			(*recorderRecord)->SetRecordState(recorderRecord,SL_RECORDSTATE_RECORDING);
@@ -107,12 +107,12 @@ void Mic_DeInit()
         (*recorderObject)->Destroy(recorderObject);
 		recorderObject = NULL;
 	}
-	
+
 	/*if (engineObject != NULL) {
         (*engineObject)->Destroy(engineObject);
 		engineObject = NULL;
 	}*/
-	
+
 	Mic_Inited = FALSE;
 }
 
@@ -123,15 +123,15 @@ BOOL Mic_Init()
 	if(Mic_Inited == TRUE)
 		return TRUE;
 	SLresult result;
-	SLuint32 InputDeviceIDs[MAX_NUMBER_INPUT_DEVICES]; 
-	SLint32   numInputs = 0; 
-	SLboolean mic_available = SL_BOOLEAN_FALSE; 
-	SLuint32 mic_deviceID = 0; 
-	SLAudioIODeviceCapabilitiesItf AudioIODeviceCapabilitiesItf; 
+	SLuint32 InputDeviceIDs[MAX_NUMBER_INPUT_DEVICES];
+	SLint32   numInputs = 0;
+	SLboolean mic_available = SL_BOOLEAN_FALSE;
+	SLuint32 mic_deviceID = 0;
+	SLAudioIODeviceCapabilitiesItf AudioIODeviceCapabilitiesItf;
 	SLAudioInputDescriptor        AudioInputDescriptor;
-	
+
 	Mic_Inited = FALSE;
-	
+
 	//Some devices silently (literally haha) fail if you create multiple OpenSL ES instances.
 	//So now we share it with the regular audio output driver
 	if(engineObject == NULL)
@@ -146,25 +146,25 @@ BOOL Mic_Init()
 			return FALSE;
 	}
 
-		
+
 	SLDataLocator_IODevice loc_dev = {SL_DATALOCATOR_IODEVICE,
                       SL_IODEVICE_AUDIOINPUT,
                       SL_DEFAULTDEVICEID_AUDIOINPUT, NULL};
 	SLDataSource audioSrc = {&loc_dev, NULL};
 
 	SLDataLocator_AndroidSimpleBufferQueue loc_bq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
-	
+
 	//it seems that at least on my phone (galaxy nexus) the mic samples are always 16 bits, regardless of what you ask for
 	//the sampling rate does seem to be honored, though
 	SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM, 1, SL_SAMPLINGRATE_16,
 			  SL_PCMSAMPLEFORMAT_FIXED_16 , SL_PCMSAMPLEFORMAT_FIXED_16 ,
 			  SL_SPEAKER_FRONT_CENTER, SL_BYTEORDER_LITTLEENDIAN};
-			  
+
 	SLDataSink audioSnk = {&loc_bq, &format_pcm};
-	
+
 	const SLInterfaceID id[1] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE};
 	const SLboolean req[1] = {SL_BOOLEAN_TRUE};
-	
+
 	if(FAILED(result = (*engineEngine)->CreateAudioRecorder(engineEngine, &recorderObject, &audioSrc, &audioSnk, 1, id, req)))
 		return FALSE;
 
@@ -173,20 +173,20 @@ BOOL Mic_Init()
 
 	if(FAILED(result = (*recorderObject)->GetInterface(recorderObject, SL_IID_RECORD, &recorderRecord)))
 		return FALSE;
-		
+
 	if(FAILED(result = (*recorderObject)->GetInterface(recorderObject, SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &bqRecordBufferQueue)))
 		return FALSE;
-		
+
 	if(FAILED(result = (*bqRecordBufferQueue)->RegisterCallback(bqRecordBufferQueue, bqRecorderCallback, NULL)))
 		return FALSE;
-		
+
 	if(FAILED(result = (*recorderRecord)->SetRecordState(recorderRecord,SL_RECORDSTATE_RECORDING)))
 		return FALSE;
-		
+
 	Mic_Reset();
-	
+
 	bqRecorderCallback(bqRecordBufferQueue, NULL);
-	
+
 	LOGI("OpenSL created (for audio input)");
 	return Mic_Inited = TRUE;
 }
@@ -195,7 +195,7 @@ void Mic_Reset()
 {
 	recordingBuffer = fullBuffer = -1;
 	fullBufferPos = 0;
-	
+
 	if(!Mic_Inited)
 		return;
 
@@ -221,7 +221,7 @@ u8 Mic_ReadSample()
 			LOGI("Sound: original = %i, sixteen = %i, ret = %x", (int)original, (int)sixteen, (int)ret);
 			print = 0;
 		}*/
-		
+
 	}
 	return ret;
 

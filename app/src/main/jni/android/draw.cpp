@@ -1,5 +1,23 @@
+/*
+	Copyright (C) 2012 Jeffrey Quesnelle
+    Copyright (C) 2017-2021 The nds4droid Team
+
+	This file is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 2 of the License, or
+	(at your option) any later version.
+
+	This file is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with the this software.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "main.h"
-#include "../NDSSystem.h"
+#include "NDSSystem.h"
 #include "video.h"
 #include <android/bitmap.h>
 
@@ -110,7 +128,7 @@ void doBitmapDrawStandard(u8* __restrict__ pixels, u8* __restrict__ dest, int wi
 {
 	DOBITMAPIMPL
 }
-	
+
 void doBitmapDraw(u8* pixels, u8* dest, int width, int height, int stride, int pixelFormat, int verticalOffset, bool rotate)
 {
 	if(width == 256 && height == 192)
