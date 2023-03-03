@@ -26,13 +26,13 @@ def getVersionName = {
     }
 }
 android {
-    compileSdkVersion 30
-    buildToolsVersion "29.0.2"
+    compileSdkVersion 33
+    buildToolsVersion '29.0.2'
 
     defaultConfig {
         applicationId 'org.opendoorstudios.ds4droid'
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 33
         versionCode getVersionCode()
         versionName getVersionName()
         ndk {
@@ -64,14 +64,14 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    ndkVersion '21.0.6113669'
+    ndkVersion '25.2.9519653'
 }
 
 dependencies {
     implementation files('libs/ouya-sdk.jar')
 
     // TODO: Potentially drop v4 support.
-    implementation 'com.android.support:support-v4:28.0.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
     //https://github.com/dropbox/dropbox-sdk-java/releases
     api 'com.dropbox.core:dropbox-core-sdk:3.1.5'

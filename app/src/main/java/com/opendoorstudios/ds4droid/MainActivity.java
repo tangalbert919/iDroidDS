@@ -131,7 +131,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
         super.onCreate(savedInstanceState);
 
         try {
-            SevenZip.initSevenZipFromPlatformJAR("Linux-arm");
+            SevenZip.initSevenZipFromPlatformJAR("Linux-arm64");
         } catch (SevenZipNativeInitializationException e) {
             e.printStackTrace();
         }
@@ -591,10 +591,12 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
             setFocusable(true);
             setFocusableInTouchMode(true);
 
+            emuPaint.setFilterBitmap(false);
             hudPaint.setColor(Color.WHITE);
             hudPaint.setShadowLayer(1, 0, 0, Color.BLACK);
             hudPaint.setTextSize(defhudsize);
             hudPaint.setAntiAlias(false);
+            hudPaint.setFilterBitmap(false);
         }
 
         public void forceResize() {
@@ -699,7 +701,7 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
                 sourceHeight = DeSmuME.getNativeHeight();
                 resized = true;
 
-                screenOption = Integer.valueOf(prefs.getString(Settings.SPECIFIC_SCREEN_ONLY, "0"));
+                screenOption = Integer.parseInt(prefs.getString(Settings.SPECIFIC_SCREEN_ONLY, "0"));
                 final boolean hasScreenFilter = DeSmuME.getSettingInt(Settings.SCREEN_FILTER, 0) != 0;
                 final boolean is565 = newPixelFormat == PixelFormat.RGB_565 && !hasScreenFilter;
                 final boolean stretch = !prefs.getBoolean(Settings.MAINTAIN_ASPECT_RATIO, false);

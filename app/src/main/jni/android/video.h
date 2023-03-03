@@ -21,8 +21,8 @@ class VideoInfo
 {
 public:
 
-	unsigned int width;
-	unsigned int height;
+	int width;
+	int height;
 
 	int rotation;
 	int rotation_userset;

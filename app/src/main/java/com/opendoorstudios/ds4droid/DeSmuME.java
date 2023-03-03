@@ -176,7 +176,7 @@ public class DeSmuME {
         }
         try {
             String ret = pm.getString(name, String.valueOf(def));
-            return Boolean.valueOf(ret);
+            return Boolean.parseBoolean(ret);
         } catch (ClassCastException ignored) {
         }
         try {

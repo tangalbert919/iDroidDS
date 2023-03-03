@@ -22,8 +22,8 @@ import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -120,6 +120,7 @@ public class FileDialog extends ListActivity {
         path = new ArrayList<>();
         mList = new ArrayList<>();
 
+        // For some reason, we are unable to scan.
         File f = new File(currentPath);
         File[] files = f.listFiles();
         if (files == null) {

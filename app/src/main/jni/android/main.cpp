@@ -954,3 +954,4 @@ bool GetPrivateProfileBool(JNIEnv* env, const char* lpAppName, const char* lpKey
 	bool ret = env->CallStaticBooleanMethod(javaClass, getSettingBool, key, bDefault);*/
 	return GetPrivateProfileInt(env, lpAppName, lpKeyName, bDefault ? 1 : 0, lpFileName);
 }
+
