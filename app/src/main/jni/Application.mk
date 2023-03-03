@@ -11,4 +11,4 @@ APP_CFLAGS := -Ofast -fmodulo-sched -fmodulo-sched-allow-regmoves -fsingle-preci
 #APP_CFLAGS := -Wno-psabi
 
 NDK_TOOLCHAIN_VERSION := clang
-APP_PLATFORM := android-26
+APP_PLATFORM := android-33
