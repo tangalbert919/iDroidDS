@@ -9,8 +9,8 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    		:= libcpudetect
 LOCAL_SRC_FILES			:= cpu.cpp
-LOCAL_ARM_MODE 			:= thumb
-LOCAL_ARM_NEON 			:= false
+LOCAL_ARM_MODE 			:= arm
+LOCAL_ARM_NEON 			:= true
 LOCAL_CFLAGS			:= -fexceptions
 LOCAL_STATIC_LIBRARIES := cpufeatures
 
