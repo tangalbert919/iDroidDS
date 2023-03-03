@@ -530,6 +530,11 @@ void JNI(resize, jobject bitmap)
 		LOGI("bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGB_565");
 }
 
+void JNI_NOARGS(resetVideo)
+{
+	video.reset();
+}
+
 int JNI_NOARGS(getNativeWidth)
 {
 	return video.width;

@@ -100,6 +100,8 @@ public class DeSmuME {
 
     static native void loadSettings();
 
+    static native void resetVideo();
+
     static native int getNativeWidth();
 
     static native int getNativeHeight();

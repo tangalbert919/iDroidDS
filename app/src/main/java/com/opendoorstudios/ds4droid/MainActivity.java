@@ -697,6 +697,8 @@ public class MainActivity extends Activity implements OnSharedPreferenceChangeLi
         void resize(int newWidth, int newHeight, int newPixelFormat) {
 
             synchronized (view) {
+                if ((DeSmuME.getNativeWidth() == 0 || DeSmuME.getNativeHeight() == 0))
+                    DeSmuME.resetVideo();
                 sourceWidth = DeSmuME.getNativeWidth();
                 sourceHeight = DeSmuME.getNativeHeight();
                 resized = true;
